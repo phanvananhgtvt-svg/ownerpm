@@ -1269,7 +1269,7 @@
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
               hadLocal = true;
-              if (!parsed.cloudUrl) parsed.cloudUrl = DEFAULT_FIREBASE_URL;
+              if (!parsed.cloudUrl || !/firebasedatabase\.app|firebaseio\.com/i.test(parsed.cloudUrl)) parsed.cloudUrl = DEFAULT_FIREBASE_URL;
               if (parsed.autoSync === undefined) parsed.autoSync = true;
               return parsed;
             }
@@ -1295,13 +1295,17 @@
         el.textContent = text;
       }
 
+      function genSyncId() {
+        return Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      }
       function saveState(skipAutoPush) {
         state.lastUpdated = Date.now();
+        state.syncId = genSyncId();
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         if (!skipAutoPush && state.autoSync && state.cloudUrl) {
           updateSyncBadge('⏳ Đang lưu lên Web...', 'busy');
           clearTimeout(autoPushTimer);
-          autoPushTimer = setTimeout(() => pushToCloud(true), 1200);
+          autoPushTimer = setTimeout(() => { autoPushTimer = null; pushToCloud(true); }, 600);
         }
       }
 
@@ -4102,9 +4106,29 @@ function doPost(e) {
         return /firebasedatabase\.app|firebaseio\.com/i.test(url || '');
       }
 
+      function applyCloudState(data, url, silent) {
+        if (!data || !Array.isArray(data.projects) || data.projects.length === 0) return false;
+        const incomingId = data.syncId || String(Number(data.lastUpdated) || 0);
+        const currentId = state.syncId || String(Number(state.lastUpdated) || 0);
+        if (!silent || incomingId !== currentId) {
+          state = { ...data, cloudUrl: url, autoSync: state.autoSync };
+          if (!state.syncId) state.syncId = incomingId;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(Number(data.lastUpdated) || 0));
+          } catch (e) {}
+          renderAll();
+          const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
+          return true;
+        }
+        return false;
+      }
+
       async function pushToCloud(silent) {
         const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
+        if (!state.syncId) state.syncId = genSyncId();
         const msgEl = document.getElementById('cloud-status-msg');
         if (!silent && msgEl) msgEl.textContent = '⏳ Đang lưu toàn bộ dữ liệu lên Cloud...';
         updateSyncBadge('⏳ Đang đồng bộ...', 'busy');
@@ -4120,8 +4144,11 @@ function doPost(e) {
           } else {
             await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
           }
-          try { localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(state.lastUpdated || Date.now())); } catch (e) {}
-          const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(state.lastUpdated || Date.now()));
+          } catch (e) {}
+          const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
           if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã lưu dữ liệu lên Cloud thành công lúc ' + tm + '.</span>';
           if (!silent) showToast('Đã lưu dữ liệu lên Cloud');
@@ -4133,36 +4160,24 @@ function doPost(e) {
       }
 
       async function pullFromCloud(silent) {
+        if (silent && autoPushTimer) return;
         const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
         const msgEl = document.getElementById('cloud-status-msg');
         if (!silent && msgEl) msgEl.textContent = '⏳ Đang tải dữ liệu từ Cloud...';
         try {
-          const endpoint = isFirebaseUrl(url) ? (url.replace(/\/+$/, '') + '/ownerpm_state.json') : url;
-          const res = await fetch(endpoint);
+          const base = isFirebaseUrl(url) ? (url.replace(/\/+$/, '') + '/ownerpm_state.json') : url;
+          const sep = base.includes('?') ? '&' : '?';
+          const res = await fetch(base + sep + '_=' + Date.now(), { cache: 'no-store' });
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           if (data && Array.isArray(data.projects) && data.projects.length > 0) {
-            const cloudTs = Number(data.lastUpdated) || 0;
-            let lastAppliedTs = 0;
-            try { lastAppliedTs = Number(localStorage.getItem(STORAGE_KEY + '_cloud_ts')) || 0; } catch (e) {}
-            if (!silent || cloudTs !== lastAppliedTs || lastAppliedTs === 0) {
-              state = { ...data, cloudUrl: url, autoSync: state.autoSync };
-              try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-                localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(cloudTs));
-              } catch (e) {}
-              renderAll();
-              const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-              updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
-              if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải dữ liệu mới nhất từ Cloud!</span>';
-              if (!silent) showToast('Đã đồng bộ dữ liệu mới nhất từ Cloud');
-            } else {
-              const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-              updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
-            }
+            const changed = applyCloudState(data, url, silent);
+            const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (!changed) updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
+            if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải dữ liệu mới nhất từ Cloud!</span>';
+            if (!silent) showToast('Đã đồng bộ dữ liệu mới nhất từ Cloud');
           } else if (isFirebaseUrl(url) && data === null) {
-            // Firebase is empty on first run -> seed initial state up to Firebase
             await pushToCloud(true);
           } else if (!silent && msgEl) {
             msgEl.innerHTML = '<span class="text-amber-600">Cloud chưa có dữ liệu. Hãy bấm "Lưu lên Web Cloud" trước.</span>';
@@ -4173,6 +4188,25 @@ function doPost(e) {
             if (msgEl) msgEl.innerHTML = '<span class="text-rose-600">Lỗi tải từ Cloud: ' + esc(err.message) + '</span>';
           }
         }
+      }
+
+      let cloudStream = null;
+      function startRealtimeCloudStream() {
+        const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
+        if (!state.autoSync || !isFirebaseUrl(url) || typeof EventSource === 'undefined') return;
+        if (cloudStream) { try { cloudStream.close(); } catch (e) {} cloudStream = null; }
+        try {
+          cloudStream = new EventSource(url.replace(/\/+$/, '') + '/ownerpm_state.json');
+          cloudStream.addEventListener('put', e => {
+            if (autoPushTimer) return;
+            try {
+              const payload = JSON.parse(e.data);
+              if (payload && payload.path === '/' && payload.data) {
+                applyCloudState(payload.data, url, true);
+              }
+            } catch (err) {}
+          });
+        } catch (e) {}
       }
 
       document.getElementById('btn-sync-now').addEventListener('click', () => pullFromCloud(false));
@@ -4202,10 +4236,11 @@ function doPost(e) {
         pullFromCloud(false);
       });
 
-      // Auto-Pull on startup & every 30s when Auto-Sync is enabled
+      // Auto-Pull on startup, Realtime SSE stream, & 10s polling backup
       if (state.autoSync && state.cloudUrl) {
         updateSyncBadge('☁ Auto-Sync đang bật', 'ok');
         pullFromCloud(true);
+        startRealtimeCloudStream();
       }
       setInterval(() => {
         if (state.autoSync && state.cloudUrl) pullFromCloud(true);
