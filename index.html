@@ -1126,6 +1126,7 @@
       'use strict';
 
       const STORAGE_KEY = 'ownerpm_kimtin_integrated_v3';
+      const DEFAULT_FIREBASE_URL = 'https://ownerpm-kimtin-default-rtdb.asia-southeast1.firebasedatabase.app/';
       const DAY = 86400000;
 
       function iso(str) {
@@ -1264,14 +1265,24 @@
       }
 
       function loadState() {
+        let hadLocal = false;
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
           if (raw) {
             const parsed = JSON.parse(raw);
-            if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) return parsed;
+            if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+              hadLocal = true;
+              if (!parsed.cloudUrl) parsed.cloudUrl = DEFAULT_FIREBASE_URL;
+              if (parsed.autoSync === undefined) parsed.autoSync = true;
+              return parsed;
+            }
           }
         } catch (e) {}
-        return getDefaultData();
+        const def = getDefaultData();
+        def.cloudUrl = DEFAULT_FIREBASE_URL;
+        def.autoSync = true;
+        def.lastUpdated = hadLocal ? Date.now() : 0;
+        return def;
       }
       let autoPushTimer = null;
       function updateSyncBadge(text, tone) {
@@ -4090,47 +4101,73 @@ function doPost(e) {
         };
       }
 
+      function isFirebaseUrl(url) {
+        return /firebasedatabase\.app|firebaseio\.com/i.test(url || '');
+      }
+
       async function pushToCloud(silent) {
-        const url = (state.cloudUrl || '').trim();
+        const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
         const msgEl = document.getElementById('cloud-status-msg');
-        if (!silent && msgEl) msgEl.textContent = '⏳ Đang đẩy toàn bộ dữ liệu lên Google Sheets...';
-        updateSyncBadge('⏳ Đang lưu Sheet...', 'busy');
+        if (!silent && msgEl) msgEl.textContent = '⏳ Đang lưu toàn bộ dữ liệu lên Cloud...';
+        updateSyncBadge('⏳ Đang đồng bộ...', 'busy');
         try {
-          await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
+          if (isFirebaseUrl(url)) {
+            const endpoint = url.replace(/\/+$/, '') + '/ownerpm_state.json';
+            const res = await fetch(endpoint, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(state)
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+          } else {
+            await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
+          }
           const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
           updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
-          if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã lưu toàn bộ dữ liệu &amp; các tab bảng tính lên Google Sheets lúc ' + tm + '.</span>';
-          if (!silent) showToast('Đã lưu dữ liệu lên Google Sheets');
+          if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã lưu dữ liệu lên Cloud thành công lúc ' + tm + '.</span>';
+          if (!silent) showToast('Đã lưu dữ liệu lên Cloud');
         } catch (err) {
           updateSyncBadge('⚠ Lỗi đồng bộ', 'err');
-          if (!silent && msgEl) msgEl.innerHTML = '<span class="text-rose-600">Không thể kết nối Google Sheets: ' + esc(err.message) + '</span>';
+          if (!silent && msgEl) msgEl.innerHTML = '<span class="text-rose-600">Không thể kết nối Cloud: ' + esc(err.message) + '</span>';
         }
       }
 
       async function pullFromCloud(silent) {
-        const url = (state.cloudUrl || '').trim();
+        const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
         const msgEl = document.getElementById('cloud-status-msg');
-        if (!silent && msgEl) msgEl.textContent = '⏳ Đang tải dữ liệu từ Google Sheets...';
+        if (!silent && msgEl) msgEl.textContent = '⏳ Đang tải dữ liệu từ Cloud...';
         try {
-          const res = await fetch(url);
+          const endpoint = isFirebaseUrl(url) ? (url.replace(/\/+$/, '') + '/ownerpm_state.json') : url;
+          const res = await fetch(endpoint);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           if (data && Array.isArray(data.projects) && data.projects.length > 0) {
-            state = { ...data, cloudUrl: url, autoSync: state.autoSync };
-            saveState(true);
-            renderAll();
-            const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
-            if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải &amp; cập nhật dữ liệu mới nhất từ Google Sheets!</span>';
-            if (!silent) showToast('Đã đồng bộ dữ liệu từ Google Sheets');
+            const cloudTs = Number(data.lastUpdated) || 0;
+            const localTs = Number(state.lastUpdated) || 0;
+            if (!silent || cloudTs > localTs || localTs === 0) {
+              state = { ...data, cloudUrl: url, autoSync: state.autoSync };
+              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+              renderAll();
+              const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
+              if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải dữ liệu mới nhất từ Cloud!</span>';
+              if (!silent) showToast('Đã đồng bộ dữ liệu từ Cloud');
+            } else {
+              const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+              updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
+            }
+          } else if (isFirebaseUrl(url) && data === null) {
+            // Firebase is empty on first run -> seed initial state up to Firebase
+            await pushToCloud(true);
           } else if (!silent && msgEl) {
-            msgEl.innerHTML = '<span class="text-amber-600">Google Sheet chưa có dữ liệu. Hãy bấm "Lưu lên Google Sheets" trước.</span>';
+            msgEl.innerHTML = '<span class="text-amber-600">Cloud chưa có dữ liệu. Hãy bấm "Lưu lên Google Sheets / Cloud" trước.</span>';
           }
         } catch (err) {
           if (!silent) {
-            updateSyncBadge('⚠ Lỗi tải Sheet', 'err');
-            if (msgEl) msgEl.innerHTML = '<span class="text-rose-600">Lỗi tải từ Google Sheets: ' + esc(err.message) + '</span>';
+            updateSyncBadge('⚠ Lỗi tải Cloud', 'err');
+            if (msgEl) msgEl.innerHTML = '<span class="text-rose-600">Lỗi tải từ Cloud: ' + esc(err.message) + '</span>';
           }
         }
       }
@@ -4176,7 +4213,7 @@ function doPost(e) {
       }
       setInterval(() => {
         if (state.autoSync && state.cloudUrl) pullFromCloud(true);
-      }, 30000);
+      }, 10000);
 
       // Security & Role Switching
       document.getElementById('btn-security-role').addEventListener('click', () => document.getElementById('security-modal').classList.remove('hidden'));
