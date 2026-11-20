@@ -1059,36 +1059,32 @@
     </div>
   </div>
 
-  <!-- Cloud Sync Modal (Google Sheets 2-Way Auto-Sync) -->
+  <!-- Cloud Sync Modal (Web Firebase Cloud Auto-Sync) -->
   <div id="cloud-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900 text-base">☁ Đồng bộ 2 chiều với Google Sheets (Tự động)</h3>
+        <h3 class="font-bold text-slate-900 text-base">☁ Đồng bộ dữ liệu trực tiếp trên Web (Cloud)</h3>
         <button id="btn-close-cloud" type="button" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400">✕</button>
       </div>
       <div class="p-5 space-y-4 text-sm overflow-y-auto">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Google Apps Script Web App URL</label>
-          <input id="cloud-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2" />
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Địa chỉ Web Cloud Database (đã cấu hình sẵn)</label>
+          <input id="cloud-url-input" type="url" placeholder="https://ownerpm-kimtin-default-rtdb.asia-southeast1.firebasedatabase.app/" class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2" />
         </div>
         <label class="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 cursor-pointer">
           <input id="cloud-autosync-toggle" type="checkbox" class="w-4 h-4 accent-emerald-600" />
           <div>
-            <div class="text-xs font-bold text-emerald-900">Bật tự động đồng bộ 2 chiều (Auto-Sync)</div>
-            <div class="text-[11px] text-emerald-700">Tự động đẩy lên Google Sheets ngay khi bạn sửa dữ liệu &amp; tự động kéo thay đổi từ Google Sheets mỗi 30 giây.</div>
+            <div class="text-xs font-bold text-emerald-900">Bật tự động đồng bộ trực tuyến (Auto-Sync)</div>
+            <div class="text-[11px] text-emerald-700">Mọi chỉnh sửa được lưu trực tiếp lên Web Cloud và tự động cập nhật sang các máy khác mỗi 10 giây (không cần Google Sheets).</div>
           </div>
         </label>
         <div id="cloud-status-msg" class="text-xs text-slate-600"></div>
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700">Mã Google Apps Script (Dán vào Tiện ích mở rộng → Apps Script của Google Sheet)</span>
-            <button id="btn-copy-gas" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-white">📋 Sao chép mã</button>
-          </div>
-          <pre id="gas-code-preview" class="text-[10.5px] bg-slate-900 text-emerald-300 p-3 rounded-lg overflow-x-auto max-h-36 leading-relaxed"></pre>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed">
+          <strong>Lưu ý:</strong> Dữ liệu của toàn bộ dự án nằm trực tiếp trên hệ thống Web Cloud. Khi mở trang web trên máy tính hoặc trình duyệt khác, ứng dụng sẽ tự động tải phiên bản mới nhất về.
         </div>
         <div class="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
-          <button id="btn-cloud-pull" type="button" class="px-4 py-2 text-xs font-semibold rounded-xl bg-sky-600 hover:bg-sky-700 text-white">⬇ Tải từ Google Sheets</button>
-          <button id="btn-cloud-push" type="button" class="px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">⬆ Lưu lên Google Sheets</button>
+          <button id="btn-cloud-pull" type="button" class="px-4 py-2 text-xs font-semibold rounded-xl bg-sky-600 hover:bg-sky-700 text-white">⬇ Tải dữ liệu từ Web</button>
+          <button id="btn-cloud-push" type="button" class="px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">⬆ Lưu lên Web Cloud</button>
         </div>
       </div>
     </div>
@@ -1303,7 +1299,7 @@
         state.lastUpdated = Date.now();
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         if (!skipAutoPush && state.autoSync && state.cloudUrl) {
-          updateSyncBadge('⏳ Chờ đồng bộ Sheet...', 'busy');
+          updateSyncBadge('⏳ Đang lưu lên Web...', 'busy');
           clearTimeout(autoPushTimer);
           autoPushTimer = setTimeout(() => pushToCloud(true), 1200);
         }
@@ -4169,7 +4165,7 @@ function doPost(e) {
             // Firebase is empty on first run -> seed initial state up to Firebase
             await pushToCloud(true);
           } else if (!silent && msgEl) {
-            msgEl.innerHTML = '<span class="text-amber-600">Cloud chưa có dữ liệu. Hãy bấm "Lưu lên Google Sheets / Cloud" trước.</span>';
+            msgEl.innerHTML = '<span class="text-amber-600">Cloud chưa có dữ liệu. Hãy bấm "Lưu lên Web Cloud" trước.</span>';
           }
         } catch (err) {
           if (!silent) {
@@ -4181,35 +4177,27 @@ function doPost(e) {
 
       document.getElementById('btn-sync-now').addEventListener('click', () => pullFromCloud(false));
       document.getElementById('btn-cloud-sync').addEventListener('click', () => {
-        document.getElementById('cloud-url-input').value = state.cloudUrl || '';
+        document.getElementById('cloud-url-input').value = state.cloudUrl || DEFAULT_FIREBASE_URL;
         document.getElementById('cloud-autosync-toggle').checked = Boolean(state.autoSync);
-        document.getElementById('gas-code-preview').textContent = GAS_SCRIPT;
         document.getElementById('cloud-status-msg').textContent = '';
         document.getElementById('cloud-modal').classList.remove('hidden');
       });
       document.getElementById('btn-close-cloud').addEventListener('click', () => document.getElementById('cloud-modal').classList.add('hidden'));
-      document.getElementById('cloud-url-input').addEventListener('change', e => { state.cloudUrl = e.target.value.trim(); saveState(true); });
+      document.getElementById('cloud-url-input').addEventListener('change', e => { state.cloudUrl = e.target.value.trim() || DEFAULT_FIREBASE_URL; saveState(true); });
       document.getElementById('cloud-autosync-toggle').addEventListener('change', e => {
         state.autoSync = e.target.checked;
-        state.cloudUrl = document.getElementById('cloud-url-input').value.trim();
+        state.cloudUrl = document.getElementById('cloud-url-input').value.trim() || DEFAULT_FIREBASE_URL;
         saveState(true);
         updateSyncBadge(state.autoSync && state.cloudUrl ? '☁ Đã bật Auto-Sync' : '☁ Chưa bật Cloud Sync', state.autoSync && state.cloudUrl ? 'ok' : 'idle');
-        showToast(state.autoSync ? 'Đã bật tự động đồng bộ 2 chiều với Google Sheets' : 'Đã tắt tự động đồng bộ', 'info');
-      });
-      document.getElementById('btn-copy-gas').addEventListener('click', () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(GAS_SCRIPT).then(() => showToast('Đã sao chép mã Google Apps Script')).catch(() => {});
-        } else showToast('Đã sao chép mã');
+        showToast(state.autoSync ? 'Đã bật tự động đồng bộ trực tuyến trên Web' : 'Đã tắt tự động đồng bộ', 'info');
       });
       document.getElementById('btn-cloud-push').addEventListener('click', () => {
-        state.cloudUrl = document.getElementById('cloud-url-input').value.trim();
-        if (!state.cloudUrl) { document.getElementById('cloud-status-msg').innerHTML = '<span class="text-rose-600">Vui lòng nhập URL Web App Google Apps Script.</span>'; return; }
+        state.cloudUrl = document.getElementById('cloud-url-input').value.trim() || DEFAULT_FIREBASE_URL;
         saveState(true);
         pushToCloud(false);
       });
       document.getElementById('btn-cloud-pull').addEventListener('click', () => {
-        state.cloudUrl = document.getElementById('cloud-url-input').value.trim();
-        if (!state.cloudUrl) { document.getElementById('cloud-status-msg').innerHTML = '<span class="text-rose-600">Vui lòng nhập URL Web App Google Apps Script.</span>'; return; }
+        state.cloudUrl = document.getElementById('cloud-url-input').value.trim() || DEFAULT_FIREBASE_URL;
         saveState(true);
         pullFromCloud(false);
       });
