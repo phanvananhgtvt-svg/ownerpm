@@ -62,6 +62,35 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
+  <!-- Auth Login Overlay -->
+  <div id="auth-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 px-6 py-5 text-white flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-lg">KT</div>
+        <div>
+          <h2 class="font-bold text-base leading-tight">OwnerPM — Đăng nhập Hệ thống</h2>
+          <p class="text-xs text-slate-400">CÔNG TY CỔ PHẦN KIM TÍN ĐỒNG NAI</p>
+        </div>
+      </div>
+      <form id="auth-login-form" class="p-6 space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Tên đăng nhập</label>
+          <input id="login-username" type="text" required autocomplete="username" placeholder="Nhập tên đăng nhập (vd: admin)" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
+          <input id="login-password" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu" class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+        <div id="login-error-msg" class="text-xs text-rose-600 font-medium hidden"></div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm transition">
+          🔐 Đăng nhập vào hệ thống
+        </button>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-500 leading-relaxed">
+          Mặc định ban đầu: Tài khoản <strong class="text-slate-700">admin</strong> / Mật khẩu <strong class="text-slate-700">123456</strong>. Sau khi vào hệ thống, Admin có thể đổi mật khẩu và thêm tài khoản cho từng nhân sự.
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- App Shell -->
   <div id="app-shell" class="min-h-screen flex flex-col lg:flex-row">
@@ -167,7 +196,7 @@
             ☁ Cloud Sync
           </button>
           <button id="btn-security-role" type="button" class="text-xs text-purple-300 hover:text-white bg-slate-800/80 hover:bg-purple-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 transition">
-            🔒 Phân quyền
+            🔒 Tài khoản
           </button>
         </div>
         <div class="grid grid-cols-2 gap-1.5">
@@ -179,9 +208,15 @@
           </button>
           <input id="input-import-xlsx" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
         </div>
-        <button id="btn-export-json" type="button" class="w-full text-xs text-slate-300 hover:text-white bg-slate-800/70 hover:bg-slate-800 py-1.5 px-3 rounded-lg transition text-center">
-          Xuất sao lưu (.json)
-        </button>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btn-export-json" type="button" class="text-xs text-teal-300 hover:text-white bg-slate-800/80 hover:bg-teal-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 transition" title="Xuất toàn bộ dữ liệu tất cả dự án về máy (.json)">
+            💾 Xuất dữ liệu
+          </button>
+          <button id="btn-import-json-trigger" type="button" class="text-xs text-indigo-300 hover:text-white bg-slate-800/80 hover:bg-indigo-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 transition" title="Khôi phục toàn bộ dữ liệu từ file .json trên máy">
+            📂 Nhập dữ liệu
+          </button>
+          <input id="input-import-json" type="file" accept=".json" class="hidden" />
+        </div>
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
@@ -200,6 +235,8 @@
             <span id="hdr-week" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">Báo cáo Tuần 23</span>
             <span id="hdr-role" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">Vai trò: Chủ đầu tư (Toàn quyền)</span>
             <span id="hdr-sync-status" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">☁ Chưa bật Cloud Sync</span>
+            <span id="hdr-user-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-white hidden">👤 —</span>
+            <button id="btn-logout" type="button" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition hidden">🚪 Đăng xuất</button>
             <button id="btn-sync-now" type="button" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 transition" title="Tải lại dữ liệu mới nhất từ Cloud">🔄 Đồng bộ ngay</button>
           </div>
           <h2 id="hdr-name" class="text-lg sm:text-xl font-bold text-slate-900">Tên dự án</h2>
@@ -850,11 +887,19 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Thông tin Bìa &amp; Nhận xét Báo cáo Tuần</h3>
-              <p class="text-xs text-slate-500">Cấu hình thông tin hiển thị trên trang bìa và phần đánh giá của Giám đốc Dự án khi xuất PDF</p>
+              <p class="text-xs text-slate-500">Cấu hình thông tin hiển thị trên trang bìa, lưu trữ theo từng tuần và xuất PDF</p>
             </div>
-            <button id="btn-preview-pdf-2" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition">
-              📄 Xem trước &amp; In Báo cáo PDF
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-save-weekly-archive" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition">
+                💾 Lưu Báo cáo Tuần này
+              </button>
+              <button id="btn-new-weekly-report" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition">
+                ＋ Tạo tuần mới
+              </button>
+              <button id="btn-preview-pdf-2" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition">
+                📄 Xem trước &amp; In PDF
+              </button>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
             <div><label class="block text-xs font-semibold text-slate-500 mb-1">Đơn vị Chủ đầu tư</label><input id="cfg-owner" type="text" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" /></div>
@@ -902,6 +947,31 @@
             </button>
           </div>
           <div id="site-photos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 class="font-semibold text-slate-900 text-base">📚 Kho lưu trữ Báo cáo tuần theo từng tuần</h3>
+              <p class="text-xs text-slate-500">Mỗi tuần sau khi hoàn thiện, bấm "💾 Lưu Báo cáo Tuần này" để lưu lại ảnh chụp tiến độ, tài chính và công việc của tuần đó</p>
+            </div>
+            <span id="weekly-archive-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">0 tuần đã lưu</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 text-xs text-slate-500 uppercase bg-slate-50/70">
+                  <th class="py-3 px-3 font-semibold">Báo cáo tuần</th>
+                  <th class="py-3 px-3 font-semibold">Ngày BC</th>
+                  <th class="py-3 px-3 font-semibold text-center">Tiến độ (KH / TH / SPI)</th>
+                  <th class="py-3 px-3 font-semibold text-right">Đã TT / Đang trình</th>
+                  <th class="py-3 px-3 font-semibold text-center">Nội dung</th>
+                  <th class="py-3 px-3 font-semibold text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="weekly-archive-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1090,27 +1160,111 @@
     </div>
   </div>
 
-  <!-- Security & Role Modal -->
+  <!-- Security, Password & User Login Management Modal -->
   <div id="security-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-xl border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-900 text-base">🔒 Phân quyền &amp; Chế độ Xem</h3>
+        <h3 class="font-bold text-slate-900 text-base">🔒 Cài đặt Mật khẩu, Phân quyền &amp; Danh sách Đăng nhập</h3>
         <button id="btn-close-security" type="button" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400">✕</button>
       </div>
-      <div class="p-5 space-y-3 text-sm">
-        <p class="text-xs text-slate-500">Chọn vai trò sử dụng trên thiết bị này:</p>
-        <button type="button" data-set-role="admin" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
-          <div class="font-bold text-slate-900">👑 Chủ đầu tư / Admin (Toàn quyền)</div>
-          <div class="text-xs text-slate-500">Được thêm/xóa dự án, duyệt chi, duyệt phát sinh VO và sửa ngân sách.</div>
-        </button>
-        <button type="button" data-set-role="engineer" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
-          <div class="font-bold text-slate-900">👷 Kỹ sư hiện trường</div>
-          <div class="text-xs text-slate-500">Chỉ cập nhật % tiến độ nhà thầu, nghiệm thu và tải ảnh hiện trường.</div>
-        </button>
-        <button type="button" data-set-role="viewer" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
-          <div class="font-bold text-slate-900">👁 Lãnh đạo (Chỉ xem / Read-only)</div>
-          <div class="text-xs text-slate-500">Chỉ xem Dashboard, biểu đồ, xuất báo cáo PDF/Excel (khóa các nút chỉnh sửa).</div>
-        </button>
+      <div class="p-5 space-y-5 text-sm overflow-y-auto">
+        <!-- Lock toggle + Change own password -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input id="sec-auth-enabled" type="checkbox" class="w-4 h-4 accent-brand-600" />
+              <div>
+                <div class="text-xs font-bold text-slate-900">Bật khóa mật khẩu khi vào web</div>
+                <div class="text-[11px] text-slate-500">Yêu cầu đăng nhập tài khoản hợp lệ trên mọi thiết bị</div>
+              </div>
+            </label>
+            <div class="text-xs text-slate-600 pt-1 border-t border-slate-200">
+              Đang đăng nhập: <strong id="sec-current-user" class="text-slate-900">—</strong>
+            </div>
+          </div>
+          <form id="sec-change-pw-form" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div class="text-xs font-bold text-slate-800">🔑 Đổi mật khẩu của tài khoản hiện tại</div>
+            <div class="flex gap-2">
+              <input id="sec-new-pw" type="password" required minlength="4" placeholder="Mật khẩu mới (tối thiểu 4 ký tự)" class="flex-1 text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" />
+              <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white shrink-0">Lưu MK</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Admin User List Management -->
+        <div id="sec-admin-panel" class="space-y-4">
+          <div class="border border-slate-200 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">👥 Danh sách tài khoản được phép đăng nhập</h4>
+            </div>
+            <form id="sec-add-user-form" class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              <input id="new-u-username" type="text" required placeholder="Tên đăng nhập" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" />
+              <input id="new-u-fullname" type="text" required placeholder="Họ tên / Chức danh" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" />
+              <input id="new-u-password" type="password" required minlength="4" placeholder="Mật khẩu" class="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" />
+              <select id="new-u-role" class="text-xs border border-slate-300 rounded-lg px-2 py-1.5">
+                <option value="admin">Admin (Toàn quyền)</option>
+                <option value="engineer">Kỹ sư hiện trường</option>
+                <option value="viewer">Lãnh đạo (Chỉ xem)</option>
+              </select>
+              <button type="submit" class="text-xs font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5">+ Thêm TK</button>
+            </form>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                    <th class="py-2 px-2">Tài khoản</th>
+                    <th class="py-2 px-2">Họ tên</th>
+                    <th class="py-2 px-2">Quyền hạn</th>
+                    <th class="py-2 px-2 text-center">Trạng thái</th>
+                    <th class="py-2 px-2">Đăng nhập cuối</th>
+                    <th class="py-2 px-2 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="sec-users-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Login Logs -->
+          <div class="border border-slate-200 rounded-xl p-4 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">📋 Nhật ký / Danh sách lịch sử đăng nhập</h4>
+              <button id="btn-clear-auth-logs" type="button" class="text-[11px] font-semibold text-rose-600 hover:underline">Xóa nhật ký</button>
+            </div>
+            <div class="max-h-40 overflow-y-auto overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                    <th class="py-1.5 px-2">Thời gian</th>
+                    <th class="py-1.5 px-2">Tài khoản</th>
+                    <th class="py-1.5 px-2">Họ tên / Vai trò</th>
+                    <th class="py-1.5 px-2 text-right">Kết quả</th>
+                  </tr>
+                </thead>
+                <tbody id="sec-logs-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Role Preview (for Admin) -->
+        <div id="sec-role-preview" class="pt-2 border-t border-slate-100">
+          <p class="text-xs text-slate-500 mb-2">Chuyển nhanh chế độ hiển thị (Xem thử phân quyền trên thiết bị này):</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button type="button" data-set-role="admin" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
+              <div class="font-bold text-xs text-slate-900">👑 Chủ đầu tư / Admin</div>
+              <div class="text-[11px] text-slate-500">Toàn quyền quản trị</div>
+            </button>
+            <button type="button" data-set-role="engineer" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
+              <div class="font-bold text-xs text-slate-900">👷 Kỹ sư hiện trường</div>
+              <div class="text-[11px] text-slate-500">Cập nhật tiến độ &amp; ảnh</div>
+            </button>
+            <button type="button" data-set-role="viewer" class="text-left p-2.5 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50/40 transition">
+              <div class="font-bold text-xs text-slate-900">👁 Lãnh đạo (Chỉ xem)</div>
+              <div class="text-[11px] text-slate-500">Chỉ xem &amp; xuất báo cáo</div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2374,6 +2528,26 @@
               <label class="text-xs font-semibold text-brand-600 hover:underline cursor-pointer shrink-0">Tải ảnh<input type="file" accept="image/*" data-photo-id="${esc(ph.id)}" class="hidden photo-upload-input" /></label>
             </div>
           </div>`).join('') : `<div class="col-span-2 text-sm text-slate-400 text-center py-6">Chưa có khung ảnh hiện trường.</div>`;
+
+        const arch = Array.isArray(proj.weeklyArchive) ? proj.weeklyArchive : [];
+        const cntEl = document.getElementById('weekly-archive-count');
+        if (cntEl) cntEl.textContent = `${arch.length} tuần đã lưu`;
+        const archBody = document.getElementById('weekly-archive-body');
+        if (archBody) {
+          archBody.innerHTML = arch.length ? arch.slice().reverse().map(a => `
+            <tr class="hover:bg-slate-50/80">
+              <td class="py-3 px-3"><div class="font-semibold text-slate-900">${esc(a.weekLabel)}</div><div class="text-[11px] text-slate-400">Lưu lúc: ${esc(a.savedAt || '—')}</div></td>
+              <td class="py-3 px-3 text-xs text-slate-600">${fmtDateVN(a.reportDate)}</td>
+              <td class="py-3 px-3 text-center text-xs"><span class="text-slate-500">${a.planPct}%</span> / <span class="font-bold text-brand-600">${a.actualPct}%</span> <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 font-semibold">SPI ${a.spi}</span></td>
+              <td class="py-3 px-3 text-right text-xs"><span class="font-semibold text-emerald-700">${fmtTy(a.paidTotal)} Tỷ</span>${Number(a.submittedDebt) > 0 ? `<div class="text-rose-600">Trình: ${fmtTy(a.submittedDebt)} Tỷ</div>` : ''}</td>
+              <td class="py-3 px-3 text-center text-xs text-slate-600">${(a.weeklyTasks || []).length} việc • ${(a.sitePhotos || []).filter(p => p.dataUrl).length} ảnh</td>
+              <td class="py-3 px-3 text-right whitespace-nowrap space-x-1">
+                <button type="button" data-weekly-act="load" data-weekly-id="${esc(a.id)}" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100">👁 Nạp lại</button>
+                <button type="button" data-weekly-act="pdf" data-weekly-id="${esc(a.id)}" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100">📄 PDF</button>
+                <button type="button" data-weekly-act="del" data-weekly-id="${esc(a.id)}" class="px-2 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50">🗑</button>
+              </td>
+            </tr>`).join('') : `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-sm">Chưa có báo cáo tuần nào được lưu. Bấm <strong>"💾 Lưu Báo cáo Tuần này"</strong> để lưu lại dữ liệu tuần hiện tại.</td></tr>`;
+        }
       }
 
       // Charts
@@ -3979,10 +4153,140 @@
       });
 
       document.getElementById('btn-export-json').addEventListener('click', () => {
-        const blob = new Blob([JSON.stringify(getActiveProject(), null, 2)], { type: 'application/json' });
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          app: 'OwnerPM_KimTin',
+          ...state
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = `${getActiveProject().code}_OwnerPM.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        showToast('Đã xuất sao lưu JSON');
+        const dt = new Date().toISOString().slice(0, 10);
+        a.href = url; a.download = `OwnerPM_ToanBoDuLieu_${dt}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        showToast('Đã xuất toàn bộ dữ liệu về máy (.json)');
+      });
+
+      document.getElementById('btn-import-json-trigger').addEventListener('click', () => {
+        document.getElementById('input-import-json').click();
+      });
+      document.getElementById('input-import-json').addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const txt = await file.text();
+          const parsed = JSON.parse(txt);
+          if (parsed && Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+            state = {
+              ...parsed,
+              cloudUrl: parsed.cloudUrl || state.cloudUrl || DEFAULT_FIREBASE_URL,
+              autoSync: parsed.autoSync !== undefined ? parsed.autoSync : true
+            };
+            selectedContractor = '';
+            saveState(); renderAll();
+            showToast(`Đã khôi phục toàn bộ ${state.projects.length} dự án từ file sao lưu`);
+          } else if (parsed && parsed.id && Array.isArray(parsed.contracts)) {
+            const idx = state.projects.findIndex(p => p.id === parsed.id);
+            if (idx >= 0) state.projects[idx] = parsed;
+            else state.projects.push(parsed);
+            state.activeProjectId = parsed.id;
+            selectedContractor = '';
+            saveState(); renderAll();
+            showToast(`Đã nhập dự án "${parsed.name}" từ file sao lưu`);
+          } else {
+            showToast('File JSON không đúng định dạng OwnerPM', 'error');
+          }
+        } catch (err) {
+          showToast('Lỗi đọc file JSON: ' + err.message, 'error');
+        }
+        e.target.value = '';
+      });
+
+      // Weekly Report Archive Handlers
+      function buildWeeklySnapshot(proj) {
+        const ag = aggTasks(getLeafTasks(proj.tasks), getReportMs());
+        const fin = calcFinTotals(proj);
+        return {
+          id: 'wr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          weekLabel: (proj.weekLabel || 'BÁO CÁO TUẦN').trim(),
+          reportDate: state.reportDate,
+          savedAt: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }),
+          owner: proj.owner || '',
+          pmName: proj.pmName || '',
+          approver: proj.approver || '',
+          nextWeekPlan: proj.nextWeekPlan || '',
+          actualPct: Number(ag.a.toFixed(1)),
+          planPct: Number(ag.p.toFixed(1)),
+          spi: ag.spi,
+          contractTotal: Number(fin.contractTotal.toFixed(2)),
+          paidTotal: Number(fin.paidTotal.toFixed(2)),
+          submittedDebt: Number(fin.submittedDebt.toFixed(2)),
+          weeklyTasks: JSON.parse(JSON.stringify(proj.weeklyTasks || [])),
+          sitePhotos: JSON.parse(JSON.stringify(proj.sitePhotos || []))
+        };
+      }
+
+      document.getElementById('btn-save-weekly-archive').addEventListener('click', () => {
+        const proj = getActiveProject();
+        if (!Array.isArray(proj.weeklyArchive)) proj.weeklyArchive = [];
+        const snap = buildWeeklySnapshot(proj);
+        const existingIdx = proj.weeklyArchive.findIndex(a => a.weekLabel.toLowerCase() === snap.weekLabel.toLowerCase());
+        if (existingIdx >= 0) {
+          snap.id = proj.weeklyArchive[existingIdx].id;
+          proj.weeklyArchive[existingIdx] = snap;
+          showToast(`Đã cập nhật ${snap.weekLabel} vào kho lưu trữ`);
+        } else {
+          proj.weeklyArchive.push(snap);
+          showToast(`Đã lưu ${snap.weekLabel} vào kho lưu trữ`);
+        }
+        saveState(); renderAll();
+      });
+
+      document.getElementById('btn-new-weekly-report').addEventListener('click', () => {
+        const proj = getActiveProject();
+        if (!Array.isArray(proj.weeklyArchive)) proj.weeklyArchive = [];
+        const curSnap = buildWeeklySnapshot(proj);
+        const existingIdx = proj.weeklyArchive.findIndex(a => a.weekLabel.toLowerCase() === curSnap.weekLabel.toLowerCase());
+        if (existingIdx >= 0) proj.weeklyArchive[existingIdx] = curSnap;
+        else proj.weeklyArchive.push(curSnap);
+
+        const m = String(proj.weekLabel || '').match(/^(.*?)(\d+)(\s*)$/);
+        proj.weekLabel = m ? `${m[1]}${Number(m[2]) + 1}${m[3]}` : `${proj.weekLabel || 'BÁO CÁO TUẦN'} (Mới)`;
+        const d = new Date(state.reportDate || Date.now());
+        if (!isNaN(d.getTime())) {
+          d.setDate(d.getDate() + 7);
+          state.reportDate = d.toISOString().slice(0, 10);
+        }
+        saveState(); renderAll();
+        showToast(`Đã lưu tuần cũ & chuyển sang ${proj.weekLabel}`);
+      });
+
+      document.getElementById('weekly-archive-body').addEventListener('click', e => {
+        const btn = e.target.closest('[data-weekly-act]');
+        if (!btn) return;
+        const proj = getActiveProject();
+        const act = btn.dataset.weeklyAct, id = btn.dataset.weeklyId;
+        const idx = (proj.weeklyArchive || []).findIndex(a => a.id === id);
+        if (idx < 0) return;
+        const item = proj.weeklyArchive[idx];
+        if (act === 'del') {
+          proj.weeklyArchive.splice(idx, 1);
+          saveState(); renderAll();
+          showToast(`Đã xóa ${item.weekLabel} khỏi kho lưu trữ`, 'info');
+          return;
+        }
+        proj.weekLabel = item.weekLabel;
+        if (item.reportDate) state.reportDate = item.reportDate;
+        proj.owner = item.owner || proj.owner;
+        proj.pmName = item.pmName || proj.pmName;
+        proj.approver = item.approver || proj.approver;
+        proj.nextWeekPlan = item.nextWeekPlan || '';
+        proj.weeklyTasks = JSON.parse(JSON.stringify(item.weeklyTasks || []));
+        proj.sitePhotos = JSON.parse(JSON.stringify(item.sitePhotos || []));
+        saveState(); renderAll();
+        if (act === 'pdf') {
+          openPdfModal();
+        } else {
+          showToast(`Đã nạp lại dữ liệu ${item.weekLabel}`);
+        }
       });
 
       document.getElementById('btn-reset-demo').addEventListener('click', () => {
@@ -4117,6 +4421,7 @@ function doPost(e) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(Number(data.lastUpdated) || 0));
           } catch (e) {}
+          checkAuthSession();
           renderAll();
           const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
@@ -4246,9 +4551,264 @@ function doPost(e) {
         if (state.autoSync && state.cloudUrl) pullFromCloud(true);
       }, 10000);
 
-      // Security & Role Switching
-      document.getElementById('btn-security-role').addEventListener('click', () => document.getElementById('security-modal').classList.remove('hidden'));
+      // Security, Password Auth & Login User List Management
+      const SESSION_KEY = STORAGE_KEY + '_session_user';
+      function hashPw(pw) {
+        let h = 2166136261;
+        const s = 'OwnerPM_KT_' + String(pw || '');
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return 'h_' + (h >>> 0).toString(16);
+      }
+      function ensureAuthDefaults() {
+        if (state.authEnabled === undefined) state.authEnabled = true;
+        if (!Array.isArray(state.users) || state.users.length === 0) {
+          state.users = [
+            { id: 'u_admin', username: 'admin', pwHash: hashPw('123456'), fullName: 'Phan Anh (Quản trị)', role: 'admin', active: true, lastLogin: '' }
+          ];
+        }
+        if (!Array.isArray(state.authLogs)) state.authLogs = [];
+      }
+      function getSessionUsername() {
+        try { return localStorage.getItem(SESSION_KEY) || ''; } catch (e) { return ''; }
+      }
+      function setSessionUsername(u) {
+        try { if (u) localStorage.setItem(SESSION_KEY, u); else localStorage.removeItem(SESSION_KEY); } catch (e) {}
+      }
+      function getCurrentUser() {
+        ensureAuthDefaults();
+        const uname = getSessionUsername();
+        return state.users.find(u => u.username === uname && u.active) || null;
+      }
+      function recordAuthLog(username, fullName, role, status) {
+        ensureAuthDefaults();
+        state.authLogs.unshift({
+          id: 'log_' + Date.now(),
+          time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }),
+          username,
+          fullName: fullName || username,
+          role: role || '—',
+          status
+        });
+        if (state.authLogs.length > 50) state.authLogs = state.authLogs.slice(0, 50);
+      }
+      function checkAuthSession() {
+        ensureAuthDefaults();
+        const overlay = document.getElementById('auth-overlay');
+        const badge = document.getElementById('hdr-user-badge');
+        const btnOut = document.getElementById('btn-logout');
+        const cur = getCurrentUser();
+        if (state.authEnabled) {
+          if (!cur) {
+            overlay.classList.remove('hidden');
+            badge.classList.add('hidden');
+            btnOut.classList.add('hidden');
+            return false;
+          }
+          overlay.classList.add('hidden');
+          badge.textContent = '👤 ' + cur.fullName;
+          badge.classList.remove('hidden');
+          btnOut.classList.remove('hidden');
+          if (!state.role) state.role = cur.role;
+          return true;
+        } else {
+          overlay.classList.add('hidden');
+          if (cur) {
+            badge.textContent = '👤 ' + cur.fullName;
+            badge.classList.remove('hidden');
+            btnOut.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+            btnOut.classList.add('hidden');
+          }
+          return true;
+        }
+      }
+      function renderSecurityModal() {
+        ensureAuthDefaults();
+        const cur = getCurrentUser();
+        const isAdmin = !state.authEnabled || (cur && cur.role === 'admin');
+        document.getElementById('sec-auth-enabled').checked = Boolean(state.authEnabled);
+        document.getElementById('sec-auth-enabled').disabled = !isAdmin;
+        document.getElementById('sec-current-user').textContent = cur ? `${cur.fullName} (@${cur.username})` : 'Chế độ không khóa';
+        document.getElementById('sec-admin-panel').classList.toggle('hidden', !isAdmin);
+        document.getElementById('sec-role-preview').classList.toggle('hidden', !isAdmin);
+
+        const roleMap = { admin: 'Admin', engineer: 'Kỹ sư', viewer: 'Chỉ xem' };
+        document.getElementById('sec-users-body').innerHTML = state.users.map(u => `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2 px-2 font-semibold text-slate-900">${esc(u.username)}</td>
+            <td class="py-2 px-2 text-slate-700">${esc(u.fullName)}</td>
+            <td class="py-2 px-2">
+              <select data-user-role="${esc(u.id)}" class="text-xs border border-slate-200 rounded px-1.5 py-0.5 bg-white">
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                <option value="engineer" ${u.role === 'engineer' ? 'selected' : ''}>Kỹ sư</option>
+                <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Chỉ xem</option>
+              </select>
+            </td>
+            <td class="py-2 px-2 text-center">
+              <button type="button" data-user-toggle="${esc(u.id)}" class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${u.active ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                ${u.active ? 'Hoạt động' : 'Đã khóa'}
+              </button>
+            </td>
+            <td class="py-2 px-2 text-[11px] text-slate-500">${esc(u.lastLogin || 'Chưa đăng nhập')}</td>
+            <td class="py-2 px-2 text-right whitespace-nowrap space-x-1">
+              <button type="button" data-user-resetpw="${esc(u.id)}" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold">🔑 Đổi MK</button>
+              <button type="button" data-user-del="${esc(u.id)}" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50">🗑</button>
+            </td>
+          </tr>`).join('');
+
+        document.getElementById('sec-logs-body').innerHTML = state.authLogs.length ? state.authLogs.map(l => `
+          <tr class="hover:bg-slate-50">
+            <td class="py-1.5 px-2 text-slate-500 whitespace-nowrap">${esc(l.time)}</td>
+            <td class="py-1.5 px-2 font-semibold text-slate-800">${esc(l.username)}</td>
+            <td class="py-1.5 px-2 text-slate-600">${esc(l.fullName)} (${esc(roleMap[l.role] || l.role)})</td>
+            <td class="py-1.5 px-2 text-right font-semibold ${l.status === 'Thành công' ? 'text-emerald-600' : 'text-rose-600'}">${esc(l.status)}</td>
+          </tr>`).join('') : `<tr><td colspan="4" class="py-4 text-center text-slate-400">Chưa có lịch sử đăng nhập.</td></tr>`;
+      }
+
+      document.getElementById('auth-login-form').addEventListener('submit', e => {
+        e.preventDefault();
+        ensureAuthDefaults();
+        const uname = document.getElementById('login-username').value.trim();
+        const pw = document.getElementById('login-password').value;
+        const errEl = document.getElementById('login-error-msg');
+        const u = state.users.find(x => x.username.toLowerCase() === uname.toLowerCase());
+        if (!u || u.pwHash !== hashPw(pw)) {
+          errEl.textContent = 'Sai tên đăng nhập hoặc mật khẩu.';
+          errEl.classList.remove('hidden');
+          recordAuthLog(uname, u ? u.fullName : 'Không xác định', u ? u.role : '—', 'Sai mật khẩu');
+          saveState();
+          return;
+        }
+        if (!u.active) {
+          errEl.textContent = 'Tài khoản này đã bị quản trị viên khóa.';
+          errEl.classList.remove('hidden');
+          recordAuthLog(u.username, u.fullName, u.role, 'Tài khoản bị khóa');
+          saveState();
+          return;
+        }
+        errEl.classList.add('hidden');
+        document.getElementById('login-password').value = '';
+        setSessionUsername(u.username);
+        state.role = u.role;
+        u.lastLogin = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+        recordAuthLog(u.username, u.fullName, u.role, 'Thành công');
+        saveState();
+        checkAuthSession();
+        renderAll();
+        showToast(`Chào mừng ${u.fullName} đăng nhập!`);
+      });
+
+      document.getElementById('btn-logout').addEventListener('click', () => {
+        setSessionUsername('');
+        checkAuthSession();
+        showToast('Đã đăng xuất khỏi hệ thống', 'info');
+      });
+
+      document.getElementById('btn-security-role').addEventListener('click', () => {
+        renderSecurityModal();
+        document.getElementById('security-modal').classList.remove('hidden');
+      });
       document.getElementById('btn-close-security').addEventListener('click', () => document.getElementById('security-modal').classList.add('hidden'));
+
+      document.getElementById('sec-auth-enabled').addEventListener('change', e => {
+        state.authEnabled = e.target.checked;
+        saveState();
+        checkAuthSession();
+        showToast(state.authEnabled ? 'Đã bật khóa mật khẩu khi vào web' : 'Đã tắt khóa mật khẩu', 'info');
+      });
+
+      document.getElementById('sec-change-pw-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const cur = getCurrentUser() || state.users[0];
+        if (!cur) return;
+        const npw = document.getElementById('sec-new-pw').value;
+        if (npw.length < 4) { showToast('Mật khẩu phải từ 4 ký tự trở lên', 'error'); return; }
+        cur.pwHash = hashPw(npw);
+        document.getElementById('sec-new-pw').value = '';
+        saveState();
+        showToast(`Đã đổi mật khẩu cho tài khoản ${cur.username}`);
+      });
+
+      document.getElementById('sec-add-user-form').addEventListener('submit', e => {
+        e.preventDefault();
+        ensureAuthDefaults();
+        const username = document.getElementById('new-u-username').value.trim();
+        const fullName = document.getElementById('new-u-fullname').value.trim();
+        const pw = document.getElementById('new-u-password').value;
+        const role = document.getElementById('new-u-role').value;
+        if (state.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+          showToast('Tên đăng nhập đã tồn tại!', 'error'); return;
+        }
+        state.users.push({
+          id: 'u_' + Date.now(),
+          username, pwHash: hashPw(pw), fullName, role, active: true, lastLogin: ''
+        });
+        e.target.reset();
+        saveState(); renderSecurityModal();
+        showToast(`Đã thêm tài khoản ${username}`);
+      });
+
+      document.getElementById('sec-users-body').addEventListener('change', e => {
+        const sel = e.target.closest('[data-user-role]');
+        if (!sel) return;
+        const u = state.users.find(x => x.id === sel.dataset.userRole);
+        if (!u) return;
+        u.role = sel.value;
+        const cur = getCurrentUser();
+        if (cur && cur.id === u.id) state.role = u.role;
+        saveState(); renderAll(); renderSecurityModal();
+        showToast(`Đã cập nhật quyền cho ${u.username}`);
+      });
+
+      document.getElementById('sec-users-body').addEventListener('click', e => {
+        const tBtn = e.target.closest('[data-user-toggle]');
+        if (tBtn) {
+          const u = state.users.find(x => x.id === tBtn.dataset.userToggle);
+          if (!u) return;
+          const activeAdmins = state.users.filter(x => x.role === 'admin' && x.active);
+          if (u.role === 'admin' && u.active && activeAdmins.length <= 1) {
+            showToast('Phải giữ ít nhất 1 tài khoản Admin hoạt động!', 'error'); return;
+          }
+          u.active = !u.active;
+          saveState(); checkAuthSession(); renderSecurityModal();
+          showToast(u.active ? `Đã mở khóa ${u.username}` : `Đã khóa tài khoản ${u.username}`, 'info');
+          return;
+        }
+        const rBtn = e.target.closest('[data-user-resetpw]');
+        if (rBtn) {
+          const u = state.users.find(x => x.id === rBtn.dataset.userResetpw);
+          if (!u) return;
+          document.getElementById('security-modal').classList.add('hidden');
+          openModal(`🔑 Đặt lại mật khẩu cho "${u.username}"`, `
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu mới (tối thiểu 4 ký tự)</label><input name="newpw" type="password" required minlength="4" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" /></div>
+          `, fd => {
+            u.pwHash = hashPw(fd.get('newpw'));
+            saveState(); closeModal();
+            showToast(`Đã đặt lại mật khẩu cho ${u.username}`);
+          });
+          return;
+        }
+        const dBtn = e.target.closest('[data-user-del]');
+        if (dBtn) {
+          const u = state.users.find(x => x.id === dBtn.dataset.userDel);
+          if (!u) return;
+          const activeAdmins = state.users.filter(x => x.role === 'admin' && x.active);
+          if (u.role === 'admin' && u.active && activeAdmins.length <= 1) {
+            showToast('Không thể xóa Admin duy nhất!', 'error'); return;
+          }
+          state.users = state.users.filter(x => x.id !== u.id);
+          saveState(); checkAuthSession(); renderSecurityModal();
+          showToast(`Đã xóa tài khoản ${u.username}`, 'info');
+        }
+      });
+
+      document.getElementById('btn-clear-auth-logs').addEventListener('click', () => {
+        state.authLogs = [];
+        saveState(); renderSecurityModal();
+        showToast('Đã xóa nhật ký đăng nhập', 'info');
+      });
+
       document.querySelectorAll('[data-set-role]').forEach(btn => {
         btn.addEventListener('click', () => {
           state.role = btn.dataset.setRole;
@@ -4493,6 +5053,7 @@ function doPost(e) {
         bimState.timer = setInterval(() => { val = (val + 5) > 100 ? 0 : val + 5; document.getElementById('bim-slider').value = val; updateBimVisibility(val); }, 300);
       });
 
+      checkAuthSession();
       renderAll();
     })();
   </script>
