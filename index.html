@@ -1225,6 +1225,54 @@
             </div>
           </div>
 
+          <!-- Per-User Project & Module Permission Editor -->
+          <div id="sec-user-perm-panel" class="hidden border-2 border-brand-200 bg-brand-50/30 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-brand-800">⚙ Phân quyền chi tiết cho: <span id="perm-target-name" class="text-slate-900">—</span></h4>
+                <p class="text-[11px] text-slate-500">Tích chọn dự án được quản lý và quyền Xem / Chỉnh sửa cho từng loại dữ liệu</p>
+              </div>
+              <button id="btn-close-perm-panel" type="button" class="text-xs px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600">Đóng</button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">1. Dự án được phép truy cập &amp; quản lý:</span>
+                <label class="flex items-center gap-1.5 text-xs font-semibold text-brand-700 cursor-pointer">
+                  <input id="perm-all-projects" type="checkbox" class="w-3.5 h-3.5 accent-brand-600" />
+                  Tất cả dự án (kể cả dự án mới)
+                </label>
+              </div>
+              <div id="perm-projects-list" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-32 overflow-y-auto pt-1"></div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-700">2. Phân quyền từng loại dữ liệu (Xem &amp; Chỉnh sửa):</span>
+                <div class="flex gap-1.5">
+                  <button type="button" id="perm-preset-all" class="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100">✓ Tất cả Xem &amp; Sửa</button>
+                  <button type="button" id="perm-preset-view" class="text-[11px] px-2 py-0.5 rounded bg-sky-50 text-sky-700 font-semibold hover:bg-sky-100">👁 Chỉ xem tất cả</button>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                      <th class="py-1.5 px-2">Phân hệ / Dữ liệu</th>
+                      <th class="py-1.5 px-2 text-center">👁 Được Xem</th>
+                      <th class="py-1.5 px-2 text-center">✏ Được Chỉnh sửa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="perm-modules-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+              <button id="btn-save-user-perms" type="button" class="px-4 py-1.5 text-xs font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white">💾 Lưu phân quyền</button>
+            </div>
+          </div>
+
           <!-- Recent Login Logs -->
           <div class="border border-slate-200 rounded-xl p-4 space-y-2.5">
             <div class="flex items-center justify-between">
@@ -1792,12 +1840,13 @@
         renderRisksTab(proj);
         renderWeeklyTab(proj);
         if (activeTab === 'overview') renderCharts();
+        applyUserPermissions();
       }
 
       function renderProjectsTab(atMs) {
         const totalProjects = state.projects.length;
         let sumTmdt = 0, sumPaid = 0, sumProg = 0;
-        const rowsHtml = state.projects.map(p => {
+        const rowsHtml = getAllowedProjects().map(p => {
           const cm = p.contracts.map(calcContract);
           const paid = cm.reduce((s, c) => s + c.paid, 0);
           const leaves = getLeafTasks(p.tasks);
@@ -4559,12 +4608,152 @@ function doPost(e) {
         for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
         return 'h_' + (h >>> 0).toString(16);
       }
+      const PERM_MODULES = [
+        { key: 'overview', label: 'Tổng quan điều hành (KPI, EVM, S-Curve)' },
+        { key: 'schedule', label: 'Tiến độ Nhà thầu & Tổng (WBS, Gantt, CPM)' },
+        { key: 'finance', label: 'Ngân sách & Đợt Thanh toán / Hợp đồng' },
+        { key: 'approvals', label: 'Phát sinh (VO) & Nghiệm thu QA/QC' },
+        { key: 'risks', label: 'Rủi ro & Hồ sơ Pháp lý' },
+        { key: 'weekly', label: 'Báo cáo tuần, Kho lưu tuần & Ảnh hiện trường' },
+        { key: 'bim3d', label: 'Mô phỏng 3D (BIM)' }
+      ];
+      function defaultPermsForRole(role) {
+        const mods = {};
+        PERM_MODULES.forEach(m => {
+          if (role === 'admin') mods[m.key] = { view: true, edit: true };
+          else if (role === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'approvals', 'weekly', 'bim3d'].includes(m.key) };
+          else mods[m.key] = { view: true, edit: false };
+        });
+        return {
+          allProjects: role === 'admin',
+          projectIds: role === 'admin' ? state.projects.map(p => p.id) : (state.projects[0] ? [state.projects[0].id] : []),
+          modules: mods
+        };
+      }
+      function ensureUserPerms(u) {
+        if (!u) return defaultPermsForRole('viewer');
+        if (!u.permissions || typeof u.permissions !== 'object') u.permissions = defaultPermsForRole(u.role);
+        if (!Array.isArray(u.permissions.projectIds)) u.permissions.projectIds = [];
+        if (!u.permissions.modules) u.permissions.modules = defaultPermsForRole(u.role).modules;
+        PERM_MODULES.forEach(m => {
+          if (!u.permissions.modules[m.key]) u.permissions.modules[m.key] = { view: true, edit: u.role === 'admin' };
+        });
+        return u.permissions;
+      }
+      function isAdminUser() {
+        const cur = getCurrentUser();
+        if (!state.authEnabled) return (state.role || 'admin') === 'admin';
+        return cur ? (cur.role === 'admin' && state.role === 'admin') : false;
+      }
+      function getAllowedProjects() {
+        const cur = getCurrentUser();
+        if (!state.authEnabled || !cur || cur.role === 'admin') return state.projects;
+        const p = ensureUserPerms(cur);
+        if (p.allProjects) return state.projects;
+        return state.projects.filter(pr => p.projectIds.includes(pr.id));
+      }
+      function canViewModule(modKey) {
+        if (modKey === 'projects') return true;
+        const cur = getCurrentUser();
+        if (!state.authEnabled || !cur || cur.role === 'admin') return true;
+        const p = ensureUserPerms(cur);
+        return Boolean(p.modules[modKey] && p.modules[modKey].view);
+      }
+      function canEditModule(modKey) {
+        const cur = getCurrentUser();
+        if (!state.authEnabled) return (state.role || 'admin') !== 'viewer';
+        if (!cur) return false;
+        if (cur.role === 'admin') return state.role !== 'viewer';
+        const p = ensureUserPerms(cur);
+        return Boolean(p.modules[modKey] && p.modules[modKey].view && p.modules[modKey].edit);
+      }
+      function applyUserPermissions() {
+        const cur = getCurrentUser();
+        const isAdmin = !state.authEnabled ? ((state.role || 'admin') === 'admin') : (cur && cur.role === 'admin');
+        const allowed = getAllowedProjects();
+
+        // Filter project switcher dropdown
+        const sw = document.getElementById('project-select');
+        if (sw) {
+          sw.innerHTML = allowed.length
+            ? allowed.map(p => `<option value="${esc(p.id)}">${esc(p.code)} — ${esc(p.name)}</option>`).join('')
+            : `<option value="">(Chưa được cấp dự án)</option>`;
+          if (allowed.length && !allowed.some(p => p.id === state.activeProjectId)) {
+            state.activeProjectId = allowed[0].id;
+          }
+          sw.value = state.activeProjectId || '';
+        }
+
+        // Sidebar global admin buttons
+        const btnNewProj = document.getElementById('btn-new-project');
+        if (btnNewProj) btnNewProj.classList.toggle('hidden', !isAdmin);
+        const btnResetDemo = document.getElementById('btn-reset-demo');
+        if (btnResetDemo) btnResetDemo.classList.toggle('hidden', !isAdmin);
+        const btnImpJson = document.getElementById('btn-import-json-trigger');
+        if (btnImpJson) btnImpJson.classList.toggle('hidden', !isAdmin);
+
+        // Header quick action buttons
+        const btnDisb = document.getElementById('btn-quick-payment');
+        if (btnDisb) btnDisb.classList.toggle('hidden', !canEditModule('finance'));
+        const btnVo = document.getElementById('btn-quick-vo');
+        if (btnVo) btnVo.classList.toggle('hidden', !canEditModule('approvals'));
+
+        // Sidebar nav tabs visibility based on View permission
+        document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
+          const t = btn.dataset.tab;
+          btn.classList.toggle('hidden', !canViewModule(t));
+        });
+        if (!canViewModule(activeTab)) {
+          const firstAllowed = PERM_MODULES.find(m => canViewModule(m.key));
+          if (firstAllowed) switchTab(firstAllowed.key);
+        }
+
+        // Module Edit vs Read-Only enforcement inside each #tab-<key>
+        PERM_MODULES.forEach(m => {
+          const sec = document.getElementById('tab-' + m.key);
+          if (!sec) return;
+          const editable = canEditModule(m.key);
+          let banner = sec.querySelector('.perm-readonly-banner');
+          if (!editable) {
+            if (!banner) {
+              banner = document.createElement('div');
+              banner.className = 'perm-readonly-banner bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium px-4 py-2.5 rounded-xl flex items-center gap-2';
+              banner.innerHTML = '🔒 <span><strong>Chế độ Chỉ xem:</strong> Bạn chỉ được xem dữ liệu phân hệ này (không có quyền chỉnh sửa).</span>';
+              sec.prepend(banner);
+            }
+            sec.querySelectorAll('input, select, textarea').forEach(el => {
+              if (!el.closest('#bim-controls') && !el.classList.contains('allow-readonly')) {
+                el.disabled = true;
+              }
+            });
+            sec.querySelectorAll('button').forEach(btn => {
+              const id = btn.id || '';
+              const isSafeRead = btn.hasAttribute('data-sched-subtab') || btn.hasAttribute('data-bim-cam') ||
+                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml'].includes(id) ||
+                btn.dataset.weeklyAct === 'pdf' || btn.dataset.weeklyAct === 'load';
+              if (!isSafeRead) {
+                btn.disabled = true;
+                btn.classList.add('opacity-40', 'pointer-events-none');
+              }
+            });
+          } else {
+            if (banner) banner.remove();
+            sec.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = false; });
+            sec.querySelectorAll('button').forEach(btn => {
+              btn.disabled = false;
+              btn.classList.remove('opacity-40', 'pointer-events-none');
+            });
+          }
+        });
+      }
       function ensureAuthDefaults() {
         if (state.authEnabled === undefined) state.authEnabled = true;
         if (!Array.isArray(state.users) || state.users.length === 0) {
           state.users = [
-            { id: 'u_admin', username: 'admin', pwHash: hashPw('123456'), fullName: 'Phan Anh (Quản trị)', role: 'admin', active: true, lastLogin: '' }
+            { id: 'u_admin', username: 'admin', pwHash: hashPw('123456'), fullName: 'Phan Anh (Quản trị)', role: 'admin', active: true, lastLogin: '', permissions: defaultPermsForRole('admin') }
           ];
+        } else {
+          state.users.forEach(u => ensureUserPerms(u));
         }
         if (!Array.isArray(state.authLogs)) state.authLogs = [];
       }
@@ -4652,6 +4841,7 @@ function doPost(e) {
             </td>
             <td class="py-2 px-2 text-[11px] text-slate-500">${esc(u.lastLogin || 'Chưa đăng nhập')}</td>
             <td class="py-2 px-2 text-right whitespace-nowrap space-x-1">
+              ${u.role !== 'admin' ? `<button type="button" data-user-perms="${esc(u.id)}" class="px-2 py-0.5 rounded bg-brand-50 hover:bg-brand-100 text-brand-700 text-[11px] font-semibold">⚙ Phân quyền</button>` : `<span class="text-[10px] text-emerald-700 font-semibold px-1.5">Toàn quyền</span>`}
               <button type="button" data-user-resetpw="${esc(u.id)}" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold">🔑 Đổi MK</button>
               <button type="button" data-user-del="${esc(u.id)}" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50">🗑</button>
             </td>
@@ -4742,7 +4932,8 @@ function doPost(e) {
         }
         state.users.push({
           id: 'u_' + Date.now(),
-          username, pwHash: hashPw(pw), fullName, role, active: true, lastLogin: ''
+          username, pwHash: hashPw(pw), fullName, role, active: true, lastLogin: '',
+          permissions: defaultPermsForRole(role)
         });
         e.target.reset();
         saveState(); renderSecurityModal();
@@ -4800,7 +4991,87 @@ function doPost(e) {
           state.users = state.users.filter(x => x.id !== u.id);
           saveState(); checkAuthSession(); renderSecurityModal();
           showToast(`Đã xóa tài khoản ${u.username}`, 'info');
+          return;
         }
+        const pBtn = e.target.closest('[data-user-perms]');
+        if (pBtn) {
+          openUserPermEditor(pBtn.dataset.userPerms);
+        }
+      });
+
+      let editingPermUserId = null;
+      function openUserPermEditor(uid) {
+        const u = state.users.find(x => x.id === uid);
+        if (!u) return;
+        editingPermUserId = uid;
+        const p = ensureUserPerms(u);
+        document.getElementById('perm-target-name').textContent = `${u.fullName} (@${u.username})`;
+        const allChk = document.getElementById('perm-all-projects');
+        allChk.checked = Boolean(p.allProjects);
+        const plist = document.getElementById('perm-projects-list');
+        plist.innerHTML = state.projects.map(pr => `
+          <label class="flex items-center gap-2 text-xs p-1.5 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" class="perm-proj-chk w-3.5 h-3.5 accent-brand-600" value="${esc(pr.id)}" ${p.allProjects || p.projectIds.includes(pr.id) ? 'checked' : ''} ${p.allProjects ? 'disabled' : ''} />
+            <span class="truncate"><strong>${esc(pr.code)}</strong> — ${esc(pr.name)}</span>
+          </label>`).join('');
+
+        document.getElementById('perm-modules-body').innerHTML = PERM_MODULES.map(m => {
+          const mp = p.modules[m.key] || { view: true, edit: false };
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-1.5 px-2 font-medium text-slate-800">${esc(m.label)}</td>
+              <td class="py-1.5 px-2 text-center"><input type="checkbox" data-perm-view="${esc(m.key)}" class="w-4 h-4 accent-sky-600" ${mp.view ? 'checked' : ''} /></td>
+              <td class="py-1.5 px-2 text-center"><input type="checkbox" data-perm-edit="${esc(m.key)}" class="w-4 h-4 accent-emerald-600" ${mp.edit ? 'checked' : ''} /></td>
+            </tr>`;
+        }).join('');
+        document.getElementById('sec-user-perm-panel').classList.remove('hidden');
+      }
+
+      document.getElementById('btn-close-perm-panel').addEventListener('click', () => {
+        document.getElementById('sec-user-perm-panel').classList.add('hidden');
+      });
+      document.getElementById('perm-all-projects').addEventListener('change', e => {
+        const chk = e.target.checked;
+        document.querySelectorAll('.perm-proj-chk').forEach(el => {
+          el.disabled = chk;
+          if (chk) el.checked = true;
+        });
+      });
+      document.getElementById('perm-modules-body').addEventListener('change', e => {
+        const vKey = e.target.dataset.permView;
+        const eKey = e.target.dataset.permEdit;
+        if (eKey && e.target.checked) {
+          const vBox = document.querySelector(`[data-perm-view="${eKey}"]`);
+          if (vBox) vBox.checked = true;
+        }
+        if (vKey && !e.target.checked) {
+          const eBox = document.querySelector(`[data-perm-edit="${vKey}"]`);
+          if (eBox) eBox.checked = false;
+        }
+      });
+      document.getElementById('perm-preset-all').addEventListener('click', () => {
+        document.querySelectorAll('[data-perm-view], [data-perm-edit]').forEach(el => { el.checked = true; });
+      });
+      document.getElementById('perm-preset-view').addEventListener('click', () => {
+        document.querySelectorAll('[data-perm-view]').forEach(el => { el.checked = true; });
+        document.querySelectorAll('[data-perm-edit]').forEach(el => { el.checked = false; });
+      });
+      document.getElementById('btn-save-user-perms').addEventListener('click', () => {
+        const u = state.users.find(x => x.id === editingPermUserId);
+        if (!u) return;
+        const allP = document.getElementById('perm-all-projects').checked;
+        const pIds = Array.from(document.querySelectorAll('.perm-proj-chk:checked')).map(el => el.value);
+        const mods = {};
+        PERM_MODULES.forEach(m => {
+          const v = Boolean(document.querySelector(`[data-perm-view="${m.key}"]`)?.checked);
+          const ed = Boolean(document.querySelector(`[data-perm-edit="${m.key}"]`)?.checked);
+          mods[m.key] = { view: v || ed, edit: ed };
+        });
+        u.permissions = { allProjects: allP, projectIds: pIds, modules: mods };
+        saveState();
+        applyUserPermissions();
+        document.getElementById('sec-user-perm-panel').classList.add('hidden');
+        showToast(`Đã lưu phân quyền cho ${u.fullName}`);
       });
 
       document.getElementById('btn-clear-auth-logs').addEventListener('click', () => {
