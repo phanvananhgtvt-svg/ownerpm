@@ -200,6 +200,7 @@
             <span id="hdr-week" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">Báo cáo Tuần 23</span>
             <span id="hdr-role" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">Vai trò: Chủ đầu tư (Toàn quyền)</span>
             <span id="hdr-sync-status" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">☁ Chưa bật Cloud Sync</span>
+            <button id="btn-sync-now" type="button" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 transition" title="Tải lại dữ liệu mới nhất từ Cloud">🔄 Đồng bộ ngay</button>
           </div>
           <h2 id="hdr-name" class="text-lg sm:text-xl font-bold text-slate-900">Tên dự án</h2>
           <p id="hdr-meta" class="text-xs sm:text-sm text-slate-500 mt-0.5">Chủ đầu tư • Địa điểm • Thời gian</p>
@@ -4123,12 +4124,14 @@ function doPost(e) {
           } else {
             await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
           }
+          try { localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(state.lastUpdated || Date.now())); } catch (e) {}
           const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
           updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
           if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã lưu dữ liệu lên Cloud thành công lúc ' + tm + '.</span>';
           if (!silent) showToast('Đã lưu dữ liệu lên Cloud');
         } catch (err) {
           updateSyncBadge('⚠ Lỗi đồng bộ', 'err');
+          showToast('Lỗi lưu Firebase: ' + err.message + ' (Kiểm tra Rules read/write = true)', 'error');
           if (!silent && msgEl) msgEl.innerHTML = '<span class="text-rose-600">Không thể kết nối Cloud: ' + esc(err.message) + '</span>';
         }
       }
@@ -4145,15 +4148,19 @@ function doPost(e) {
           const data = await res.json();
           if (data && Array.isArray(data.projects) && data.projects.length > 0) {
             const cloudTs = Number(data.lastUpdated) || 0;
-            const localTs = Number(state.lastUpdated) || 0;
-            if (!silent || cloudTs > localTs || localTs === 0) {
+            let lastAppliedTs = 0;
+            try { lastAppliedTs = Number(localStorage.getItem(STORAGE_KEY + '_cloud_ts')) || 0; } catch (e) {}
+            if (!silent || cloudTs !== lastAppliedTs || lastAppliedTs === 0) {
               state = { ...data, cloudUrl: url, autoSync: state.autoSync };
-              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(cloudTs));
+              } catch (e) {}
               renderAll();
               const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
               updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
               if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải dữ liệu mới nhất từ Cloud!</span>';
-              if (!silent) showToast('Đã đồng bộ dữ liệu từ Cloud');
+              if (!silent) showToast('Đã đồng bộ dữ liệu mới nhất từ Cloud');
             } else {
               const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
               updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
@@ -4172,6 +4179,7 @@ function doPost(e) {
         }
       }
 
+      document.getElementById('btn-sync-now').addEventListener('click', () => pullFromCloud(false));
       document.getElementById('btn-cloud-sync').addEventListener('click', () => {
         document.getElementById('cloud-url-input').value = state.cloudUrl || '';
         document.getElementById('cloud-autosync-toggle').checked = Boolean(state.autoSync);
