@@ -236,6 +236,7 @@
             <span id="hdr-role" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">Vai trò: Chủ đầu tư (Toàn quyền)</span>
             <span id="hdr-sync-status" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">☁ Chưa bật Cloud Sync</span>
             <span id="hdr-user-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-white hidden">👤 —</span>
+            <button id="btn-admin-notifs" type="button" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition hidden">🔔 Thông báo (<span id="admin-notif-count">0</span>)</button>
             <button id="btn-logout" type="button" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition hidden">🚪 Đăng xuất</button>
             <button id="btn-sync-now" type="button" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 transition" title="Tải lại dữ liệu mới nhất từ Cloud">🔄 Đồng bộ ngay</button>
           </div>
@@ -404,6 +405,9 @@
               <p class="text-xs text-slate-500">Cập nhật % thực tế ở từng hạng mục của nhà thầu — hệ thống tự động cộng dồn lên Mục Mẹ và Tiến độ tổng thể dự án</p>
             </div>
             <div class="flex flex-wrap gap-2">
+              <button id="btn-manage-holidays" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">
+                📅 Ngày nghỉ lễ HĐ (<span id="sched-holiday-count">0</span>)
+              </button>
               <button id="btn-export-master-xlsx" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition">
                 ⬇ Tiến độ Tổng (.xlsx)
               </button>
@@ -752,12 +756,60 @@
                   <th class="py-3 px-3 font-semibold text-right">Giá trị (Tỷ VNĐ)</th>
                   <th class="py-3 px-3 font-semibold">Ngày xuất hóa đơn</th>
                   <th class="py-3 px-3 font-semibold">Ngày thanh toán</th>
+                  <th class="py-3 px-3 font-semibold">Thời gian TT &amp; Trễ hạn HĐ</th>
                   <th class="py-3 px-3 font-semibold">Trạng thái</th>
                   <th class="py-3 px-3 font-semibold text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody id="payment-rounds-body" class="divide-y divide-slate-100"></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Summary Tables: Payment Delay Stats & Submitted Debt -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div class="mb-3">
+              <h3 class="font-semibold text-slate-900 text-base">📊 Thống kê Thanh toán Nhanh / Trễ hạn theo Hợp đồng</h3>
+              <p class="text-xs text-slate-500">So sánh số ngày thanh toán thực tế (từ Ngày xuất HĐ → Ngày TT) với Hạn TT quy định trong Hợp đồng</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50/70">
+                    <th class="py-2.5 px-2.5 font-semibold">Hợp đồng</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-center">Hạn HĐ</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-center text-emerald-700">Đúng / Nhanh</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-center text-rose-700">Trễ hạn</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-right">Đang chờ quá hạn</th>
+                  </tr>
+                </thead>
+                <tbody id="payment-delay-summary-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base">🧾 Tổng hợp Công nợ Đang trình (Chưa TT)</h3>
+                <p class="text-xs text-slate-500">Các đợt/hồ sơ đã xuất hóa đơn nhưng chưa có ngày thanh toán</p>
+              </div>
+              <span id="submitted-debt-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200">0 Tỷ</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50/70">
+                    <th class="py-2.5 px-2.5 font-semibold">Hợp đồng &amp; Đợt</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-center">Ngày XHĐ</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-right">Số tiền (Tỷ)</th>
+                    <th class="py-2.5 px-2.5 font-semibold text-right">Tình trạng</th>
+                  </tr>
+                </thead>
+                <tbody id="submitted-debt-summary-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1317,6 +1369,113 @@
     </div>
   </div>
 
+  <!-- Admin Notifications & Server Recycle Bin Modal -->
+  <div id="admin-audit-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900 text-base">🔔 Thông báo Chỉnh sửa &amp; 🗑 Kho Sao lưu Dữ liệu Đã xóa (Máy chủ Admin)</h3>
+        <button id="btn-close-admin-audit" type="button" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400">✕</button>
+      </div>
+      <div class="p-5 space-y-5 text-sm overflow-y-auto">
+        <!-- Section 1: Notifications -->
+        <div class="border border-slate-200 rounded-xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">🔔 Thông báo mọi chỉnh sửa của nhân sự</h4>
+              <p class="text-[11px] text-slate-500">Mọi thao tác sửa, thêm, duyệt hoặc xóa của các tài khoản đều được tự động ghi nhận và báo về Admin</p>
+            </div>
+            <div class="flex gap-2">
+              <button id="btn-mark-all-notifs" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100">✓ Đánh dấu đã đọc</button>
+              <button id="btn-clear-notifs" type="button" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100">Xóa thông báo</button>
+            </div>
+          </div>
+          <div class="max-h-52 overflow-y-auto overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                  <th class="py-2 px-2">Thời gian</th>
+                  <th class="py-2 px-2">Nhân sự thực hiện</th>
+                  <th class="py-2 px-2">Dự án</th>
+                  <th class="py-2 px-2">Nội dung thay đổi</th>
+                </tr>
+              </thead>
+              <tbody id="admin-notifs-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 2: Server Pre-Delete Backup / Recycle Bin -->
+        <div class="border border-amber-200 bg-amber-50/20 rounded-xl p-4 space-y-3">
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-900">🗑 Kho Sao lưu Dữ liệu Trước khi Xóa (Bảo vệ trên Máy chủ Admin)</h4>
+            <p class="text-[11px] text-slate-600">Trước khi bất kỳ tài khoản nào xóa dữ liệu, hệ thống tự động lưu bản sao tại đây để Admin kiểm tra hoặc khôi phục lại</p>
+          </div>
+          <div class="max-h-56 overflow-y-auto overflow-x-auto bg-white rounded-lg border border-slate-200">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                  <th class="py-2 px-2">Thời gian xóa</th>
+                  <th class="py-2 px-2">Người xóa</th>
+                  <th class="py-2 px-2">Loại &amp; Dự án</th>
+                  <th class="py-2 px-2">Dữ liệu đã lưu</th>
+                  <th class="py-2 px-2 text-right">Thao tác Admin</th>
+                </tr>
+              </thead>
+              <tbody id="admin-trash-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Holiday Calendar Modal (Contract Working Days) -->
+  <div id="holiday-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">📅 Khai báo Ngày nghỉ lễ &amp; Lịch làm việc theo Hợp đồng</h3>
+          <p class="text-xs text-slate-500">Các ngày nghỉ lễ được khai báo sẽ không tính vào số ngày thi công kế hoạch (% KH &amp; SPI)</p>
+        </div>
+        <button id="btn-close-holiday" type="button" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400">✕</button>
+      </div>
+      <div class="p-5 space-y-4 text-sm overflow-y-auto">
+        <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+            <input id="hol-exclude-sun" type="checkbox" class="w-4 h-4 accent-brand-600" />
+            Trừ ngày Chủ nhật (Hợp đồng chỉ thi công Thứ 2 – Thứ 7)
+          </label>
+          <button id="btn-preset-vn-holidays" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 transition">
+            🇻🇳 Nạp nhanh Lễ Tết VN (2026–2028)
+          </button>
+        </div>
+
+        <form id="holiday-add-form" class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <input id="hol-name" type="text" required placeholder="Tên kỳ nghỉ (vd: Tết Nguyên Đán)" class="sm:col-span-2 text-xs border border-slate-300 rounded-xl px-3 py-2" />
+          <input id="hol-start" type="date" required class="text-xs border border-slate-300 rounded-xl px-2.5 py-2" title="Từ ngày" />
+          <input id="hol-end" type="date" required class="text-xs border border-slate-300 rounded-xl px-2.5 py-2" title="Đến ngày" />
+          <button type="submit" class="sm:col-span-4 py-2 text-xs font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition">
+            + Thêm kỳ nghỉ lễ vào Hợp đồng
+          </button>
+        </form>
+
+        <div class="border border-slate-200 rounded-xl overflow-hidden">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500 uppercase bg-slate-50">
+                <th class="py-2 px-3">Tên kỳ nghỉ lễ</th>
+                <th class="py-2 px-3">Từ ngày – Đến ngày</th>
+                <th class="py-2 px-3 text-center">Số ngày</th>
+                <th class="py-2 px-3 text-right">Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="holiday-list-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
 
@@ -1500,9 +1659,62 @@
       function genSyncId() {
         return Date.now() + '_' + Math.random().toString(36).slice(2, 8);
       }
+      let latestNotifRef = null;
+      let latestNotifTimer = null;
+      const seenRemoteNotifIds = new Set();
+
+      function getActorLabel() {
+        const cur = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+        return cur ? { name: `${cur.fullName} (@${cur.username})`, username: cur.username } : { name: 'Quản trị / Hệ thống', username: 'admin' };
+      }
+
+      function pushAdminNotif(detail, actionType) {
+        if (!Array.isArray(state.adminNotifications)) state.adminNotifications = [];
+        const actor = getActorLabel();
+        const proj = state.projects && state.projects.find(p => p.id === state.activeProjectId);
+        const entry = {
+          id: 'ntf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }),
+          user: actor.name,
+          username: actor.username,
+          project: proj ? proj.code : 'Hệ thống',
+          action: actionType || 'Chỉnh sửa',
+          detail: detail || 'Cập nhật dữ liệu',
+          read: actor.username === 'admin' && isAdminUser()
+        };
+        seenRemoteNotifIds.add(entry.id);
+        state.adminNotifications.unshift(entry);
+        if (state.adminNotifications.length > 80) state.adminNotifications = state.adminNotifications.slice(0, 80);
+        return entry;
+      }
+
+      function archiveBeforeDelete(type, label, snapshot, projectObj) {
+        if (!Array.isArray(state.deletedBackups)) state.deletedBackups = [];
+        const actor = getActorLabel();
+        const proj = projectObj || (state.projects && state.projects.find(p => p.id === state.activeProjectId));
+        state.deletedBackups.unshift({
+          id: 'del_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          deletedAt: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }),
+          deletedBy: actor.name,
+          projectId: proj ? proj.id : '',
+          projectName: proj ? `${proj.code} — ${proj.name}` : 'Hệ thống',
+          type,
+          label,
+          snapshot: JSON.parse(JSON.stringify(snapshot)),
+          restored: false
+        });
+        if (state.deletedBackups.length > 100) state.deletedBackups = state.deletedBackups.slice(0, 100);
+        pushAdminNotif(`Xóa ${type}: ${label} (đã lưu bản sao về máy chủ Admin)`, 'Xóa (Đã sao lưu)');
+      }
+
       function saveState(skipAutoPush) {
         state.lastUpdated = Date.now();
         state.syncId = genSyncId();
+        if (!skipAutoPush) {
+          latestNotifRef = pushAdminNotif('Cập nhật dữ liệu dự án', 'Chỉnh sửa');
+          clearTimeout(latestNotifTimer);
+          latestNotifTimer = setTimeout(() => { latestNotifRef = null; }, 80);
+        }
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         if (!skipAutoPush && state.autoSync && state.cloudUrl) {
           updateSyncBadge('⏳ Đang lưu lên Web...', 'busy');
@@ -1537,10 +1749,53 @@
       // WBS & Roll-up Math
       function isLeafTask(tasks, t) { return !tasks.some(x => x.c.startsWith(t.c + '.')); }
       function getLeafTasks(tasks) { return tasks.filter(t => isLeafTask(tasks, t)); }
+      function getHolidaySet(proj) {
+        const set = new Set();
+        const list = (proj && Array.isArray(proj.holidays)) ? proj.holidays : [];
+        list.forEach(h => {
+          if (!h.start) return;
+          let cur = iso(h.start);
+          const end = iso(h.end || h.start);
+          let guard = 0;
+          while (cur <= end && guard++ < 400) {
+            const d = new Date(cur);
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            set.add(key);
+            cur += DAY;
+          }
+        });
+        return set;
+      }
+      function countContractWorkDays(startMs, endMs, proj) {
+        if (endMs <= startMs) return 0;
+        const hSet = getHolidaySet(proj);
+        const exSun = Boolean(proj && proj.excludeSundays);
+        if (hSet.size === 0 && !exSun) return (endMs - startMs) / DAY;
+        let cur = startMs, work = 0, guard = 0;
+        while (cur < endMs && guard++ < 2500) {
+          const step = Math.min(DAY, endMs - cur);
+          const d = new Date(cur + 12 * 3600 * 1000);
+          const key = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+          const isSun = exSun && new Date(cur).getDay() === 0;
+          if (!isSun && !hSet.has(key)) work += step / DAY;
+          cur += step;
+        }
+        return work;
+      }
       function calcPlannedPct(t, atMs) {
         const ps = iso(t.ps), pe = iso(t.pe);
         if (pe <= ps) return atMs >= pe ? 100 : 0;
-        return Math.max(0, Math.min(100, ((atMs - ps) / (pe - ps)) * 100));
+        if (atMs <= ps) return 0;
+        if (atMs >= pe) return 100;
+        const proj = typeof getActiveProject === 'function' ? getActiveProject() : null;
+        const hasCal = proj && ((Array.isArray(proj.holidays) && proj.holidays.length > 0) || proj.excludeSundays);
+        if (!hasCal) {
+          return Math.max(0, Math.min(100, ((atMs - ps) / (pe - ps)) * 100));
+        }
+        const totalW = countContractWorkDays(ps, pe, proj);
+        if (totalW <= 0) return Math.max(0, Math.min(100, ((atMs - ps) / (pe - ps)) * 100));
+        const elapsedW = countContractWorkDays(ps, atMs, proj);
+        return Math.max(0, Math.min(100, (elapsedW / totalW) * 100));
       }
       function getTaskMetrics(tasks, t, atMs) {
         if (isLeafTask(tasks, t)) {
@@ -1676,6 +1931,7 @@
 
       // UI Helpers
       function showToast(msg, type = 'success') {
+        if (latestNotifRef && type !== 'error' && msg && !String(msg).includes('đồng bộ') && !String(msg).includes('Đăng xuất')) { latestNotifRef.detail = msg; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} latestNotifRef = null; }
         const container = document.getElementById('toast-container');
         const el = document.createElement('div');
         const colors = type === 'error' ? 'bg-rose-600 text-white' : type === 'info' ? 'bg-slate-800 text-white' : 'bg-emerald-600 text-white';
@@ -2216,6 +2472,8 @@
       }
 
       function renderScheduleTab(proj, atMs) {
+        const hCntEl = document.getElementById('sched-holiday-count');
+        if (hCntEl) hCntEl.textContent = String(getHolidaySet(proj).size) + ' ngày';
         const cp = computeCPM(proj.tasks);
         const leaves = getLeafTasks(proj.tasks);
         const g = aggTasks(leaves, atMs);
@@ -2407,6 +2665,82 @@
       }
 
       // Finance Tab (Contracts + Payment Rounds with Invoice Date & Payment Date)
+      function calcContractPayStats(proj, atMs) {
+        const refMs = atMs || getReportMs();
+        const contractStats = [];
+        const submittedList = [];
+        (proj.contracts || []).forEach(c => {
+          const term = Number(c.payTermDays) > 0 ? Number(c.payTermDays) : 15;
+          let onTimeCnt = 0, earlyDaysSum = 0, lateCnt = 0, lateDaysSum = 0, maxLate = 0, overPendingCnt = 0, maxOverPending = 0;
+          const items = [];
+          if ((Number(c.adv) || 0) > 0 && (c.advInvDate || c.advDate)) {
+            items.push({ label: 'Tạm ứng HĐ', amount: Number(c.adv) || 0, invDate: c.advInvDate || '', payDate: c.advDate || '' });
+          }
+          (c.rounds || []).forEach(r => items.push({ label: r.label, amount: Number(r.amount) || 0, invDate: r.invDate || '', payDate: r.payDate || '' }));
+          items.forEach(it => {
+            if (!it.invDate) return;
+            const invMs = iso(it.invDate);
+            if (it.payDate) {
+              const actual = Math.max(0, Math.round((iso(it.payDate) - invMs) / DAY));
+              if (actual <= term) {
+                onTimeCnt++;
+                earlyDaysSum += (term - actual);
+              } else {
+                const ld = actual - term;
+                lateCnt++;
+                lateDaysSum += ld;
+                if (ld > maxLate) maxLate = ld;
+              }
+            } else {
+              const waitDays = Math.max(0, Math.round((refMs - invMs) / DAY));
+              const over = Math.max(0, waitDays - term);
+              if (over > 0) { overPendingCnt++; if (over > maxOverPending) maxOverPending = over; }
+              submittedList.push({
+                code: c.code, contractor: c.contractor, label: it.label, invDate: it.invDate,
+                amount: it.amount, term, waitDays, over
+              });
+            }
+          });
+          contractStats.push({
+            code: c.code, name: c.name, contractor: c.contractor, term,
+            onTimeCnt, earlyDaysSum, lateCnt, lateDaysSum, maxLate, overPendingCnt, maxOverPending
+          });
+        });
+        return { contractStats, submittedList };
+      }
+
+      function calcPayDelay(invDate, payDate, termDays, atMs) {
+        const term = Number(termDays) > 0 ? Number(termDays) : 15;
+        if (!invDate) return { actualDays: null, lateDays: 0, pendingOver: 0, html: '<span class="text-slate-400 text-[11px]">Chưa có ngày XHĐ</span>' };
+        const invMs = iso(invDate);
+        if (payDate) {
+          const actualDays = Math.max(0, Math.round((iso(payDate) - invMs) / DAY));
+          const lateDays = Math.max(0, actualDays - term);
+          if (lateDays > 0) {
+            return {
+              actualDays, lateDays, pendingOver: 0,
+              html: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">⚠ Trễ ${lateDays} ngày</span><div class="text-[10px] text-slate-500 mt-0.5">${actualDays} / ${term} ngày HĐ</div>`
+            };
+          }
+          return {
+            actualDays, lateDays: 0, pendingOver: 0,
+            html: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Đúng hạn</span><div class="text-[10px] text-slate-500 mt-0.5">${actualDays} / ${term} ngày HĐ</div>`
+          };
+        }
+        const pendingDays = Math.max(0, Math.round(((atMs || getReportMs()) - invMs) / DAY));
+        const pendingOver = Math.max(0, pendingDays - term);
+        if (pendingOver > 0) {
+          return {
+            actualDays: pendingDays, lateDays: 0, pendingOver,
+            html: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800">🔥 Quá hạn ${pendingOver} ngày</span><div class="text-[10px] text-rose-600 mt-0.5">Chờ ${pendingDays} / ${term} ngày HĐ</div>`
+          };
+        }
+        return {
+          actualDays: pendingDays, lateDays: 0, pendingOver: 0,
+          html: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700">⏳ Đang chờ (${pendingDays}/${term}n)</span>`
+        };
+      }
+
       function renderFinanceTab(proj, totalContracted, totalRem) {
         const totalBudgetItems = proj.budgetItems.reduce((s, b) => s + Number(b.budget || 0), 0);
         document.getElementById('fin-budget-total').textContent = fmtTy(totalBudgetItems || proj.tmdt);
@@ -2421,7 +2755,7 @@
         document.getElementById('contract-table-body').innerHTML = proj.contracts.map(c => {
           const m = calcContract(c);
           return `<tr class="hover:bg-slate-50/80">
-            <td class="py-3 px-3"><div class="font-medium text-slate-900">${esc(c.name)}</div><div class="text-xs text-slate-400">${esc(c.code)}</div></td>
+            <td class="py-3 px-3"><div class="font-medium text-slate-900">${esc(c.name)}</div><div class="text-xs text-slate-400">${esc(c.code)} • Hạn TT: <strong class="text-slate-600">${Number(c.payTermDays) || 15} ngày</strong>${c.advDate ? ` • Mốc Tạm ứng: <strong class="text-brand-600">${fmtDateVN(c.advDate)}</strong> (${Math.max(0, Math.round(countContractWorkDays(iso(c.advDate), getReportMs(), proj)))} ngày TC)` : ''}</div></td>
             <td class="py-3 px-3 text-slate-600 text-xs">${esc(c.contractor)}</td>
             <td class="py-3 px-3 text-right font-semibold text-slate-900">${fmtTy(c.value)}</td>
             <td class="py-3 px-3 text-right text-slate-600">${c.settle ? fmtTy(c.settle) : '—'}</td>
@@ -2450,6 +2784,7 @@
               <td class="py-2.5 px-3 text-right"><input type="number" step="0.01" min="0" value="${Number(c.adv) || 0}" data-adv-field="adv" data-adv-cid="${esc(c.id)}" class="w-24 text-right text-xs font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3"><input type="date" value="${esc(c.advInvDate || '')}" data-adv-field="advInvDate" data-adv-cid="${esc(c.id)}" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3"><input type="date" value="${esc(c.advDate || '')}" data-adv-field="advDate" data-adv-cid="${esc(c.id)}" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
+              <td class="py-2.5 px-3">${calcPayDelay(c.advInvDate, c.advDate, c.payTermDays, getReportMs()).html}</td>
               <td class="py-2.5 px-3">${statusBadge(advSt)}</td>
               <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1.5">
                 ${!c.advDate && Number(c.adv) > 0 ? `<button type="button" data-action="approve-adv" data-cid="${esc(c.id)}" class="px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt chi</button>` : `<span class="text-xs text-emerald-600 font-semibold">${c.advDate ? 'Đã duyệt' : 'Nhập số tiền'}</span>`}
@@ -2464,6 +2799,7 @@
                 <td class="py-2.5 px-3 text-right"><input type="number" step="0.01" min="0" value="${Number(r.amount) || 0}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="amount" class="w-24 text-right text-xs font-semibold text-brand-700 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
                 <td class="py-2.5 px-3"><input type="date" value="${esc(r.invDate || '')}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="invDate" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
                 <td class="py-2.5 px-3"><input type="date" value="${esc(r.payDate || '')}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="payDate" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
+                <td class="py-2.5 px-3">${(() => { const d = calcPayDelay(r.invDate, r.payDate, c.payTermDays, getReportMs()); r.lateDays = d.lateDays; return d.html; })()}</td>
                 <td class="py-2.5 px-3">${statusBadge(st)}</td>
                 <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1.5">
                   ${!r.payDate ? `<button type="button" data-action="approve-round" data-cid="${esc(c.id)}" data-id="${esc(r.id)}" class="px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt chi</button>` : ''}
@@ -2472,7 +2808,34 @@
               </tr>`);
           });
         });
-        document.getElementById('payment-rounds-body').innerHTML = roundRows.length ? roundRows.join('') : `<tr><td colspan="7" class="py-6 text-center text-slate-400 text-sm">Chưa có đợt thanh toán nào.</td></tr>`;
+        document.getElementById('payment-rounds-body').innerHTML = roundRows.length ? roundRows.join('') : `<tr><td colspan="8" class="py-6 text-center text-slate-400 text-sm">Chưa có đợt thanh toán nào.</td></tr>`;
+
+        const payStats = calcContractPayStats(proj, getReportMs());
+        const delaySumBody = document.getElementById('payment-delay-summary-body');
+        if (delaySumBody) {
+          delaySumBody.innerHTML = payStats.contractStats.length ? payStats.contractStats.map(s => `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2 px-2.5"><div class="font-semibold text-slate-800">${esc(s.code)}</div><div class="text-[11px] text-slate-500 truncate max-w-[140px]">${esc(s.contractor)}</div></td>
+              <td class="py-2 px-2.5 text-center font-medium text-slate-700">${s.term}n</td>
+              <td class="py-2 px-2.5 text-center">${s.onTimeCnt > 0 ? `<span class="font-semibold text-emerald-700">${s.onTimeCnt} đợt</span><div class="text-[10px] text-emerald-600">Nhanh ${s.earlyDaysSum}n</div>` : '<span class="text-slate-400">—</span>'}</td>
+              <td class="py-2 px-2.5 text-center">${s.lateCnt > 0 ? `<span class="font-semibold text-rose-700">${s.lateCnt} đợt</span><div class="text-[10px] text-rose-600">Trễ ${s.lateDaysSum}n (max ${s.maxLate}n)</div>` : '<span class="text-slate-400">0</span>'}</td>
+              <td class="py-2 px-2.5 text-right">${s.overPendingCnt > 0 ? `<span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold">${s.overPendingCnt} đợt (+${s.maxOverPending}n)</span>` : '<span class="text-emerald-600 font-medium">Không</span>'}</td>
+            </tr>`).join('') : `<tr><td colspan="5" class="py-4 text-center text-slate-400">Chưa có dữ liệu hợp đồng.</td></tr>`;
+        }
+        const subSumBody = document.getElementById('submitted-debt-summary-body');
+        const subBadge = document.getElementById('submitted-debt-badge');
+        if (subBadge) subBadge.textContent = fmtTy(subDebt.total) + ' Tỷ';
+        if (subSumBody) {
+          const totalSubAmt = payStats.submittedList.reduce((s, x) => s + x.amount, 0);
+          subSumBody.innerHTML = payStats.submittedList.length ? (payStats.submittedList.map(x => `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2 px-2.5"><div class="font-semibold text-slate-800">${esc(x.code)} — ${esc(x.label)}</div><div class="text-[11px] text-slate-500">${esc(x.contractor)}</div></td>
+              <td class="py-2 px-2.5 text-center text-slate-600">${fmtDateVN(x.invDate)}</td>
+              <td class="py-2 px-2.5 text-right font-semibold text-rose-700">${fmtTy(x.amount)}</td>
+              <td class="py-2 px-2.5 text-right">${x.over > 0 ? `<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-semibold">Quá hạn ${x.over}n</span>` : `<span class="text-amber-700">Chờ ${x.waitDays}/${x.term}n</span>`}</td>
+            </tr>`).join('') + `<tr class="bg-rose-50/60 font-bold"><td class="py-2 px-2.5 text-rose-900" colspan="2">TỔNG CÔNG NỢ ĐANG TRÌNH</td><td class="py-2 px-2.5 text-right text-rose-700">${fmtTy(totalSubAmt)} Tỷ</td><td class="py-2 px-2.5 text-right text-rose-700">${payStats.submittedList.length} đợt</td></tr>`)
+            : `<tr><td colspan="4" class="py-5 text-center text-slate-400">Không có công nợ đang trình chưa thanh toán.</td></tr>`;
+        }
 
         // Budget Items Table
         document.getElementById('budget-table-body').innerHTML = proj.budgetItems.map(b => {
@@ -2919,23 +3282,31 @@
             ${pageFooter(5)}
           </div>`,
 
-          // TRANG 6: 04. HỢP ĐỒNG & ĐỢT THANH TOÁN
-          `<div class="rpt-page flex flex-col justify-between">
-            <div>
-              ${pageHeader('04', 'HỢP ĐỒNG &amp; ĐỢT THANH TOÁN')}
-              <div class="text-xs font-bold text-blue-900 uppercase mb-1.5">Danh sách Gói thầu &amp; Tổng hợp Giải ngân</div>
-              <table class="w-full text-[10.5px] border-collapse border border-slate-300 mb-4">
-                <thead><tr class="bg-blue-900 text-white"><th class="p-1.5 text-left">Mã</th><th class="p-1.5 text-left">Nhà thầu</th><th class="p-1.5 text-right">GT HĐ</th><th class="p-1.5 text-right">Tạm ứng</th><th class="p-1.5 text-right">Đã TT</th><th class="p-1.5 text-right">Còn lại</th><th class="p-1.5 text-center">Trạng thái</th></tr></thead>
-                <tbody>${proj.contracts.map(c => { const m = calcContract(c); return `<tr class="border-b border-slate-200"><td class="p-1.5 font-semibold">${esc(c.code)}</td><td class="p-1.5">${esc(c.contractor)}</td><td class="p-1.5 text-right">${fmtTy(m.base)}</td><td class="p-1.5 text-right">${fmtTy(c.adv || 0)}</td><td class="p-1.5 text-right">${fmtTy(m.paid)}</td><td class="p-1.5 text-right">${fmtTy(m.rem)}</td><td class="p-1.5 text-center">${esc(c.status)}</td></tr>`; }).join('')}</tbody>
-              </table>
-              <div class="text-xs font-bold text-blue-900 uppercase mb-1.5">Chi tiết Đợt Thanh toán, Ngày Hóa đơn &amp; Ngày Thanh toán</div>
-              <table class="w-full text-[10.5px] border-collapse border border-slate-300">
-                <thead><tr class="bg-blue-900 text-white"><th class="p-1.5 text-left">Mã HĐ</th><th class="p-1.5 text-left">Đợt thanh toán</th><th class="p-1.5 text-right">Giá trị</th><th class="p-1.5 text-center">Ngày xuất HĐ</th><th class="p-1.5 text-center">Ngày TT</th><th class="p-1.5 text-center">Trạng thái</th></tr></thead>
-                <tbody>${roundSummaryRows.join('') || '<tr><td colspan="6" class="p-2 text-center text-slate-400">Chưa có đợt thanh toán</td></tr>'}</tbody>
-              </table>
-            </div>
-            ${pageFooter(6)}
-          </div>`,
+          // TRANG 6: 04. HỢP ĐỒNG, ĐỢT THANH TOÁN, THỐNG KÊ NHANH/TRỄ & CÔNG NỢ ĐANG TRÌNH
+          (() => {
+            const pdfPayStats = calcContractPayStats(proj, atMs);
+            return `<div class="rpt-page flex flex-col justify-between">
+              <div>
+                ${pageHeader('04', 'HỢP ĐỒNG, THANH TOÁN &amp; CÔNG NỢ ĐANG TRÌNH')}
+                <div class="text-[11px] font-bold text-blue-900 uppercase mb-1">1. Tổng hợp Gói thầu, Công nợ đang trình &amp; Thống kê Nhanh/Trễ Thanh toán</div>
+                <table class="w-full text-[9.5px] border-collapse border border-slate-300 mb-3">
+                  <thead><tr class="bg-blue-900 text-white"><th class="p-1 text-left">Mã</th><th class="p-1 text-left">Nhà thầu</th><th class="p-1 text-right">GT HĐ</th><th class="p-1 text-right">Đã TT</th><th class="p-1 text-right">Đang trình</th><th class="p-1 text-right">Còn lại</th><th class="p-1 text-center">Nhanh / Trễ TT</th></tr></thead>
+                  <tbody>${proj.contracts.map((c, idx) => { const m = calcContract(c); const st = pdfPayStats.contractStats[idx] || {}; return `<tr class="border-b border-slate-200"><td class="p-1 font-semibold">${esc(c.code)}</td><td class="p-1">${esc(c.contractor)}</td><td class="p-1 text-right">${fmtTy(m.base)}</td><td class="p-1 text-right">${fmtTy(m.paid)}</td><td class="p-1 text-right font-semibold text-rose-700">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td><td class="p-1 text-right">${fmtTy(m.rem)}</td><td class="p-1 text-center">${st.onTimeCnt || 0} đúng (nhanh ${st.earlyDaysSum || 0}n) / <span class="${(st.lateCnt || 0) > 0 ? 'text-rose-700 font-bold' : ''}">${st.lateCnt || 0} trễ (${st.lateDaysSum || 0}n)</span></td></tr>`; }).join('')}</tbody>
+                </table>
+                <div class="text-[11px] font-bold text-blue-900 uppercase mb-1">2. Tổng hợp Công nợ Đang trình (Đã xuất HĐ chưa thanh toán)</div>
+                <table class="w-full text-[9.5px] border-collapse border border-slate-300 mb-3">
+                  <thead><tr class="bg-rose-800 text-white"><th class="p-1 text-left">Mã HĐ &amp; Đợt</th><th class="p-1 text-left">Nhà thầu</th><th class="p-1 text-center">Ngày XHĐ</th><th class="p-1 text-right">Giá trị (Tỷ)</th><th class="p-1 text-center">Quá hạn HĐ</th></tr></thead>
+                  <tbody>${pdfPayStats.submittedList.length ? pdfPayStats.submittedList.map(x => `<tr class="border-b border-slate-200"><td class="p-1 font-semibold">${esc(x.code)} — ${esc(x.label)}</td><td class="p-1">${esc(x.contractor)}</td><td class="p-1 text-center">${fmtDateVN(x.invDate)}</td><td class="p-1 text-right font-bold text-rose-700">${fmtTy(x.amount)}</td><td class="p-1 text-center">${x.over > 0 ? `<span class="text-rose-700 font-bold">Quá hạn ${x.over}n</span>` : `Chờ ${x.waitDays}/${x.term}n`}</td></tr>`).join('') : '<tr><td colspan="5" class="p-1.5 text-center text-slate-400">Không có công nợ đang trình</td></tr>'}</tbody>
+                </table>
+                <div class="text-[11px] font-bold text-blue-900 uppercase mb-1">3. Chi tiết Đợt Thanh toán, Ngày Hóa đơn &amp; Ngày Thanh toán</div>
+                <table class="w-full text-[9.5px] border-collapse border border-slate-300">
+                  <thead><tr class="bg-blue-900 text-white"><th class="p-1 text-left">Mã HĐ</th><th class="p-1 text-left">Đợt thanh toán</th><th class="p-1 text-right">Giá trị</th><th class="p-1 text-center">Ngày XHĐ</th><th class="p-1 text-center">Ngày TT</th><th class="p-1 text-center">Trạng thái</th></tr></thead>
+                  <tbody>${roundSummaryRows.join('') || '<tr><td colspan="6" class="p-1.5 text-center text-slate-400">Chưa có đợt thanh toán</td></tr>'}</tbody>
+                </table>
+              </div>
+              ${pageFooter(6)}
+            </div>`;
+          })(),
 
           // TRANG 7: 05. TIẾN ĐỘ
           `<div class="rpt-page flex flex-col justify-between">
@@ -3057,9 +3428,31 @@
           ...proj.contracts.map(c => { const m = calcContract(c); return [c.code, c.name, c.contractor, c.value, c.settle || '', c.adv || 0, c.advDate || '', m.paid, m.submitted, m.rem, c.status]; })
         ]);
 
-        const roundRows = [['Mã HĐ', 'Nhà thầu', 'Đợt thanh toán', 'Giá trị (Tỷ)', 'Ngày xuất hóa đơn', 'Ngày thanh toán', 'Ghi chú', 'Trạng thái']];
-        proj.contracts.forEach(c => (c.rounds || []).forEach(r => roundRows.push([c.code, c.contractor, r.label, r.amount, r.invDate || '', r.payDate || '', r.note || '', getRoundStatus(r)])));
+        const roundRows = [['Mã HĐ', 'Nhà thầu', 'Đợt thanh toán', 'Giá trị (Tỷ)', 'Ngày xuất hóa đơn', 'Ngày thanh toán', 'Hạn TT HĐ (ngày)', 'Số ngày TT thực tế', 'Nhanh(+) / Trễ(-) ngày', 'Ghi chú', 'Trạng thái']];
+        proj.contracts.forEach(c => {
+          const term = Number(c.payTermDays) || 15;
+          (c.rounds || []).forEach(r => {
+            const actualD = (r.invDate && r.payDate) ? Math.max(0, Math.round((iso(r.payDate) - iso(r.invDate)) / DAY)) : '';
+            const diffD = actualD !== '' ? (term - actualD) : '';
+            roundRows.push([c.code, c.contractor, r.label, r.amount, r.invDate || '', r.payDate || '', term, actualD, diffD, r.note || '', getRoundStatus(r)]);
+          });
+        });
         const sRounds = XLSX.utils.aoa_to_sheet(roundRows);
+
+        const xlsPayStats = calcContractPayStats(proj, atMs);
+        const sDelayStats = XLSX.utils.aoa_to_sheet([
+          ['Mã HĐ', 'Tên hợp đồng', 'Nhà thầu', 'Hạn TT HĐ (ngày)', 'Số đợt đúng/nhanh hạn', 'Tổng ngày nhanh (ngày)', 'Số đợt trễ hạn', 'Tổng ngày trễ (ngày)', 'Trễ nhiều nhất (ngày)', 'Đợt đang chờ quá hạn'],
+          ...xlsPayStats.contractStats.map(s => [s.code, s.name, s.contractor, s.term, s.onTimeCnt, s.earlyDaysSum, s.lateCnt, s.lateDaysSum, s.maxLate, s.overPendingCnt])
+        ]);
+        const sSubDebt = XLSX.utils.aoa_to_sheet([
+          ['Mã HĐ', 'Nhà thầu', 'Đợt thanh toán', 'Ngày xuất HĐ', 'Số tiền đang trình (Tỷ)', 'Hạn TT HĐ (ngày)', 'Đã chờ (ngày)', 'Quá hạn (ngày)'],
+          ...xlsPayStats.submittedList.map(x => [x.code, x.contractor, x.label, x.invDate, x.amount, x.term, x.waitDays, x.over])
+        ]);
+        const sHolidays = XLSX.utils.aoa_to_sheet([
+          ['Trừ Chủ nhật theo HĐ', proj.excludeSundays ? 'Có' : 'Không', '', ''],
+          ['Tên kỳ nghỉ lễ', 'Từ ngày', 'Đến ngày', 'Số ngày'],
+          ...(proj.holidays || []).map(h => [h.name, h.start, h.end || h.start, Math.max(1, Math.round((iso(h.end || h.start) - iso(h.start)) / DAY) + 1)])
+        ]);
 
         const sWbs = XLSX.utils.aoa_to_sheet([
           ['Mã WBS', 'Tên công việc', 'Nhà thầu', 'Trọng số (%)', 'BĐ KH', 'KT KH', '% KH', '% TT', 'Liên kết', 'Ghi chú'],
@@ -3094,7 +3487,7 @@
         XLSX.utils.book_append_sheet(wb, sInfo, 'Thong_tin_DA');
         XLSX.utils.book_append_sheet(wb, sBudget, 'Ngan_sach');
         XLSX.utils.book_append_sheet(wb, sContracts, 'Hop_dong');
-        XLSX.utils.book_append_sheet(wb, sRounds, 'Chi_tiet_dot_TT');
+        XLSX.utils.book_append_sheet(wb, sRounds, 'Chi_tiet_dot_TT'); XLSX.utils.book_append_sheet(wb, sDelayStats, 'TK_Nhanh_Tre_TT'); XLSX.utils.book_append_sheet(wb, sSubDebt, 'Cong_no_dang_trinh'); XLSX.utils.book_append_sheet(wb, sHolidays, 'Ngay_nghi_le_HD');
         XLSX.utils.book_append_sheet(wb, sWbs, 'Tien_do_WBS');
         XLSX.utils.book_append_sheet(wb, sVo, 'Phat_sinh_VO');
         XLSX.utils.book_append_sheet(wb, sIns, 'Nghiem_thu');
@@ -3614,6 +4007,8 @@
           openModal('Xác nhận xóa dự án', `
             <p class="text-sm text-slate-700">Bạn có chắc chắn muốn xóa dự án <b>${esc(p.code)} — ${esc(p.name)}</b> khỏi danh mục? Thao tác này sẽ xóa toàn bộ hợp đồng và tiến độ của dự án này.</p>
           `, () => {
+            const pObj = state.projects.find(x => x.id === id);
+            if (pObj) archiveBeforeDelete('Dự án', `${pObj.code} — ${pObj.name}`, { project: pObj }, pObj);
             state.projects = state.projects.filter(x => x.id !== id);
             if (state.activeProjectId === id) state.activeProjectId = state.projects[0].id;
             saveState(); closeModal(); renderAll(); showToast('Đã xóa dự án khỏi danh mục', 'info');
@@ -3645,7 +4040,12 @@
           }
         } else if (action === 'del-round') {
           const c = proj.contracts.find(x => x.id === btn.dataset.cid);
-          if (c) { c.rounds = (c.rounds || []).filter(r => r.id !== id); saveState(); renderAll(); showToast('Đã xóa đợt thanh toán', 'info'); }
+          if (c) {
+            const rObj = (c.rounds || []).find(r => r.id === id);
+            if (rObj) archiveBeforeDelete('Đợt thanh toán', `${c.code}: ${rObj.label} (${fmtTy(rObj.amount)} Tỷ)`, { contractId: c.id, round: rObj }, proj);
+            c.rounds = (c.rounds || []).filter(r => r.id !== id);
+            saveState(); renderAll(); showToast(`Đã xóa đợt thanh toán ${rObj ? rObj.label : ''} (đã sao lưu cho Admin)`, 'info');
+          }
         } else if (action === 'approve-pay') {
           const pay = proj.payments.find(p => p.id === id);
           if (pay && pay.status === 'Chờ duyệt') {
@@ -3845,6 +4245,8 @@
           openModal('Xác nhận xóa nhà thầu', `
             <p class="text-sm text-slate-700">Bạn có chắc muốn xóa nhà thầu <b>${esc(kName)}</b> và <b>${cnt}</b> hạng mục chi tiết của nhà thầu này?</p>
           `, () => {
+            const removedK = proj.tasks.filter(t => t.contractor === kName && isLeafTask(proj.tasks, t));
+            archiveBeforeDelete('Tiến độ Nhà thầu', `${kName} (${removedK.length} hạng mục)`, { contractor: kName, tasks: removedK }, proj);
             proj.tasks = proj.tasks.filter(t => !(t.contractor === kName && isLeafTask(proj.tasks, t)));
             if (selectedContractor === kName) selectedContractor = '';
             saveState(); closeModal(); renderAll(); showToast(`Đã xóa nhà thầu "${kName}"`, 'info');
@@ -3854,8 +4256,10 @@
           openModal('Xác nhận xóa hạng mục', `
             <p class="text-sm text-slate-700">Xóa hạng mục <b>[${esc(t.c)}] ${esc(t.name)}</b> (và các mục con nếu có)?</p>
           `, () => {
+            const removed = proj.tasks.filter(x => x.id === id || x.c.startsWith(t.c + '.'));
+            archiveBeforeDelete('Hạng mục WBS', `[${t.c}] ${t.name} (${removed.length} mục)`, { tasks: removed }, proj);
             proj.tasks = proj.tasks.filter(x => x.id !== id && !x.c.startsWith(t.c + '.'));
-            saveState(); closeModal(); renderAll(); showToast('Đã xóa hạng mục', 'info');
+            saveState(); closeModal(); renderAll(); showToast(`Đã xóa hạng mục [${t.c}] (đã sao lưu cho Admin)`, 'info');
           });
         } else if (action === 'view-version') {
           const v = (proj.scheduleVersions || []).find(x => x.id === id); if (!v) return;
@@ -3942,8 +4346,12 @@
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nhà thầu</label><input name="contractor" value="${esc(c.contractor)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Giá trị HĐ (Tỷ VNĐ)</label><input name="value" type="number" step="0.01" value="${c.value}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Hạn TT theo HĐ (ngày từ XHĐ)</label><input name="payTermDays" type="number" min="1" value="${Number(c.payTermDays) || 15}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngày tạm ứng (mốc tính TĐ)</label><input name="advDate" type="date" value="${esc(c.advDate || '')}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            </div>
             <p class="text-[11px] text-slate-500">Tạm ứng, Đã thanh toán, Đang trình và Còn lại được cập nhật tự động từ bảng Theo dõi Chi tiết Từng Đợt Thanh toán.</p>
-          `, fd => { c.name = fd.get('name').trim(); c.contractor = fd.get('contractor').trim(); c.value = Number(fd.get('value')) || 0; saveState(); closeModal(); renderAll(); showToast('Đã cập nhật thông tin gói thầu'); });
+          `, fd => { c.name = fd.get('name').trim(); c.contractor = fd.get('contractor').trim(); c.value = Number(fd.get('value')) || 0; c.payTermDays = Math.max(1, Number(fd.get('payTermDays')) || 15); if (fd.get('advDate')) c.advDate = fd.get('advDate'); saveState(); closeModal(); renderAll(); showToast('Đã cập nhật thông tin gói thầu'); });
         } else if (action === 'pass-ins' || action === 'fail-ins') {
           const ins = proj.inspections.find(i => i.id === id);
           if (ins) { ins.status = action === 'pass-ins' ? 'Đạt' : 'Không đạt'; saveState(); renderAll(); showToast(`Nghiệm thu: ${ins.status}`); }
@@ -4123,7 +4531,11 @@
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nhà thầu</label><input name="contractor" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Giá trị HĐ (Tỷ VNĐ)</label><input name="value" type="number" step="0.01" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           </div>
-        `, fd => { getActiveProject().contracts.push({ id: 'c' + Date.now(), code: fd.get('code').trim(), name: fd.get('name').trim(), contractor: fd.get('contractor').trim(), value: Number(fd.get('value')) || 0, settle: '', adv: 0, advInvDate: '', advDate: '', rounds: [], status: 'Đã ký' }); saveState(); closeModal(); renderAll(); showToast('Đã thêm gói thầu'); });
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Hạn TT theo HĐ (ngày từ XHĐ)</label><input name="payTermDays" type="number" min="1" value="15" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngày tạm ứng (mốc tính TĐ)</label><input name="advDate" type="date" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+          </div>
+        `, fd => { getActiveProject().contracts.push({ id: 'c' + Date.now(), code: fd.get('code').trim(), name: fd.get('name').trim(), contractor: fd.get('contractor').trim(), value: Number(fd.get('value')) || 0, settle: '', adv: 0, advInvDate: '', advDate: fd.get('advDate') || '', payTermDays: Math.max(1, Number(fd.get('payTermDays')) || 15), rounds: [], status: 'Đã ký' }); saveState(); closeModal(); renderAll(); showToast('Đã thêm gói thầu'); });
       });
 
       function openPaymentModal() {
@@ -4317,6 +4729,7 @@
         if (idx < 0) return;
         const item = proj.weeklyArchive[idx];
         if (act === 'del') {
+          archiveBeforeDelete('Báo cáo tuần', item.weekLabel, { archive: item }, proj);
           proj.weeklyArchive.splice(idx, 1);
           saveState(); renderAll();
           showToast(`Đã xóa ${item.weekLabel} khỏi kho lưu trữ`, 'info');
@@ -4471,6 +4884,16 @@ function doPost(e) {
             localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(Number(data.lastUpdated) || 0));
           } catch (e) {}
           checkAuthSession();
+          if (isAdminUser() && Array.isArray(state.adminNotifications)) {
+            const cur = getCurrentUser();
+            const curU = cur ? cur.username : '';
+            const fresh = state.adminNotifications.filter(n => !n.read && n.username !== curU && !seenRemoteNotifIds.has(n.id));
+            fresh.forEach(n => seenRemoteNotifIds.add(n.id));
+            if (fresh.length > 0) {
+              const topN = fresh[0];
+              showToast(`🔔 ${topN.user}: ${topN.detail}`, 'info');
+            }
+          }
           renderAll();
           const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
@@ -4691,6 +5114,13 @@ function doPost(e) {
         if (btnResetDemo) btnResetDemo.classList.toggle('hidden', !isAdmin);
         const btnImpJson = document.getElementById('btn-import-json-trigger');
         if (btnImpJson) btnImpJson.classList.toggle('hidden', !isAdmin);
+        const btnNotif = document.getElementById('btn-admin-notifs');
+        if (btnNotif) {
+          btnNotif.classList.toggle('hidden', !isAdmin);
+          const unread = (state.adminNotifications || []).filter(n => !n.read).length;
+          const cntEl = document.getElementById('admin-notif-count');
+          if (cntEl) cntEl.textContent = String(unread);
+        }
 
         // Header quick action buttons
         const btnDisb = document.getElementById('btn-quick-payment');
@@ -5322,6 +5752,160 @@ function doPost(e) {
         if (bimState.timer) { clearInterval(bimState.timer); bimState.timer = null; document.getElementById('btn-bim-play').textContent = '▶ Chạy mô phỏng'; return; }
         let val = 0; document.getElementById('btn-bim-play').textContent = '⏸ Tạm dừng';
         bimState.timer = setInterval(() => { val = (val + 5) > 100 ? 0 : val + 5; document.getElementById('bim-slider').value = val; updateBimVisibility(val); }, 300);
+      });
+
+      // Admin Notifications & Pre-Delete Backup Restore Handlers
+      function renderAdminAuditModal() {
+        const notifs = Array.isArray(state.adminNotifications) ? state.adminNotifications : [];
+        const trash = Array.isArray(state.deletedBackups) ? state.deletedBackups : [];
+        document.getElementById('admin-notifs-body').innerHTML = notifs.length ? notifs.map(n => `
+          <tr class="${n.read ? 'bg-white' : 'bg-amber-50/60'} hover:bg-slate-50">
+            <td class="py-2 px-2 text-slate-500 whitespace-nowrap">${esc(n.time)}</td>
+            <td class="py-2 px-2 font-semibold text-slate-800">${esc(n.user)}</td>
+            <td class="py-2 px-2 text-slate-600">${esc(n.project)}</td>
+            <td class="py-2 px-2 ${n.action.includes('Xóa') ? 'text-rose-700 font-semibold' : 'text-slate-700'}">${!n.read ? '<span class="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span>' : ''}${esc(n.detail)}</td>
+          </tr>`).join('') : `<tr><td colspan="4" class="py-4 text-center text-slate-400">Chưa có thông báo chỉnh sửa nào.</td></tr>`;
+
+        document.getElementById('admin-trash-body').innerHTML = trash.length ? trash.map(d => `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2 px-2 text-slate-500 whitespace-nowrap">${esc(d.deletedAt)}</td>
+            <td class="py-2 px-2 font-semibold text-slate-800">${esc(d.deletedBy)}</td>
+            <td class="py-2 px-2"><span class="font-semibold text-amber-800">${esc(d.type)}</span><div class="text-[10px] text-slate-500 truncate max-w-[140px]">${esc(d.projectName)}</div></td>
+            <td class="py-2 px-2 text-slate-700">${esc(d.label)}</td>
+            <td class="py-2 px-2 text-right whitespace-nowrap space-x-1">
+              ${!d.restored ? `<button type="button" data-trash-act="restore" data-trash-id="${esc(d.id)}" class="px-2 py-0.5 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold">♻ Khôi phục</button>` : `<span class="text-[10px] text-emerald-600 font-semibold">Đã khôi phục</span>`}
+              <button type="button" data-trash-act="purge" data-trash-id="${esc(d.id)}" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50">✕</button>
+            </td>
+          </tr>`).join('') : `<tr><td colspan="5" class="py-4 text-center text-slate-400">Chưa có dữ liệu bị xóa nào.</td></tr>`;
+      }
+
+      document.getElementById('btn-admin-notifs').addEventListener('click', () => {
+        renderAdminAuditModal();
+        document.getElementById('admin-audit-modal').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-admin-audit').addEventListener('click', () => {
+        document.getElementById('admin-audit-modal').classList.add('hidden');
+      });
+      document.getElementById('btn-mark-all-notifs').addEventListener('click', () => {
+        (state.adminNotifications || []).forEach(n => { n.read = true; });
+        saveState(); renderAdminAuditModal(); applyUserPermissions();
+      });
+      document.getElementById('btn-clear-notifs').addEventListener('click', () => {
+        state.adminNotifications = [];
+        saveState(); renderAdminAuditModal(); applyUserPermissions();
+      });
+      document.getElementById('admin-trash-body').addEventListener('click', e => {
+        const btn = e.target.closest('[data-trash-act]');
+        if (!btn) return;
+        const id = btn.dataset.trashId, act = btn.dataset.trashAct;
+        const idx = (state.deletedBackups || []).findIndex(d => d.id === id);
+        if (idx < 0) return;
+        const d = state.deletedBackups[idx];
+        if (act === 'purge') {
+          state.deletedBackups.splice(idx, 1);
+          saveState(); renderAdminAuditModal();
+          showToast('Đã xóa vĩnh viễn khỏi kho sao lưu', 'info');
+          return;
+        }
+        if (act === 'restore' && d.snapshot) {
+          const p = state.projects.find(x => x.id === d.projectId) || getActiveProject();
+          if (d.type === 'Dự án' && d.snapshot.project) {
+            if (!state.projects.some(x => x.id === d.snapshot.project.id)) {
+              state.projects.push(JSON.parse(JSON.stringify(d.snapshot.project)));
+            }
+          } else if (d.type === 'Đợt thanh toán' && d.snapshot.round && p) {
+            const c = p.contracts.find(x => x.id === d.snapshot.contractId);
+            if (c) {
+              if (!Array.isArray(c.rounds)) c.rounds = [];
+              c.rounds.push(JSON.parse(JSON.stringify(d.snapshot.round)));
+            }
+          } else if ((d.type === 'Hạng mục WBS' || d.type === 'Tiến độ Nhà thầu') && Array.isArray(d.snapshot.tasks) && p) {
+            d.snapshot.tasks.forEach(t => {
+              if (!p.tasks.some(x => x.id === t.id)) p.tasks.push(JSON.parse(JSON.stringify(t)));
+            });
+          } else if (d.type === 'Báo cáo tuần' && d.snapshot.archive && p) {
+            if (!Array.isArray(p.weeklyArchive)) p.weeklyArchive = [];
+            p.weeklyArchive.push(JSON.parse(JSON.stringify(d.snapshot.archive)));
+          }
+          d.restored = true;
+          saveState(); renderAll(); renderAdminAuditModal();
+          showToast(`Đã khôi phục ${d.type}: ${d.label}`);
+        }
+      });
+
+      // Holiday Calendar Modal Handlers
+      function renderHolidayModal() {
+        const proj = getActiveProject();
+        if (!Array.isArray(proj.holidays)) proj.holidays = [];
+        document.getElementById('hol-exclude-sun').checked = Boolean(proj.excludeSundays);
+        const body = document.getElementById('holiday-list-body');
+        body.innerHTML = proj.holidays.length ? proj.holidays.map(h => {
+          const days = Math.max(1, Math.round((iso(h.end || h.start) - iso(h.start)) / DAY) + 1);
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2 px-3 font-semibold text-slate-800">${esc(h.name)}</td>
+              <td class="py-2 px-3 text-slate-600">${fmtDateVN(h.start)}${h.end && h.end !== h.start ? ' → ' + fmtDateVN(h.end) : ''}</td>
+              <td class="py-2 px-3 text-center font-semibold text-amber-700">${days} ngày</td>
+              <td class="py-2 px-3 text-right"><button type="button" data-del-hol="${esc(h.id)}" class="text-rose-600 hover:underline font-semibold">Xóa</button></td>
+            </tr>`;
+        }).join('') : `<tr><td colspan="4" class="py-5 text-center text-slate-400">Chưa khai báo ngày nghỉ lễ nào. Tiến độ đang tính 100% ngày lịch.</td></tr>`;
+      }
+
+      document.getElementById('btn-manage-holidays').addEventListener('click', () => {
+        renderHolidayModal();
+        document.getElementById('holiday-modal').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-holiday').addEventListener('click', () => {
+        document.getElementById('holiday-modal').classList.add('hidden');
+      });
+      document.getElementById('hol-exclude-sun').addEventListener('change', e => {
+        const proj = getActiveProject();
+        proj.excludeSundays = e.target.checked;
+        saveState(); renderAll(); renderHolidayModal();
+        showToast(proj.excludeSundays ? 'Đã bật trừ ngày Chủ nhật theo HĐ' : 'Đã tắt trừ ngày Chủ nhật');
+      });
+      document.getElementById('holiday-add-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const proj = getActiveProject();
+        if (!Array.isArray(proj.holidays)) proj.holidays = [];
+        const name = document.getElementById('hol-name').value.trim();
+        const start = document.getElementById('hol-start').value;
+        const end = document.getElementById('hol-end').value || start;
+        if (end < start) { showToast('Ngày kết thúc phải >= ngày bắt đầu', 'error'); return; }
+        proj.holidays.push({ id: 'hol_' + Date.now(), name, start, end });
+        e.target.reset();
+        saveState(); renderAll(); renderHolidayModal();
+        showToast(`Đã thêm kỳ nghỉ lễ "${name}"`);
+      });
+      document.getElementById('holiday-list-body').addEventListener('click', e => {
+        const btn = e.target.closest('[data-del-hol]');
+        if (!btn) return;
+        const proj = getActiveProject();
+        proj.holidays = (proj.holidays || []).filter(h => h.id !== btn.dataset.delHol);
+        saveState(); renderAll(); renderHolidayModal();
+        showToast('Đã xóa ngày nghỉ lễ', 'info');
+      });
+      document.getElementById('btn-preset-vn-holidays').addEventListener('click', () => {
+        const proj = getActiveProject();
+        if (!Array.isArray(proj.holidays)) proj.holidays = [];
+        const presets = [
+          { name: 'Tết Dương lịch 2027', start: '2027-01-01', end: '2027-01-01' },
+          { name: 'Tết Nguyên Đán Đinh Mùi 2027', start: '2027-02-05', end: '2027-02-11' },
+          { name: 'Giỗ Tổ Hùng Vương 2027', start: '2027-04-16', end: '2027-04-16' },
+          { name: 'Giải phóng Miền Nam & 1/5 (2027)', start: '2027-04-30', end: '2027-05-01' },
+          { name: 'Quốc khánh 2/9 (2027)', start: '2027-09-02', end: '2027-09-03' },
+          { name: 'Tết Dương lịch 2028', start: '2028-01-01', end: '2028-01-01' },
+          { name: 'Tết Nguyên Đán Mậu Thân 2028', start: '2028-01-25', end: '2028-01-31' }
+        ];
+        let added = 0;
+        presets.forEach(pr => {
+          if (!proj.holidays.some(h => h.start === pr.start && h.end === pr.end)) {
+            proj.holidays.push({ id: 'hol_' + Date.now() + '_' + added, ...pr });
+            added++;
+          }
+        });
+        saveState(); renderAll(); renderHolidayModal();
+        showToast(added ? `Đã nạp ${added} kỳ nghỉ lễ Việt Nam (2027–2028)` : 'Các kỳ nghỉ lễ mẫu đã có sẵn');
       });
 
       checkAuthSession();
