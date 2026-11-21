@@ -219,7 +219,7 @@
         <button type="button" data-tab="approvals" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
           <span class="flex items-center gap-3">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Phát sinh &amp; Nghiệm thu</span>
+            <span>Thay đổi &amp; Phát sinh (VO)</span>
           </span>
           <span id="badge-vo" class="hidden text-[11px] font-semibold bg-rose-500 text-white px-1.5 py-0.5 rounded-full">0</span>
         </button>
@@ -940,31 +940,6 @@
           <div id="vo-list" class="space-y-3"></div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-              <h3 class="font-semibold text-slate-900 text-base">Nghiệm thu Chất lượng &amp; Hiện trường (QA/QC)</h3>
-              <p class="text-xs text-slate-500">Biên bản nghiệm thu công việc xây dựng và chuyển bước thi công</p>
-            </div>
-            <button id="btn-add-inspection" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition self-start sm:self-auto">
-              + Lập phiếu nghiệm thu
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr class="border-b border-slate-200 text-xs text-slate-500 uppercase bg-slate-50/70">
-                  <th class="py-3 px-3 font-semibold">Nội dung nghiệm thu</th>
-                  <th class="py-3 px-3 font-semibold">Đơn vị đề nghị / TVGS</th>
-                  <th class="py-3 px-3 font-semibold">Ngày kiểm tra</th>
-                  <th class="py-3 px-3 font-semibold">Kết quả</th>
-                  <th class="py-3 px-3 font-semibold text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody id="inspection-table-body" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
-        </div>
       </section>
 
       <!-- TAB 5: RISKS & LEGAL -->
@@ -1895,7 +1870,7 @@
         overview: 'Tổng quan điều hành',
         schedule: 'Tiến độ Nhà thầu & Tổng',
         finance: 'Ngân sách & Đợt TT',
-        approvals: 'Phát sinh & Nghiệm thu',
+        approvals: 'Thay đổi & Phát sinh (VO)',
         risks: 'Rủi ro & Pháp lý',
         weekly: 'Báo cáo tuần & Ảnh',
         bim3d: 'Mô phỏng 3D (BIM)'
@@ -3039,6 +3014,7 @@
         if (!filtered.length) {
           tbody.innerHTML = summaryRowHtml + `<tr><td colspan="13" class="py-6 text-center text-slate-400 text-sm">Không tìm thấy hạng mục phù hợp.</td></tr>`;
         } else {
+          const canEditSched = canEditModule('schedule');
           tbody.innerHTML = summaryRowHtml + filtered.map(t => {
             const leaf = isLeafTask(proj.tasks, t);
             const m = getTaskMetrics(proj.tasks, t, atMs);
@@ -3084,10 +3060,10 @@
                 </td>
                 <td class="py-2.5 px-2 text-center">
                   ${leaf ? `
-                    <div class="inline-flex items-center gap-1.5">
-                      <button type="button" data-action="step-task" data-delta="-5" data-id="${esc(t.id)}" class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">-</button>
-                      <input type="range" min="0" max="100" value="${t.progress}" data-task-pct-id="${esc(t.id)}" class="w-20 accent-brand-600 cursor-pointer" />
-                      <button type="button" data-action="step-task" data-delta="5" data-id="${esc(t.id)}" class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">+</button>
+                    <div class="inline-flex items-center gap-1.5 ${canEditSched ? '' : 'opacity-60'}">
+                      <button type="button" data-action="step-task" data-delta="-5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">-</button>
+                      <input type="range" min="0" max="100" value="${t.progress}" data-task-pct-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-20 accent-brand-600 ${canEditSched ? 'cursor-pointer' : 'cursor-not-allowed'}" />
+                      <button type="button" data-action="step-task" data-delta="5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">+</button>
                       <span class="text-xs font-bold ${pctCls} w-8 text-right">${t.progress}%</span>
                     </div>` : `<div class="text-xs font-semibold text-slate-500">tổng hợp <span class="ml-1 font-bold ${pctCls}">${m.a.toFixed(0)}%</span></div>`}
                 </td>
@@ -3156,7 +3132,10 @@
           if ((Number(c.adv) || 0) > 0 && (c.advInvDate || c.advDate)) {
             items.push({ label: 'Tạm ứng HĐ', amount: Number(c.adv) || 0, invDate: c.advInvDate || '', payDate: c.advDate || '' });
           }
-          (c.rounds || []).forEach(r => items.push({ label: r.label, amount: Number(r.amount) || 0, invDate: r.invDate || '', payDate: r.payDate || '' }));
+          (c.rounds || []).forEach((r, rIdx) => {
+            const lbl = /^đợt\s*\d+/i.test(String(r.label || '').trim()) ? r.label : `Đợt ${rIdx + 1} — ${r.label || ''}`;
+            items.push({ label: lbl, amount: Number(r.amount) || 0, invDate: r.invDate || '', payDate: r.payDate || '' });
+          });
           items.forEach(it => {
             if (!it.invDate) return;
             const invMs = iso(it.invDate);
@@ -3273,7 +3252,7 @@
             <tr class="bg-blue-50/30 hover:bg-blue-50/50">
               <td class="py-2.5 px-3"><div class="font-semibold text-slate-900 text-xs">${esc(c.code)} — ${esc(c.contractor)}</div></td>
               <td class="py-2.5 px-3 font-semibold text-brand-800 text-xs">Tạm ứng hợp đồng</td>
-              <td class="py-2.5 px-3 text-right"><input type="number" step="0.01" min="0" value="${Number(c.adv) || 0}" step="any" data-adv-field="adv" data-adv-cid="${esc(c.id)}" class="w-28 text-right text-xs font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
+              <td class="py-2.5 px-3 text-right"><input type="text" inputmode="numeric" value="${fmtVndInput(c.adv || 0)}" data-adv-field="adv" data-adv-cid="${esc(c.id)}" class="w-28 text-right text-xs font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3"><input type="date" value="${esc(c.advInvDate || '')}" data-adv-field="advInvDate" data-adv-cid="${esc(c.id)}" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3"><input type="date" value="${esc(c.advDate || '')}" data-adv-field="advDate" data-adv-cid="${esc(c.id)}" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3">${calcPayDelay(c.advInvDate, c.advDate, c.payTermDays, getReportMs()).html}</td>
@@ -3282,12 +3261,13 @@
                 ${!c.advDate && Number(c.adv) > 0 ? `<button type="button" data-action="approve-adv" data-cid="${esc(c.id)}" class="px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt chi</button>` : `<span class="text-xs text-emerald-600 font-semibold">${c.advDate ? 'Đã duyệt' : 'Nhập số tiền'}</span>`}
               </td>
             </tr>`);
-          (c.rounds || []).forEach(r => {
+          (c.rounds || []).forEach((r, rIdx) => {
             const st = getRoundStatus(r);
+            const dotNum = rIdx + 1;
             roundRows.push(`
               <tr class="hover:bg-slate-50/80">
                 <td class="py-2.5 px-3"><div class="font-semibold text-slate-900 text-xs">${esc(c.code)} — ${esc(c.contractor)}</div></td>
-                <td class="py-2.5 px-3"><input type="text" value="${esc(r.label)}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="label" class="w-full min-w-[150px] text-xs font-medium text-slate-800 border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></td>
+                <td class="py-2.5 px-3"><div class="flex items-center gap-1.5"><span class="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200 text-[11px] font-bold shrink-0">Đợt ${dotNum}</span><input type="text" value="${esc(r.label)}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="label" class="w-full min-w-[130px] text-xs font-medium text-slate-800 border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></div></td>
                 <td class="py-2.5 px-3 text-right"><input type="text" inputmode="numeric" value="${fmtVndInput(r.amount)}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="amount" class="w-28 text-right text-xs font-semibold text-brand-700 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
                 <td class="py-2.5 px-3"><input type="date" value="${esc(r.invDate || '')}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="invDate" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
                 <td class="py-2.5 px-3"><input type="date" value="${esc(r.payDate || '')}" data-round-cid="${esc(c.id)}" data-round-id="${esc(r.id)}" data-round-field="payDate" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
@@ -3316,7 +3296,7 @@
         }
         const subSumBody = document.getElementById('submitted-debt-summary-body');
         const subBadge = document.getElementById('submitted-debt-badge');
-        if (subBadge) subBadge.textContent = fmtTy(subDebt.total) + ' Tỷ';
+        if (subBadge) subBadge.textContent = fmtTy(subDebt.total);
         if (subSumBody) {
           const totalSubAmt = payStats.submittedList.reduce((s, x) => s + x.amount, 0);
           subSumBody.innerHTML = payStats.submittedList.length ? (payStats.submittedList.map(x => `
@@ -3378,8 +3358,8 @@
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(v.code)}</span><span class="font-semibold text-sm text-slate-900">${esc(v.title)}</span>${statusBadge(v.status)}</div>
-              <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(v.contractor)}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(v.costImpact)}</strong> • Tiến độ: <strong>+${v.timeImpact} ngày</strong></p>
-              <p class="text-xs text-slate-500 mt-0.5">Lý do: ${esc(v.reason)}</p>
+              <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(v.contractor || '—')}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(v.costImpact || 0)}</strong> • Tiến độ: <strong>+${Number(v.timeImpact) || 0} ngày</strong></p>
+              <p class="text-xs text-slate-500 mt-0.5">Lý do: ${esc(v.reason || '—')}</p>
             </div>
             ${v.status === 'Chờ duyệt' ? `
               <div class="flex items-center gap-2 shrink-0">
@@ -3388,18 +3368,6 @@
               </div>` : ''}
           </div>`).join('') : `<div class="text-sm text-slate-400 text-center py-4">Không có yêu cầu phát sinh (VO) nào.</div>`;
 
-        document.getElementById('inspection-table-body').innerHTML = proj.inspections.length ? proj.inspections.map(ins => `
-          <tr class="hover:bg-slate-50/80">
-            <td class="py-3 px-3 font-medium text-slate-900">${esc(ins.title)}</td>
-            <td class="py-3 px-3 text-slate-600">${esc(ins.supervisor)}</td>
-            <td class="py-3 px-3 text-slate-500 text-xs">${fmtDateVN(ins.date)}</td>
-            <td class="py-3 px-3">${statusBadge(ins.status)}</td>
-            <td class="py-3 px-3 text-right whitespace-nowrap">
-              ${ins.status === 'Chờ nghiệm thu' ? `
-                <button type="button" data-action="pass-ins" data-id="${esc(ins.id)}" class="text-xs font-medium text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded-lg">Đạt</button>
-                <button type="button" data-action="fail-ins" data-id="${esc(ins.id)}" class="text-xs font-medium text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg">Không đạt</button>` : `<span class="text-xs text-slate-400">Đã chốt</span>`}
-            </td>
-          </tr>`).join('') : `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-sm">Chưa có phiếu nghiệm thu nào.</td></tr>`;
       }
 
       function renderRisksTab(proj) {
@@ -4782,6 +4750,7 @@
         document.getElementById('sched-panel-cpm').classList.toggle('hidden', mode !== 'cpm');
         document.getElementById('sched-panel-ai').classList.toggle('hidden', mode !== 'ai');
         renderScheduleTab(getActiveProject(), getReportMs());
+        applyUserPermissions();
       }
       document.getElementById('btn-mode-contractors').addEventListener('click', () => setScheduleMode('contractors'));
       document.getElementById('btn-mode-master').addEventListener('click', () => setScheduleMode('master'));
@@ -4792,9 +4761,9 @@
 
       document.getElementById('project-select').addEventListener('change', e => { state.activeProjectId = e.target.value; selectedContractor = ''; saveState(); renderAll(); showToast('Đã chuyển dự án: ' + getActiveProject().name, 'info'); });
       document.getElementById('report-date').addEventListener('change', e => { state.reportDate = e.target.value; const p = getActiveProject(); if (p.weeklyAutoSync) generateWeeklyTasksFromSchedule(p, getReportMs()); saveState(); renderAll(); });
-      document.getElementById('task-search').addEventListener('input', () => renderScheduleTab(getActiveProject(), getReportMs()));
-      document.getElementById('task-filter-status').addEventListener('change', () => renderScheduleTab(getActiveProject(), getReportMs()));
-      document.getElementById('gantt-crit-only').addEventListener('change', () => renderScheduleTab(getActiveProject(), getReportMs()));
+      document.getElementById('task-search').addEventListener('input', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
+      document.getElementById('task-filter-status').addEventListener('change', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
+      document.getElementById('gantt-crit-only').addEventListener('change', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
 
       ['cfg-owner', 'cfg-week', 'cfg-pm', 'cfg-approver', 'cfg-nextplan'].forEach(id => {
         document.getElementById(id).addEventListener('input', e => {
@@ -4812,6 +4781,7 @@
         const el = e.target;
         const proj = getActiveProject();
         if (el.dataset.taskPctId) {
+          if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => x.id === el.dataset.taskPctId);
           if (t) {
             const oldP = t.progress;
@@ -4829,6 +4799,7 @@
             showToast(`Đã cập nhật [${t.c}] từ ${oldP}% → ${t.progress}% & đồng bộ Tiến độ tổng`);
           }
         } else if (el.dataset.taskPreId) {
+          if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => String(x.id) === String(el.dataset.taskPreId));
           if (t) {
             t.pre = el.value.trim();
@@ -4839,6 +4810,7 @@
             showToast(`Đã cập nhật ràng buộc cho [${t.c}]: ${t.pre || 'Không có'}`);
           }
         } else if (el.dataset.taskNoteId) {
+          if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => x.id === el.dataset.taskNoteId);
           if (t) {
             t.note = el.value;
@@ -4928,6 +4900,7 @@
           const k = card.dataset.selectContractor;
           selectedContractor = selectedContractor === k ? '' : k;
           renderScheduleTab(getActiveProject(), getReportMs());
+          applyUserPermissions();
           return;
           }
         }
@@ -4967,6 +4940,7 @@
             saveState(); closeModal(); renderAll(); showToast('Đã xóa dự án khỏi danh mục', 'info');
           });
         } else if (action === 'step-task') {
+          if (!canEditModule('schedule')) { showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => x.id === id);
           if (t) {
             const oldP = t.progress;
@@ -5014,7 +4988,12 @@
             if (c) {
               const existing = (c.rounds || []).find(r => r.label === pay.title && !r.payDate);
               if (existing) existing.payDate = state.reportDate;
-              else c.rounds.push({ id: 'rd' + Date.now(), label: pay.title, amount: pay.amount, invDate: pay.invDate || state.reportDate, payDate: state.reportDate, note: 'Đã duyệt chi' });
+              else {
+                const nextDot = (c.rounds || []).length + 1;
+                const shortTitle = String(pay.title || '').trim();
+                const dotLabel = /^đợt\s*\d+/i.test(shortTitle) ? shortTitle : `Đợt ${nextDot}${shortTitle ? ' — ' + shortTitle : ''}`;
+                c.rounds.push({ id: 'rd' + Date.now(), label: dotLabel, amount: pay.amount, invDate: pay.invDate || state.reportDate, payDate: state.reportDate, note: 'Đã duyệt chi' });
+              }
             }
             saveState(); renderAll();
             showToast(`Đã duyệt chi ${fmtTy(pay.amount)} & cập nhật Ngày thanh toán`);
@@ -5895,12 +5874,6 @@
       document.getElementById('btn-add-vo').addEventListener('click', openVoModal);
       document.getElementById('btn-quick-vo').addEventListener('click', openVoModal);
 
-      document.getElementById('btn-add-inspection').addEventListener('click', () => {
-        openModal('Lập phiếu nghiệm thu', `<div><label class="block text-xs font-semibold text-slate-600 mb-1">Nội dung</label><input name="title" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div><div><label class="block text-xs font-semibold text-slate-600 mb-1">TVGS</label><input name="supervisor" value="Ban QLDA & TVGS" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>`, fd => {
-          getActiveProject().inspections.unshift({ id: 'ins' + Date.now(), title: fd.get('title').trim(), supervisor: fd.get('supervisor').trim(), date: state.reportDate, status: 'Chờ nghiệm thu' });
-          saveState(); closeModal(); renderAll();
-        });
-      });
 
       document.getElementById('btn-add-legal').addEventListener('click', () => {
         openModal('Thêm hồ sơ pháp lý', `<div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên hồ sơ</label><input name="name" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div><div><label class="block text-xs font-semibold text-slate-600 mb-1">Cơ quan cấp</label><input name="authority" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>`, fd => {
@@ -6698,14 +6671,16 @@ function doPost(e) {
               sec.prepend(banner);
             }
             sec.querySelectorAll('input, select, textarea').forEach(el => {
-              if (!el.closest('#bim-controls') && !el.classList.contains('allow-readonly')) {
+              const id = el.id || '';
+              const isSafeFilter = ['task-search', 'task-filter-status', 'gantt-crit-only', 'filter-contract-rounds'].includes(id);
+              if (!el.closest('#bim-controls') && !el.classList.contains('allow-readonly') && !isSafeFilter) {
                 el.disabled = true;
               }
             });
             sec.querySelectorAll('button').forEach(btn => {
               const id = btn.id || '';
               const isSafeRead = btn.hasAttribute('data-sched-subtab') || btn.hasAttribute('data-bim-cam') ||
-                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml'].includes(id) ||
+                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml', 'btn-mode-contractors', 'btn-mode-master', 'btn-mode-tracking', 'btn-mode-cpm', 'btn-mode-ai'].includes(id) ||
                 btn.dataset.weeklyAct === 'pdf' || btn.dataset.weeklyAct === 'load';
               if (!isSafeRead) {
                 btn.disabled = true;
