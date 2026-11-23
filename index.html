@@ -521,6 +521,9 @@
             <button id="btn-mode-ai" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
               6. Phân tích &amp; Kiến nghị Tiến độ
             </button>
+            <button id="btn-mode-prelim" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+              7. Báo cáo Tiến độ Sơ bộ (Công văn)
+            </button>
           </div>
 
           <!-- Contractor Cards Grid (Visible in Contractor mode) -->
@@ -993,6 +996,36 @@
           </div>
         </div>
 
+        <!-- 7. Preliminary Schedule Report for Official Letter (Công văn tính tiến độ) -->
+        <div id="sched-panel-prelim" class="hidden space-y-5">
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="font-semibold text-slate-900 text-base">7. Báo cáo Tiến độ Sơ bộ (Soạn Công văn Tính Tiến độ &amp; Gia hạn HĐ)</h3>
+                <p class="text-xs text-slate-500">Công thức: <strong>Ngày hết HĐ</strong> = Ngày tạm ứng + Số ngày TĐ theo HĐ • <strong>Ngày gia hạn (= Ngày hết HĐ mới)</strong> = Ngày hết HĐ + Ngày TT trễ + Ngày nghỉ lễ</p>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[1120px] text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-600 uppercase bg-slate-50">
+                    <th class="py-2.5 px-3 font-semibold">Hợp đồng &amp; Nhà thầu</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">1. Ngày ký HĐ triển khai</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">2a. Ngày tạm ứng (TT)</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">2b. Số ngày TĐ theo HĐ</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">Ngày hết HĐ (Gốc)</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">3. Ngày TT trễ</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">4. Ngày nghỉ lễ</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold">5. Ngày gia hạn (+n)</th>
+                    <th class="py-2.5 px-2.5 text-center font-semibold text-indigo-700">6. Ngày hết HĐ mới (= Gia hạn)</th>
+                    <th class="py-2.5 px-2.5 text-right font-semibold">Công văn</th>
+                  </tr>
+                </thead>
+                <tbody id="prelim-schedule-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- TAB 3: FINANCE, BUDGET ITEMS, CONTRACTS & PAYMENT ROUNDS -->
@@ -1525,6 +1558,7 @@
               <option value="all">Tất cả trạng thái</option>
               <option value="Chưa bắt đầu">Chưa bắt đầu</option>
               <option value="Đang thực hiện">Đang thực hiện</option>
+              <option value="Chờ Admin duyệt">⏳ Chờ Admin duyệt</option>
               <option value="Hoàn thành">Hoàn thành</option>
               <option value="Tạm dừng">Tạm dừng</option>
             </select>
@@ -1532,6 +1566,10 @@
               <option value="all" selected>Tất cả nhân sự (Tổng hợp về Admin)</option>
               <option value="mine">Việc của tôi</option>
             </select>
+            <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 cursor-pointer">
+              <input id="mytask-show-hidden" type="checkbox" class="accent-brand-600" />
+              <span>Hiện việc đã duyệt &amp; ẩn</span>
+            </label>
           </div>
           <div class="overflow-x-auto table-vscroll max-h-[540px]">
             <table class="w-full text-left border-collapse text-xs">
@@ -1549,6 +1587,38 @@
                 </tr>
               </thead>
               <tbody id="mytask-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Monthly Evaluation & Summary for Admin -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-slate-900 text-base">📊 Tổng hợp &amp; Đánh giá Công việc Hàng tháng (Gửi Admin)</h3>
+              <p class="text-xs text-slate-500">Tổng hợp toàn bộ đầu việc đang làm và đã duyệt hoàn thành trong tháng, tỷ lệ % hoàn thành và xếp loại đánh giá của từng nhân sự</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <input id="mytask-monthly-month" type="month" class="text-xs border border-slate-300 rounded-xl px-3 py-1.5 bg-white font-semibold text-slate-800" />
+              <button id="btn-send-monthly-mytasks" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition">📨 Gửi tổng hợp tháng về Admin</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-600 uppercase bg-slate-50">
+                  <th class="py-2.5 px-3 font-semibold">Nhân sự</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Tổng việc tháng</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Đang làm</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Chờ duyệt</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Đã duyệt xong</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Trễ hạn</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">% Hoàn thành TB</th>
+                  <th class="py-2.5 px-2.5 text-center font-semibold">Đánh giá kết quả</th>
+                  <th class="py-2.5 px-2.5 font-semibold">Nhận xét Admin</th>
+                </tr>
+              </thead>
+              <tbody id="mytask-monthly-body" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
@@ -2825,7 +2895,8 @@
             { key: 'sch_contractors', label: '3. Tiến độ từng Nhà thầu' },
             { key: 'sch_tracking', label: '4. Tracking Tiến độ' },
             { key: 'sch_cpm', label: '5. Đường găng (CPM)' },
-            { key: 'sch_ai', label: '6. Phân tích & Kiến nghị' }
+            { key: 'sch_ai', label: '6. Phân tích & Kiến nghị' },
+            { key: 'sch_prelim', label: '7. Báo cáo Tiến độ Sơ bộ (Công văn)' }
           ]
         },
         {
@@ -3575,6 +3646,105 @@
         `).join('');
       }
 
+      function calcPrelimContractRow(proj, c, payStat, holidaySet) {
+        const signDate = c.signDate || '';
+        const advDate = c.advDate || '';
+        const cLeaves = getLeafTasks(proj.tasks || []).filter(t => matchContractorName(t.contractor, c.contractor));
+        let defDays = 90;
+        if (cLeaves.length) {
+          const minPs = Math.min(...cLeaves.map(t => iso(t.ps)).filter(Boolean));
+          const maxPe = Math.max(...cLeaves.map(t => iso(t.pe)).filter(Boolean));
+          if (isFinite(minPs) && isFinite(maxPe)) defDays = Math.max(1, Math.round((maxPe - minPs) / DAY) + 1);
+        }
+        const contractDays = (c.contractDays !== undefined && c.contractDays !== '' && Number(c.contractDays) > 0) ? Number(c.contractDays) : defDays;
+        const advMs = advDate ? iso(advDate) : 0;
+        const baseEndMs = advMs ? (advMs + (contractDays - 1) * DAY) : 0;
+        const lateDays = payStat ? (Number(payStat.lateDaysSum) || 0) : 0;
+        let autoHol = 0;
+        if (advMs && baseEndMs && holidaySet && holidaySet.size) {
+          for (let d = advMs; d <= baseEndMs; d += DAY) {
+            const ds = new Date(d).toISOString().slice(0, 10);
+            if (holidaySet.has(ds)) autoHol++;
+          }
+        }
+        const holidayDays = (c.holidayDaysOverride !== undefined && c.holidayDaysOverride !== '') ? Math.max(0, Number(c.holidayDaysOverride) || 0) : autoHol;
+        const extAddDays = lateDays + holidayDays;
+        const extEndMs = baseEndMs ? (baseEndMs + extAddDays * DAY) : 0;
+        return { signDate, advDate, contractDays, baseEndMs, lateDays, holidayDays, autoHol, extAddDays, extEndMs };
+      }
+
+      function renderPrelimSchedulePanel(proj, atMs) {
+        const body = document.getElementById('prelim-schedule-body');
+        if (!body) return;
+        const payStats = calcContractPayStats(proj, atMs);
+        const hSet = getHolidaySet(proj);
+        const canEdit = canEditModule('schedule') && !state.viewAllProjects;
+        const rows = (proj.contracts || []).map((c, idx) => {
+          const pStat = payStats.contractStats[idx] || {};
+          const m = calcPrelimContractRow(proj, c, pStat, hSet);
+          return `<tr class="hover:bg-slate-50">
+            <td class="py-2.5 px-3">
+              <div class="font-semibold text-slate-900">${projTagHtml(c)}${esc(c.code)} — ${esc(c.name)}</div>
+              <div class="text-[11px] text-slate-500">${esc(c.contractor)}</div>
+            </td>
+            <td class="py-2.5 px-2 text-center"><input type="date" value="${esc(m.signDate)}" data-prelim-cid="${esc(c.id)}" data-prelim-field="signDate" ${canEdit ? '' : 'disabled'} class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
+            <td class="py-2.5 px-2 text-center"><input type="date" value="${esc(m.advDate)}" data-prelim-cid="${esc(c.id)}" data-prelim-field="advDate" ${canEdit ? '' : 'disabled'} class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
+            <td class="py-2.5 px-2 text-center"><div class="inline-flex items-center gap-1"><input type="number" min="1" value="${m.contractDays}" data-prelim-cid="${esc(c.id)}" data-prelim-field="contractDays" ${canEdit ? '' : 'disabled'} class="w-16 text-center text-xs font-semibold border border-slate-300 rounded-lg px-1.5 py-1 bg-white" /><span>n</span></div></td>
+            <td class="py-2.5 px-2 text-center font-semibold text-slate-800 whitespace-nowrap">${m.baseEndMs ? fmtDateVN(m.baseEndMs) : '<span class="text-slate-400">Chưa có ngày TƯ</span>'}</td>
+            <td class="py-2.5 px-2 text-center"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${m.lateDays > 0 ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600'}">+${m.lateDays}n</span></td>
+            <td class="py-2.5 px-2 text-center"><div class="inline-flex items-center gap-1"><input type="number" min="0" value="${m.holidayDays}" data-prelim-cid="${esc(c.id)}" data-prelim-field="holidayDaysOverride" ${canEdit ? '' : 'disabled'} title="Tự đếm theo lịch nghỉ lễ: ${m.autoHol} ngày" class="w-14 text-center text-xs font-semibold border border-slate-300 rounded-lg px-1.5 py-1 bg-white" /><span>n</span></div></td>
+            <td class="py-2.5 px-2 text-center font-bold text-amber-700 whitespace-nowrap">${m.extEndMs ? `+${m.extAddDays} ngày` : '—'}</td>
+            <td class="py-2.5 px-2 text-center font-bold text-indigo-700 whitespace-nowrap">${m.extEndMs ? fmtDateVN(m.extEndMs) : '—'}</td>
+            <td class="py-2.5 px-2.5 text-right whitespace-nowrap"><button type="button" data-action="prelim-letter" data-id="${esc(c.id)}" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">📝 Công văn</button></td>
+          </tr>`;
+        }).join('');
+        body.innerHTML = rows || `<tr><td colspan="10" class="py-6 text-center text-slate-400">Chưa có hợp đồng nào để lập báo cáo tiến độ sơ bộ.</td></tr>`;
+      }
+
+      function previewPrelimLetter(proj, c) {
+        const atMs = getReportMs();
+        const payStats = calcContractPayStats(proj, atMs);
+        const idx = (proj.contracts || []).findIndex(x => String(x.id) === String(c.id));
+        const m = calcPrelimContractRow(proj, c, payStats.contractStats[idx] || {}, getHolidaySet(proj));
+        const logoSrc = (document.querySelector('aside img') && document.querySelector('aside img').src) || '';
+        const innerHtml = `
+          <div style="font-family:'Times New Roman',Georgia,serif;color:#000;line-height:1.45;">
+            <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+              <tr>
+                <td style="border:1px solid #000;width:110px;text-align:center;padding:6px;">${logoSrc ? `<img src="${logoSrc}" style="max-width:85px;max-height:85px;" />` : '<b>KIM TIN</b>'}</td>
+                <td style="border:1px solid #000;padding:8px 12px;">
+                  <div style="font-weight:bold;font-size:12pt;">${esc((proj.owner || 'CÔNG TY CỔ PHẦN KIM TÍN').toUpperCase())}</div>
+                  <div style="font-size:10.5pt;">Địa chỉ: ${esc(proj.location || '')}</div>
+                  <div style="font-weight:bold;font-size:13pt;text-align:center;margin-top:6px;">BẢNG TÍNH TIẾN ĐỘ SƠ BỘ &amp; GIA HẠN HỢP ĐỒNG</div>
+                </td>
+              </tr>
+            </table>
+            <p><strong>Dự án:</strong> ${esc(proj.code)} — ${esc(proj.name)}</p>
+            <p><strong>Gói thầu / Hợp đồng:</strong> ${esc(c.code)} — ${esc(c.name)} | <strong>Nhà thầu:</strong> ${esc(c.contractor)}</p>
+            <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:11pt;">
+              <thead><tr style="background:#f1f5f9;font-weight:bold;"><td style="border:1px solid #000;padding:6px;">STT</td><td style="border:1px solid #000;padding:6px;">Chỉ tiêu tính tiến độ</td><td style="border:1px solid #000;padding:6px;">Giá trị / Diễn giải</td></tr></thead>
+              <tbody>
+                <tr><td style="border:1px solid #000;padding:6px;text-align:center;">1</td><td style="border:1px solid #000;padding:6px;">Ngày ký hợp đồng triển khai</td><td style="border:1px solid #000;padding:6px;">${m.signDate ? fmtDateVN(m.signDate) : 'Chưa cập nhật'}</td></tr>
+                <tr><td style="border:1px solid #000;padding:6px;text-align:center;">2</td><td style="border:1px solid #000;padding:6px;">Ngày tạm ứng (căn cứ ngày thanh toán tạm ứng) + Số ngày tiến độ theo HĐ</td><td style="border:1px solid #000;padding:6px;">${m.advDate ? fmtDateVN(m.advDate) : '—'} + ${m.contractDays} ngày = <strong>Ngày hết HĐ: ${m.baseEndMs ? fmtDateVN(m.baseEndMs) : '—'}</strong></td></tr>
+                <tr><td style="border:1px solid #000;padding:6px;text-align:center;">3</td><td style="border:1px solid #000;padding:6px;">Số ngày thanh toán trễ (theo bảng theo dõi ngày thanh toán trễ)</td><td style="border:1px solid #000;padding:6px;">+${m.lateDays} ngày</td></tr>
+                <tr><td style="border:1px solid #000;padding:6px;text-align:center;">4</td><td style="border:1px solid #000;padding:6px;">Số ngày nghỉ lễ</td><td style="border:1px solid #000;padding:6px;">+${m.holidayDays} ngày</td></tr>
+                <tr><td style="border:1px solid #000;padding:6px;text-align:center;">5</td><td style="border:1px solid #000;padding:6px;">Ngày gia hạn (Ngày hết HĐ + Ngày TT trễ + Ngày nghỉ lễ)</td><td style="border:1px solid #000;padding:6px;">+${m.extAddDays} ngày → <strong>${m.extEndMs ? fmtDateVN(m.extEndMs) : '—'}</strong></td></tr>
+                <tr style="background:#eef2ff;font-weight:bold;"><td style="border:1px solid #000;padding:6px;text-align:center;">6</td><td style="border:1px solid #000;padding:6px;">Ngày hết hợp đồng (sau điều chỉnh = Ngày gia hạn)</td><td style="border:1px solid #000;padding:6px;">${m.extEndMs ? fmtDateVN(m.extEndMs) : '—'}</td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top:12px;">Kính đề nghị các bộ phận liên quan căn cứ mốc thời gian trên để soạn thảo Công văn xác nhận/gia hạn tiến độ hợp đồng.</p>
+          </div>`;
+        _previewPayContext = null;
+        _previewVoContext = null;
+        window._previewPrelimHtml = innerHtml;
+        window._previewPrelimName = `Bao_cao_tien_do_so_bo_${c.code}`;
+        document.getElementById('rpt-filter-bar').classList.add('hidden');
+        document.getElementById('btn-rpt-export-word').classList.remove('hidden');
+        document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
+        document.getElementById('rpt-pages').innerHTML = `<div class="rpt-page" style="padding:16mm 16mm;">${innerHtml}</div>`;
+        document.getElementById('rpt-preview').classList.remove('hidden');
+      }
+
       function renderScheduleTab(proj, atMs) {
         const hCntEl = document.getElementById('sched-holiday-count');
         if (hCntEl) hCntEl.textContent = String(getHolidaySet(proj).size) + ' ngày';
@@ -3588,6 +3758,7 @@
         renderPlanCompareOwner(proj, atMs);
         renderContractorRevBar(proj);
         renderTrackingTaskEval(proj, atMs);
+        renderPrelimSchedulePanel(proj, atMs);
 
         const isC = scheduleViewMode === 'contractors';
         document.getElementById('contractor-cards-wrap').classList.toggle('hidden', !isC);
@@ -4062,7 +4233,7 @@
                 <td class="py-2.5 px-3">${(() => { const d = calcPayDelay(r.invDate, effPayDate, c.payTermDays, getReportMs()); r.lateDays = d.lateDays; return d.html; })()}</td>
                 <td class="py-2.5 px-3">${statusBadge(st)}</td>
                 <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1.5">
-                  <button type="button" data-action="split-round" data-cid="${esc(c.id)}" data-id="${esc(r.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200" title="Chia nhỏ thanh toán nhiều lần trong đợt này">✂ Chia nhỏ TT</button>
+                  ${!rm.isFullyPaid ? `<button type="button" data-action="split-round" data-cid="${esc(c.id)}" data-id="${esc(r.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200" title="Chia nhỏ thanh toán nhiều lần trong đợt này">✂ Chia nhỏ TT</button>` : ''}
                   ${!rm.isFullyPaid && !rm.hasSplits ? `<button type="button" data-action="approve-round" data-cid="${esc(c.id)}" data-id="${esc(r.id)}" class="px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt chi</button>` : ''}
                   <button type="button" data-action="del-round" data-cid="${esc(c.id)}" data-id="${esc(r.id)}" class="text-xs text-rose-600 hover:underline">Xóa</button>
                 </td>
@@ -5008,7 +5179,7 @@
       document.getElementById('btn-open-pdf-report').addEventListener('click', openWeeklyPdfPreview);
       document.getElementById('btn-preview-pdf-2').addEventListener('click', openWeeklyPdfPreview);
       document.getElementById('btn-close-rpt').addEventListener('click', () => { document.getElementById('rpt-preview').classList.add('hidden'); document.getElementById('rpt-filter-bar').classList.remove('hidden'); document.getElementById('btn-rpt-export-word').classList.add('hidden'); document.getElementById('quick-rpt-mode-bar').classList.add('hidden'); });
-      document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); else if (_previewVoContext) exportVoProposalWord(_previewVoContext.proj, _previewVoContext.vo); });
+      document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); else if (_previewVoContext) exportVoProposalWord(_previewVoContext.proj, _previewVoContext.vo); else if (window._previewPrelimHtml) { const b = new Blob(['\ufeff', '<html><head><meta charset="utf-8"></head><body>' + window._previewPrelimHtml + '</body></html>'], { type: 'application/msword;charset=utf-8' }); const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = (window._previewPrelimName || 'Tien_do_so_bo') + '.doc'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } });
       document.getElementById('btn-print-rpt').addEventListener('click', () => window.print());
 
       // Warning Letter
@@ -5832,7 +6003,7 @@
       function setScheduleMode(mode) {
         scheduleViewMode = mode;
         if (mode === 'master') selectedContractor = '';
-        ['owner', 'plan', 'contractors', 'tracking', 'cpm', 'ai'].forEach(m => {
+        ['owner', 'plan', 'contractors', 'tracking', 'cpm', 'ai', 'prelim'].forEach(m => {
           const b = document.getElementById('btn-mode-' + m);
           if (b) b.className = `px-3 py-2 text-xs font-semibold rounded-xl transition ${mode === m ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`;
         });
@@ -5846,10 +6017,11 @@
         document.getElementById('sched-panel-tracking').classList.toggle('hidden', mode !== 'tracking');
         document.getElementById('sched-panel-cpm').classList.toggle('hidden', mode !== 'cpm');
         document.getElementById('sched-panel-ai').classList.toggle('hidden', mode !== 'ai');
+        const _pEl = document.getElementById('sched-panel-prelim'); if (_pEl) _pEl.classList.toggle('hidden', mode !== 'prelim');
         renderScheduleTab(getViewProject(), getReportMs());
         applyUserPermissions();
       }
-      ['owner', 'plan', 'contractors', 'tracking', 'cpm', 'ai'].forEach(m => {
+      ['owner', 'plan', 'contractors', 'tracking', 'cpm', 'ai', 'prelim'].forEach(m => {
         const btn = document.getElementById('btn-mode-' + m);
         if (btn) btn.addEventListener('click', () => setScheduleMode(m));
       });
@@ -5981,6 +6153,17 @@
             renderAll();
             showToast(`Đã liên kết ${c.code} vào mục ngân sách`);
           }
+        } else if (el.dataset.prelimCid && el.dataset.prelimField) {
+          const c = proj.contracts.find(x => String(x.id) === String(el.dataset.prelimCid));
+          if (c) {
+            const f = el.dataset.prelimField;
+            if (f === 'contractDays' || f === 'holidayDaysOverride') {
+              c[f] = el.value === '' ? '' : Math.max(0, Number(el.value) || 0);
+            } else {
+              c[f] = el.value;
+            }
+            saveState(); renderAll(); showToast('Đã cập nhật thông số tính tiến độ sơ bộ');
+          }
         } else if (el.dataset.contractValCid) {
           const c = proj.contracts.find(x => String(x.id) === String(el.dataset.contractValCid));
           if (c) {
@@ -6049,20 +6232,45 @@
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskPctId);
           if (t) {
             t.progress = Math.min(100, Math.max(0, Number(el.value) || 0));
-            if (t.progress >= 100) t.status = 'Hoàn thành';
-            else if (t.progress > 0 && t.status === 'Chưa bắt đầu') t.status = 'Đang thực hiện';
+            if (t.progress >= 100) {
+              if (isAdminUser()) {
+                t.status = 'Hoàn thành';
+              } else {
+                t.status = 'Chờ Admin duyệt';
+                t.submittedAt = new Date().toISOString().slice(0, 10);
+                pushAdminNotif('Công việc cá nhân báo xong', `@${t.assignee} báo xong "${t.title}" — chờ Admin duyệt`);
+              }
+            } else if (t.progress > 0 && t.status === 'Chưa bắt đầu') t.status = 'Đang thực hiện';
             t.updatedAt = state.reportDate;
-            saveState(); renderAll(); showToast('Đã cập nhật tiến độ công việc cá nhân');
+            saveState(); renderAll();
+            showToast(t.status === 'Chờ Admin duyệt' ? 'Đã gửi thông báo hoàn thành cho Admin duyệt' : 'Đã cập nhật tiến độ công việc cá nhân');
           }
         } else if (el.dataset.mytaskStatusId) {
           if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskStatusId);
           if (t) {
-            t.status = el.value;
-            if (t.status === 'Hoàn thành') t.progress = 100;
+            const newSt = el.value;
+            if ((newSt === 'Hoàn thành' || newSt === 'Chờ Admin duyệt') && !isAdminUser()) {
+              t.status = 'Chờ Admin duyệt';
+              t.progress = 100;
+              t.submittedAt = new Date().toISOString().slice(0, 10);
+              pushAdminNotif('Công việc cá nhân báo xong', `@${t.assignee} báo xong "${t.title}" — chờ Admin duyệt`);
+            } else {
+              t.status = newSt;
+              if (t.status === 'Hoàn thành') t.progress = 100;
+            }
             t.updatedAt = state.reportDate;
-            saveState(); renderAll(); showToast(`Đã chuyển trạng thái: ${t.status}`);
+            saveState(); renderAll();
+            showToast(t.status === 'Chờ Admin duyệt' ? 'Đã báo xong và gửi về Admin duyệt' : `Đã chuyển trạng thái: ${t.status}`);
           }
+        } else if (el.dataset.monthlyReviewUser) {
+          if (!isAdminUser()) return;
+          if (!state.monthlyTaskReviews || typeof state.monthlyTaskReviews !== 'object') state.monthlyTaskReviews = {};
+          const mKey = el.dataset.monthlyReviewMonth || (document.getElementById('mytask-monthly-month')?.value || '2026-11');
+          if (!state.monthlyTaskReviews[mKey]) state.monthlyTaskReviews[mKey] = {};
+          state.monthlyTaskReviews[mKey][el.dataset.monthlyReviewUser] = el.value;
+          saveState();
+          showToast('Đã lưu nhận xét đánh giá tháng');
         } else if (el.dataset.mytaskNoteId) {
           if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskNoteId);
@@ -6193,8 +6401,10 @@
             showToast(`Đã duyệt chi ${fmtTy(r.amount)} (${r.label})`);
           }
         } else if (action === 'split-round') {
-          const c = proj.contracts.find(x => String(x.id) === String(btn.dataset.cid));
-          const r = c ? (c.rounds || []).find(x => String(x.id) === String(id)) : null;
+          const targetCid = String(btn.dataset.cid || '');
+          const targetRid = String(id || '');
+          const c = proj.contracts.find(x => String(x.id) === targetCid);
+          const r = c ? (c.rounds || []).find(x => String(x.id) === targetRid) : null;
           if (c && r) {
             const rm = getRoundPaidAndSubmitted(r);
             const sugAmt = rm.remaining > 0 ? rm.remaining : Math.round((Number(r.amount) || 0) / 2);
@@ -6210,20 +6420,37 @@
                   <div class="flex items-center justify-between mb-1"><label class="text-xs font-semibold text-slate-600">Số tiền lần chi này (VNĐ)</label><button type="button" id="btn-fill-rem-split" class="text-[10px] text-brand-600 hover:underline font-semibold">Điền số còn lại</button></div>
                   <input id="inp-split-amt" name="amount" type="text" inputmode="numeric" value="${fmtVndInput(sugAmt)}" required class="w-full text-sm font-semibold border border-slate-300 rounded-xl px-3 py-2" />
                 </div>
-                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngày thanh toán lần này</label><input name="payDate" type="date" value="${state.reportDate}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngày thanh toán lần này</label><input id="inp-split-date" name="payDate" type="date" value="${state.reportDate}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
               </div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú lần chi</label><input name="note" value="Thanh toán lần ${(r.splits ? r.splits.length : 0) + 1}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+              <div id="split-live-preview" class="text-xs bg-indigo-50/70 border border-indigo-200 rounded-xl p-2.5 text-indigo-900"></div>
             `, fd => {
-              if (!Array.isArray(r.splits)) r.splits = [];
+              const liveProj = getActiveProject();
+              const liveC = (liveProj.contracts || []).find(x => String(x.id) === targetCid) || c;
+              const liveR = (liveC.rounds || []).find(x => String(x.id) === targetRid) || r;
+              if (!Array.isArray(liveR.splits)) liveR.splits = [];
               const amt = parseVnd(fd.get('amount'));
               if (amt <= 0) { showToast('Số tiền lần chi phải lớn hơn 0', 'error'); return; }
-              r.splits.push({ id: 'sp_' + Date.now(), amount: amt, payDate: fd.get('payDate') || '', note: (fd.get('note') || '').trim() });
-              saveState(); closeModal(); renderAll(); showToast(`Đã thêm lần chi ${fmtTy(amt)} vào ${r.label}`);
+              liveR.splits.push({ id: 'sp_' + Date.now(), amount: amt, payDate: fd.get('payDate') || '', note: (fd.get('note') || '').trim() });
+              saveState(); closeModal(); renderAll(); showToast(`Đã thêm lần chi ${fmtTy(amt)} vào ${liveR.label}`);
             });
             setTimeout(() => {
               const fb = document.getElementById('btn-fill-rem-split');
               const ia = document.getElementById('inp-split-amt');
-              if (fb && ia) fb.addEventListener('click', () => { ia.value = fmtVndInput(rm.remaining > 0 ? rm.remaining : r.amount); });
+              const idt = document.getElementById('inp-split-date');
+              const pv = document.getElementById('split-live-preview');
+              function updSplitPrev() {
+                if (!pv || !ia) return;
+                const val = parseVnd(ia.value);
+                const hasDt = Boolean(idt && idt.value);
+                const newPaid = rm.paid + (hasDt ? val : 0);
+                const newRem = Math.max(0, (Number(r.amount) || 0) - newPaid);
+                pv.innerHTML = `Sau khi lưu: Đã chi <strong class="text-emerald-700">${fmtTy(newPaid)}</strong> • Còn lại chưa chi <strong class="text-rose-600">${fmtTy(newRem)}</strong>`;
+              }
+              if (fb && ia) fb.addEventListener('click', () => { ia.value = fmtVndInput(rm.remaining > 0 ? rm.remaining : r.amount); updSplitPrev(); });
+              if (ia) ia.addEventListener('input', updSplitPrev);
+              if (idt) idt.addEventListener('change', updSplitPrev);
+              updSplitPrev();
             }, 30);
           }
         } else if (action === 'del-split') {
@@ -6272,6 +6499,9 @@
         } else if (action === 'export-pay-word') {
           const pay = proj.payments.find(p => String(p.id) === String(id));
           if (pay) exportPaymentWord(proj, pay);
+        } else if (action === 'prelim-letter') {
+          const c = proj.contracts.find(x => String(x.id) === String(id));
+          if (c) previewPrelimLetter(proj, c);
         } else if (action === 'preview-vo') {
           const vo = proj.vos.find(v => String(v.id) === String(id));
           if (vo) previewVoProposalForm(proj, vo);
@@ -6802,8 +7032,47 @@
         } else if (action === 'del-owner-master') {
           proj.ownerMasterItems = (proj.ownerMasterItems || []).filter(x => x.id !== id);
           saveState(); renderAll(); showToast('Đã xóa mục tổng CĐT', 'info');
+        } else if (action === 'submit-mytask') {
+          const list = ensurePersonalTasks();
+          const t = list.find(x => x.id === id);
+          if (t) {
+            t.progress = 100;
+            t.status = 'Chờ Admin duyệt';
+            t.submittedAt = new Date().toISOString().slice(0, 10);
+            t.hiddenFromList = false;
+            t.updatedAt = state.reportDate;
+            pushAdminNotif('Công việc cá nhân báo xong', `@${t.assignee} báo xong "${t.title}" — chờ Admin duyệt`);
+            saveState(); renderAll();
+            showToast('Đã báo xong và gửi thông báo về Admin duyệt!');
+          }
+        } else if (action === 'approve-mytask') {
+          if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền duyệt & ẩn công việc', 'error'); return; }
+          const list = ensurePersonalTasks();
+          const t = list.find(x => x.id === id);
+          if (t) {
+            t.status = 'Hoàn thành';
+            t.progress = 100;
+            t.hiddenFromList = true;
+            t.approvedAt = new Date().toISOString().slice(0, 10);
+            t.approvedBy = (getCurrentUser() && getCurrentUser().username) || 'admin';
+            t.updatedAt = state.reportDate;
+            saveState(); renderAll();
+            showToast(`Đã duyệt hoàn thành & ẩn công việc "${t.title}"`);
+          }
+        } else if (action === 'reject-mytask') {
+          if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền trả lại công việc', 'error'); return; }
+          const list = ensurePersonalTasks();
+          const t = list.find(x => x.id === id);
+          if (t) {
+            t.status = 'Đang thực hiện';
+            t.progress = Math.min(90, Number(t.progress) || 50);
+            t.hiddenFromList = false;
+            t.updatedAt = state.reportDate;
+            saveState(); renderAll();
+            showToast(`Đã trả lại công việc "${t.title}" để tiếp tục xử lý`, 'info');
+          }
         } else if (action === 'del-mytask') {
-          if (!canEditModule('mytasks')) { showToast('Không có quyền xóa Công việc cá nhân', 'error'); return; }
+          if (!isAdminUser()) { showToast('User không được tự ý xóa công việc cá nhân', 'error'); return; }
           const list = ensurePersonalTasks();
           const t = list.find(x => x.id === id);
           if (t) {
@@ -6976,6 +7245,7 @@
         });
       }
       function openNewProjectModal() {
+        if (!isAdminUser()) { showToast('Chỉ tài khoản Quản trị (Admin) mới được phép tạo dự án mới.', 'error'); return; }
         openModal('Tạo dự án mới', `
           <div class="grid grid-cols-3 gap-3">
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Mã DA</label><input name="code" placeholder="DA-03" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
@@ -8882,6 +9152,9 @@ function doPost(e) {
         // Sidebar global admin buttons
         const btnNewProj = document.getElementById('btn-new-project');
         if (btnNewProj) btnNewProj.classList.toggle('hidden', !isAdmin);
+        const btnNewProj2 = document.getElementById('btn-new-project-2');
+        if (btnNewProj2) btnNewProj2.classList.toggle('hidden', !isAdmin);
+        document.querySelectorAll('#project-directory-body [data-action="delete-project"]').forEach(b => b.classList.toggle('hidden', !isAdmin));
         const btnResetDemo = document.getElementById('btn-reset-demo');
         if (btnResetDemo) btnResetDemo.classList.toggle('hidden', !isAdmin);
         const btnImpJson = document.getElementById('btn-import-json-trigger');
@@ -8922,7 +9195,8 @@ function doPost(e) {
           { mode: 'contractors', sub: 'sch_contractors', btn: 'btn-mode-contractors' },
           { mode: 'tracking', sub: 'sch_tracking', btn: 'btn-mode-tracking' },
           { mode: 'cpm', sub: 'sch_cpm', btn: 'btn-mode-cpm' },
-          { mode: 'ai', sub: 'sch_ai', btn: 'btn-mode-ai' }
+          { mode: 'ai', sub: 'sch_ai', btn: 'btn-mode-ai' },
+          { mode: 'prelim', sub: 'sch_prelim', btn: 'btn-mode-prelim' }
         ];
         schedSubMap.forEach(s => {
           const b = document.getElementById(s.btn);
@@ -8966,7 +9240,7 @@ function doPost(e) {
             }
             sec.querySelectorAll('input, select, textarea').forEach(el => {
               const id = el.id || '';
-              const isSafeFilter = ['task-search', 'task-filter-status', 'gantt-crit-only', 'filter-contract-rounds', 'mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user', 'doc-search', 'doc-filter-project', 'doc-filter-cat', 'contractor-rev-compare-sel', 'tracking-eval-filter'].includes(id);
+              const isSafeFilter = ['task-search', 'task-filter-status', 'gantt-crit-only', 'filter-contract-rounds', 'mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user', 'mytask-show-hidden', 'mytask-monthly-month', 'doc-search', 'doc-filter-project', 'doc-filter-cat', 'contractor-rev-compare-sel', 'tracking-eval-filter'].includes(id);
               if (!el.closest('#bim-controls') && !el.classList.contains('allow-readonly') && !isSafeFilter) {
                 el.disabled = true;
               }
@@ -10406,7 +10680,9 @@ function doPost(e) {
           }
         }
 
+        const showHidden = Boolean(document.getElementById('mytask-show-hidden')?.checked);
         const filtered = list.filter(x => {
+          if (!showHidden && x.hiddenFromList) return false;
           if (fUser === 'mine' && String(x.assignee || '').toLowerCase() !== myU) return false;
           if (fUser !== 'mine' && fUser !== 'all' && String(x.assignee || '').toLowerCase() !== fUser.toLowerCase()) return false;
           if (fProj === 'active' && x.projectId !== activeP.id) return false;
@@ -10442,17 +10718,76 @@ function doPost(e) {
               </div>
             </td>
             <td class="py-2.5 px-2.5 text-center">
-              <select data-mytask-status-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
-                ${['Chưa bắt đầu', 'Đang thực hiện', 'Hoàn thành', 'Tạm dừng'].map(st => `<option ${t.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+              <select data-mytask-status-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white ${t.status === 'Chờ Admin duyệt' ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : ''}">
+                ${(isAdm ? ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Hoàn thành', 'Tạm dừng'] : ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Tạm dừng']).map(st => `<option ${t.status === st ? 'selected' : ''}>${st}</option>`).join('')}
               </select>
             </td>
             <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${editable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
-            <td class="py-2.5 px-2.5 text-right whitespace-nowrap space-x-1.5"><button type="button" data-action="edit-mytask" data-id="${esc(t.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button><button type="button" data-action="del-mytask" data-id="${esc(t.id)}" class="text-xs text-rose-600 hover:underline">Xóa</button></td>
+            <td class="py-2.5 px-2.5 text-right whitespace-nowrap space-x-1.5">
+              ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && editable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
+              ${(isAdm && t.status === 'Chờ Admin duyệt') ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt &amp; Ẩn</button><button type="button" data-action="reject-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">↩ Trả lại</button>` : ''}
+              ${(isAdm && t.status !== 'Chờ Admin duyệt' && !t.hiddenFromList) ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="text-[11px] font-semibold text-emerald-700 hover:underline">Duyệt &amp; Ẩn</button>` : ''}
+              <button type="button" data-action="edit-mytask" data-id="${esc(t.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button>
+              ${isAdm ? `<button type="button" data-action="del-mytask" data-id="${esc(t.id)}" class="text-xs text-rose-600 hover:underline">Xóa</button>` : ''}
+            </td>
           </tr>`;
         }).join('') : `<tr><td colspan="9" class="py-6 text-center text-slate-400">Chưa có công việc cá nhân nào phù hợp.</td></tr>`;
+
+        // Monthly Evaluation & Summary Table
+        const mInp = document.getElementById('mytask-monthly-month');
+        const defMonth = (state.reportDate || new Date().toISOString().slice(0, 10)).slice(0, 7);
+        if (mInp && !mInp.value) mInp.value = defMonth;
+        const selMonth = (mInp && mInp.value) || defMonth;
+        const mBody = document.getElementById('mytask-monthly-body');
+        if (mBody) {
+          const allUsers = isAdm ? (state.users || []) : (state.users || []).filter(u => String(u.username || '').toLowerCase() === myU);
+          const reviews = (state.monthlyTaskReviews && state.monthlyTaskReviews[selMonth]) || {};
+          const mRows = allUsers.map(u => {
+            const uk = String(u.username || '').toLowerCase();
+            const uMonthTasks = list.filter(t => {
+              if (String(t.assignee || '').toLowerCase() !== uk) return false;
+              const dates = [t.dueDate, t.updatedAt, t.approvedAt, t.submittedAt].filter(Boolean).map(d => String(d).slice(0, 7));
+              return dates.length === 0 || dates.includes(selMonth) || t.status !== 'Hoàn thành';
+            });
+            const tot = uMonthTasks.length;
+            const doing = uMonthTasks.filter(t => t.status === 'Đang thực hiện' || t.status === 'Chưa bắt đầu').length;
+            const waitApp = uMonthTasks.filter(t => t.status === 'Chờ Admin duyệt').length;
+            const done = uMonthTasks.filter(t => t.status === 'Hoàn thành').length;
+            const over = uMonthTasks.filter(t => t.status !== 'Hoàn thành' && t.dueDate && iso(t.dueDate) < refMs).length;
+            const avgPct = tot ? Math.round(uMonthTasks.reduce((s, t) => s + (Number(t.progress) || 0), 0) / tot) : 0;
+            const grade = tot === 0 ? 'Chưa có việc' : (avgPct >= 90 ? 'Xuất sắc' : (avgPct >= 75 ? 'Tốt' : (avgPct >= 50 ? 'Đạt yêu cầu' : 'Cần đôn đốc')));
+            const gCls = avgPct >= 90 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (avgPct >= 75 ? 'bg-sky-50 text-sky-700 border-sky-200' : (avgPct >= 50 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'));
+            const revVal = reviews[u.username] || '';
+            return `<tr class="hover:bg-slate-50">
+              <td class="py-2.5 px-3"><div class="font-semibold text-slate-900">${esc(u.fullName)}</div><div class="text-[10px] text-slate-400">@${esc(u.username)}</div></td>
+              <td class="py-2.5 px-2.5 text-center font-bold text-slate-800">${tot}</td>
+              <td class="py-2.5 px-2.5 text-center text-sky-700 font-semibold">${doing}</td>
+              <td class="py-2.5 px-2.5 text-center text-amber-700 font-semibold">${waitApp}</td>
+              <td class="py-2.5 px-2.5 text-center text-emerald-700 font-semibold">${done}</td>
+              <td class="py-2.5 px-2.5 text-center ${over > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}">${over}</td>
+              <td class="py-2.5 px-2.5 text-center">
+                <div class="font-bold text-brand-700">${avgPct}%</div>
+                <div class="w-16 mx-auto bg-slate-100 rounded-full h-1.5 mt-0.5"><div class="bg-brand-500 h-1.5 rounded-full" style="width:${avgPct}%"></div></div>
+              </td>
+              <td class="py-2.5 px-2.5 text-center"><span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${tot ? gCls : 'bg-slate-50 text-slate-400 border-slate-200'}">${grade}</span></td>
+              <td class="py-2.5 px-2.5"><input type="text" value="${esc(revVal)}" data-monthly-review-user="${esc(u.username)}" data-monthly-review-month="${esc(selMonth)}" ${isAdm ? '' : 'disabled'} placeholder="${isAdm ? 'Nhập đánh giá...' : 'Chờ Admin đánh giá'}" class="w-40 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
+            </tr>`;
+          }).join('');
+          mBody.innerHTML = mRows || `<tr><td colspan="9" class="py-4 text-center text-slate-400">Chưa có dữ liệu nhân sự trong tháng.</td></tr>`;
+        }
       }
 
-      ['mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user'].forEach(id => {
+      const _mtMonthEl = document.getElementById('mytask-monthly-month');
+      if (_mtMonthEl) _mtMonthEl.addEventListener('change', () => { renderMyTasksTab(); applyUserPermissions(); });
+      const _btnSendMonthly = document.getElementById('btn-send-monthly-mytasks');
+      if (_btnSendMonthly) _btnSendMonthly.addEventListener('click', () => {
+        const mVal = document.getElementById('mytask-monthly-month')?.value || (state.reportDate || '').slice(0, 7);
+        const cur = getCurrentUser();
+        pushAdminNotif('Tổng hợp Công việc Tháng ' + mVal, `${cur ? cur.fullName : 'Hệ thống'} đã gửi bảng tổng hợp & đánh giá công việc tháng ${mVal} về Admin xem xét.`);
+        saveState();
+        showToast(`Đã gửi báo cáo tổng hợp công việc tháng ${mVal} về Admin!`);
+      });
+      ['mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user', 'mytask-show-hidden'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', () => { renderMyTasksTab(); applyUserPermissions(); });
       });
