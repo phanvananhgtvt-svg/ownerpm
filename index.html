@@ -216,6 +216,13 @@
           </span>
           <span id="badge-payments" class="hidden text-[11px] font-semibold bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-full">0</span>
         </button>
+        <button type="button" data-tab="tmdt" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>Tổng mức đầu tư (TMĐT)</span>
+          </span>
+          <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full">AI</span>
+        </button>
         <button type="button" data-tab="approvals" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
           <span class="flex items-center gap-3">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1710,6 +1717,20 @@
         </div>
       </section>
 
+      <!-- TAB: TỔNG MỨC ĐẦU TƯ (TMĐT PRO STUDIO) -->
+      <section id="tab-tmdt" class="tab-panel hidden -m-4 sm:-m-6 flex flex-col" style="height: calc(100vh - 64px);">
+        <div class="bg-slate-900 text-white px-4 py-2 flex items-center justify-between gap-2 border-b border-slate-700 shrink-0">
+          <div class="flex items-center gap-2 text-xs font-semibold">
+            <span class="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">TMĐT Pro</span>
+            <span>Lập Tổng mức đầu tư tự động từ Mặt bằng tổng thể · Xuất Excel công thức sống</span>
+          </div>
+          <a href="./tmdt.html" target="_blank" rel="noopener" class="text-xs font-semibold text-sky-300 hover:text-white inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition">
+            Mở toàn màn hình ↗
+          </a>
+        </div>
+        <iframe id="tmdt-studio-frame" data-src="./tmdt.html" src="about:blank" class="w-full flex-1 border-0 bg-slate-50" title="TMĐT Pro Studio"></iframe>
+      </section>
+
     </main>
   </div>
 
@@ -2352,6 +2373,7 @@
         overview: 'Tổng quan điều hành',
         schedule: 'Tiến độ Nhà thầu & Tổng',
         finance: 'Ngân sách & Đợt TT',
+        tmdt: 'Tổng mức đầu tư (TMĐT)',
         approvals: 'Thay đổi & Phát sinh (VO)',
         risks: 'Rủi ro & Pháp lý',
         weekly: 'Báo cáo tuần & Ảnh',
@@ -2896,6 +2918,10 @@
         });
         toggleSidebar(false);
         if (tabId === 'overview') renderCharts();
+        if (tabId === 'tmdt') {
+          const tf = document.getElementById('tmdt-studio-frame');
+          if (tf && tf.getAttribute('src') === 'about:blank') tf.src = tf.dataset.src || './tmdt.html';
+        }
         setTimeout(attachTopScrollbars, 40);
       }
       document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -2987,7 +3013,7 @@
         { key: 'mytasks', label: 'Công việc cá nhân', children: [] },
         { key: 'docs', label: 'Thư viện Hồ sơ', children: [] }
       ];
-      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'weekly', 'mytasks', 'docs'];
+      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'tmdt', 'weekly', 'mytasks', 'docs'];
       const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_plan', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
 
       function isModuleEnabledForProject(proj, modKey) {
@@ -6655,8 +6681,7 @@
             saveState(); renderAll(); showToast(`Đã cập nhật ${om.code}`);
           }
         } else if (el.dataset.mytaskPctId) {
-          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
-          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskPctId);
           if (t) {
             t.progress = Math.min(100, Math.max(0, Number(el.value) || 0));
@@ -6674,8 +6699,7 @@
             showToast(t.status === 'Chờ Admin duyệt' ? 'Đã gửi thông báo hoàn thành cho Admin duyệt' : 'Đã cập nhật tiến độ công việc cá nhân');
           }
         } else if (el.dataset.mytaskStatusId) {
-          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
-          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskStatusId);
           if (t) {
             const newSt = el.value;
@@ -6701,8 +6725,7 @@
           saveState();
           showToast('Đã lưu nhận xét đánh giá tháng');
         } else if (el.dataset.mytaskNoteId) {
-          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
-          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskNoteId);
           if (t) { t.note = el.value; t.updatedAt = state.reportDate; saveState(); showToast('Đã lưu ghi chú công việc'); }
         } else if (el.dataset.splitCid && el.dataset.splitRid && el.dataset.splitId && el.dataset.splitField) {
@@ -9909,6 +9932,7 @@ function doPost(e) {
         { key: 'overview', label: 'Tổng quan điều hành (KPI, EVM, S-Curve)' },
         { key: 'schedule', label: 'Tiến độ Nhà thầu & Tổng (WBS, Gantt, CPM)' },
         { key: 'finance', label: 'Ngân sách & Đợt Thanh toán / Hợp đồng' },
+        { key: 'tmdt', label: 'Tổng mức đầu tư (TMĐT từ MBTT)' },
         { key: 'approvals', label: 'Phát sinh (VO) & Nghiệm thu QA/QC' },
         { key: 'risks', label: 'Rủi ro & Hồ sơ Pháp lý' },
         { key: 'weekly', label: 'Báo cáo tuần, Kho lưu tuần & Ảnh hiện trường' },
@@ -9926,7 +9950,7 @@ function doPost(e) {
         const mods = {};
         PERM_MODULES.forEach(m => {
           if (r === 'admin') mods[m.key] = { view: true, edit: true };
-          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
+          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'tmdt', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
           else mods[m.key] = { view: true, edit: false };
         });
         return {
@@ -11547,8 +11571,6 @@ function doPost(e) {
           const pObj = state.projects.find(p => p.id === t.projectId);
           const isOver = t.status !== 'Hoàn thành' && t.dueDate && iso(t.dueDate) < refMs;
           const priCls = t.priority === 'Cao' ? 'bg-rose-50 text-rose-700 border-rose-200' : (t.priority === 'Thấp' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-amber-50 text-amber-700 border-amber-200');
-          const isOwnTask = Boolean(myU && String(t.assignee || '').toLowerCase() === myU);
-          const rowEditable = editable || isOwnTask;
           const assignedNote = (t.createdBy && String(t.createdBy).toLowerCase() !== String(t.assignee || '').toLowerCase()) ? `<div class="text-[10px] text-indigo-600 font-medium">Giao bởi: @${esc(t.createdBy)}</div>` : '';
           return `<tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3">
@@ -11564,20 +11586,19 @@ function doPost(e) {
             <td class="py-2.5 px-2.5 text-center ${isOver ? 'text-rose-600 font-bold' : 'text-slate-600'}">${fmtDateVN(t.dueDate)}${isOver ? ' ⚠️' : ''}</td>
             <td class="py-2.5 px-2.5 text-center">
               <div class="inline-flex items-center gap-1.5">
-                <input type="range" min="0" max="100" value="${Number(t.progress) || 0}" data-mytask-pct-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} class="w-16 accent-brand-600" />
+                <input type="range" min="0" max="100" value="${Number(t.progress) || 0}" data-mytask-pct-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="w-16 accent-brand-600" />
                 <span class="font-bold text-slate-700 w-8 text-right">${Number(t.progress) || 0}%</span>
               </div>
             </td>
             <td class="py-2.5 px-2.5 text-center">
-              <select data-mytask-status-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white ${t.status === 'Chờ Admin duyệt' ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : ''}">
+              <select data-mytask-status-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white ${t.status === 'Chờ Admin duyệt' ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : ''}">
                 ${(isAdm ? ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Hoàn thành', 'Tạm dừng'] : ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Tạm dừng']).map(st => `<option ${t.status === st ? 'selected' : ''}>${st}</option>`).join('')}
               </select>
             </td>
-            <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
+            <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${editable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap space-x-1.5">
-              ${rowEditable ? `<button type="button" data-action="mytask-update-help" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200" title="Cập nhật công việc hoặc gửi yêu cầu trợ giúp tới Admin">💬 Cập nhật / Trợ giúp</button>` : ''}
-              ${(isAdm && (t.helpRequested || t.lastUpdateMsg) && !t.helpResolved) ? `<button type="button" data-action="mytask-admin-reply" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">💬 Phản hồi</button>` : ''}
-              ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && rowEditable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
+              ${(isAdm && t.helpRequested && !t.helpResolved) ? `<button type="button" data-action="mytask-admin-reply" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">💬 Phản hồi</button>` : (editable ? `<button type="button" data-action="mytask-update-help" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200" title="Cập nhật công việc hoặc gửi yêu cầu trợ giúp tới Admin">💬 Cập nhật / Trợ giúp</button>` : '')}
+              ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && editable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
               ${(isAdm && t.status === 'Chờ Admin duyệt') ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt &amp; Ẩn</button><button type="button" data-action="reject-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">↩ Trả lại</button>` : ''}
               ${(isAdm && t.status !== 'Chờ Admin duyệt' && !t.hiddenFromList) ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="text-[11px] font-semibold text-emerald-700 hover:underline">Duyệt &amp; Ẩn</button>` : ''}
               <button type="button" data-action="edit-mytask" data-id="${esc(t.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button>
