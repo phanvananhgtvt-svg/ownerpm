@@ -1630,39 +1630,6 @@
           </div>
         </div>
 
-        <!-- User Work Update & Help Request to Admin -->
-        <div id="mytask-help-card" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 class="font-semibold text-slate-900 text-base">📨 Cập nhật Công việc &amp; Yêu cầu Trợ giúp tới Admin</h3>
-              <p id="mytask-help-sub" class="text-xs text-slate-500">Gửi báo cáo nhanh tiến độ công việc đang làm hoặc đề xuất Admin hỗ trợ tháo gỡ vướng mắc</p>
-            </div>
-          </div>
-          <form id="mytask-help-form" class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <div class="md:col-span-3">
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Loại thông tin</label>
-              <select id="mytask-help-type" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
-                <option value="Cập nhật công việc">📋 Cập nhật công việc</option>
-                <option value="Yêu cầu trợ giúp">🆘 Yêu cầu Admin trợ giúp</option>
-              </select>
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Liên quan đầu việc</label>
-              <select id="mytask-help-task" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
-                <option value="">-- Chung / Toàn bộ --</option>
-              </select>
-            </div>
-            <div class="md:col-span-4">
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nội dung cập nhật / cần hỗ trợ</label>
-              <input id="mytask-help-msg" type="text" required placeholder="VD: Đã xong phần A, cần Admin duyệt/hỗ trợ..." class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white" />
-            </div>
-            <div class="md:col-span-2">
-              <button type="submit" class="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition">📨 Gửi tới Admin</button>
-            </div>
-          </form>
-          <div id="mytask-help-list" class="space-y-2 max-h-60 overflow-y-auto text-xs"></div>
-        </div>
-
         <!-- Monthly Evaluation & Summary for Admin ONLY -->
         <div id="mytask-monthly-card" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -7602,6 +7569,52 @@
             saveState(); renderAll();
             showToast('Đã báo xong và gửi thông báo về Admin duyệt!');
           }
+        } else if (action === 'mytask-update-help') {
+          const t = ensurePersonalTasks().find(x => x.id === id);
+          if (!t) return;
+          const cur = getCurrentUser();
+          openModal(`💬 Cập nhật / Trợ giúp: ${t.title}`, `
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Hình thức gửi tới Admin</label>
+              <select name="kind" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                <option value="update">📋 Cập nhật tiến độ công việc</option>
+                <option value="help" ${t.helpRequested ? 'selected' : ''}>🆘 Yêu cầu Admin trợ giúp / tháo gỡ</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">% Tiến độ hiện tại</label><input name="progress" type="number" min="0" max="100" value="${Number(t.progress) || 0}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Trạng thái</label><select name="status" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">${['Chưa bắt đầu', 'Đang thực hiện', 'Tạm dừng'].map(st => `<option ${t.status === st ? 'selected' : ''}>${st}</option>`).join('')}</select></div>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nội dung cập nhật / cần Admin hỗ trợ</label><textarea name="msg" rows="3" required placeholder="Nhập nội dung cập nhật hoặc vướng mắc cần Admin hỗ trợ..." class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2">${esc(t.lastUpdateMsg || '')}</textarea></div>
+          `, fd => {
+            const kind = fd.get('kind');
+            const msg = (fd.get('msg') || '').trim();
+            t.progress = Math.max(0, Math.min(100, Number(fd.get('progress')) || 0));
+            t.status = fd.get('status') || t.status;
+            t.lastUpdateMsg = msg;
+            t.lastUpdateAt = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+            t.helpRequested = (kind === 'help');
+            t.helpResolved = false;
+            t.updatedAt = state.reportDate;
+            pushAdminNotif(`${kind === 'help' ? '🆘 Yêu cầu trợ giúp' : '📋 Cập nhật việc'}: ${cur ? cur.fullName : t.assignee}`, `[${t.title}] (${t.progress}%): ${msg}`, 'Công việc cá nhân');
+            saveState(); closeModal(); renderMyTasksTab();
+            showToast(kind === 'help' ? 'Đã gửi yêu cầu trợ giúp tới Admin!' : 'Đã cập nhật công việc & báo Admin!');
+          });
+        } else if (action === 'mytask-admin-reply') {
+          if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền phản hồi', 'error'); return; }
+          const t = ensurePersonalTasks().find(x => x.id === id);
+          if (!t) return;
+          openModal(`Phản hồi & Hỗ trợ: ${t.title}`, `
+            <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs space-y-1">
+              <div><b>Nhân sự:</b> @${esc(t.assignee)}</div>
+              <div><b>Nội dung cần hỗ trợ:</b> ${esc(t.lastUpdateMsg || t.note || '—')}</div>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Phản hồi / Hướng dẫn của Admin</label><input name="reply" value="${esc(t.adminReply || 'Đã tiếp nhận và hỗ trợ xử lý.')}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+          `, fd => {
+            t.adminReply = (fd.get('reply') || '').trim();
+            t.helpResolved = true;
+            saveState(); closeModal(); renderMyTasksTab();
+            showToast('Đã gửi phản hồi hỗ trợ tới nhân sự');
+          });
         } else if (action === 'reply-mytask-help') {
           if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền xử lý yêu cầu này', 'error'); return; }
           const h = (state.myTaskHelpRequests || []).find(x => x.id === id);
@@ -11533,7 +11546,13 @@ function doPost(e) {
           const priCls = t.priority === 'Cao' ? 'bg-rose-50 text-rose-700 border-rose-200' : (t.priority === 'Thấp' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-amber-50 text-amber-700 border-amber-200');
           const assignedNote = (t.createdBy && String(t.createdBy).toLowerCase() !== String(t.assignee || '').toLowerCase()) ? `<div class="text-[10px] text-indigo-600 font-medium">Giao bởi: @${esc(t.createdBy)}</div>` : '';
           return `<tr class="hover:bg-slate-50">
-            <td class="py-2.5 px-3"><div class="font-semibold text-slate-900">${esc(t.title)}</div>${t.wbsCode ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">WBS: ${esc(t.wbsCode)}</span>` : ''}${assignedNote}</td>
+            <td class="py-2.5 px-3">
+              <div class="font-semibold text-slate-900">${esc(t.title)}</div>
+              ${t.wbsCode ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">WBS: ${esc(t.wbsCode)}</span>` : ''}${assignedNote}
+              ${t.status === 'Chờ Admin duyệt' ? `<div class="text-[10px] text-amber-700 font-semibold mt-0.5">⏳ Đã báo xong — đang chờ Admin duyệt</div>` : ''}
+              ${t.hiddenFromList ? `<div class="text-[10px] text-emerald-700 font-semibold mt-0.5">✓ Admin đã duyệt &amp; ẩn khỏi danh sách chính</div>` : ''}
+              ${t.lastUpdateMsg ? `<div class="text-[10.5px] mt-1 px-2 py-1 rounded-lg border ${t.helpRequested && !t.helpResolved ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-sky-50 border-sky-200 text-sky-900'}"><b>${t.helpRequested ? '🆘 Cần Admin hỗ trợ' : '📋 Cập nhật'}:</b> ${esc(t.lastUpdateMsg)} <span class="text-[9.5px] opacity-70">(${esc(t.lastUpdateAt || '')})</span>${t.adminReply ? `<div class="text-emerald-700 font-semibold mt-0.5">↳ Admin phản hồi: ${esc(t.adminReply)} ${t.helpResolved ? '✓' : ''}</div>` : ''}</div>` : ''}
+            </td>
             <td class="py-2.5 px-2.5"><span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 font-semibold text-[11px]">${pObj ? esc(pObj.code) : 'Chung'}</span>${pObj ? `<div class="text-[10px] text-slate-500 truncate max-w-[140px]" title="${esc(pObj.name)}">${esc(pObj.name)}</div>` : '<div class="text-[10px] text-slate-400">Toàn hệ thống</div>'}</td>
             <td class="py-2.5 px-2.5"><div class="font-medium text-slate-800">${esc(t.assigneeName || t.assignee)}</div><div class="text-[10px] text-slate-400">@${esc(t.assignee)}</div></td>
             <td class="py-2.5 px-2.5 text-center"><span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${priCls}">${esc(t.priority || 'Trung bình')}</span></td>
@@ -11551,6 +11570,7 @@ function doPost(e) {
             </td>
             <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${editable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap space-x-1.5">
+              ${(isAdm && t.helpRequested && !t.helpResolved) ? `<button type="button" data-action="mytask-admin-reply" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">💬 Phản hồi</button>` : (editable ? `<button type="button" data-action="mytask-update-help" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200" title="Cập nhật công việc hoặc gửi yêu cầu trợ giúp tới Admin">💬 Cập nhật / Trợ giúp</button>` : '')}
               ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && editable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
               ${(isAdm && t.status === 'Chờ Admin duyệt') ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt &amp; Ẩn</button><button type="button" data-action="reject-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">↩ Trả lại</button>` : ''}
               ${(isAdm && t.status !== 'Chờ Admin duyệt' && !t.hiddenFromList) ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="text-[11px] font-semibold text-emerald-700 hover:underline">Duyệt &amp; Ẩn</button>` : ''}
@@ -11560,45 +11580,7 @@ function doPost(e) {
           </tr>`;
         }).join('') : `<tr><td colspan="9" class="py-6 text-center text-slate-400">Chưa có công việc cá nhân nào phù hợp.</td></tr>`;
 
-        // Work Update & Help Request to Admin
-        const helpForm = document.getElementById('mytask-help-form');
-        const helpSub = document.getElementById('mytask-help-sub');
-        const helpTaskSel = document.getElementById('mytask-help-task');
-        const helpListEl = document.getElementById('mytask-help-list');
-        if (helpForm) helpForm.classList.toggle('hidden', isAdm);
-        if (helpSub) helpSub.textContent = isAdm
-          ? 'Danh sách cập nhật công việc và yêu cầu trợ giúp do các nhân sự gửi lên'
-          : 'Gửi báo cáo nhanh tiến độ công việc đang làm hoặc đề xuất Admin hỗ trợ tháo gỡ vướng mắc';
-        if (helpTaskSel) {
-          const myActiveTasks = list.filter(t => !t.hiddenFromList && (isAdm || String(t.assignee || '').toLowerCase() === myU));
-          helpTaskSel.innerHTML = `<option value="">-- Chung / Toàn bộ --</option>` + myActiveTasks.map(t => `<option value="${esc(t.title)}">${esc(t.title)} (${esc(t.projCode || '')})</option>`).join('');
-        }
-        if (helpListEl) {
-          if (!Array.isArray(state.myTaskHelpRequests)) state.myTaskHelpRequests = [];
-          const hItems = isAdm
-            ? state.myTaskHelpRequests
-            : state.myTaskHelpRequests.filter(h => String(h.username || '').toLowerCase() === myU);
-          helpListEl.innerHTML = hItems.length ? hItems.slice(0, 30).map(h => `
-            <div class="p-3 rounded-xl border ${h.type === 'Yêu cầu trợ giúp' ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-50 border-slate-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div class="space-y-0.5">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.type === 'Yêu cầu trợ giúp' ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'}">${esc(h.type)}</span>
-                  <span class="font-semibold text-slate-900">${esc(h.fullName || h.username)}</span>
-                  ${h.taskTitle ? `<span class="text-[11px] font-medium text-indigo-700">• ${esc(h.taskTitle)}</span>` : ''}
-                  <span class="text-[10px] text-slate-400">${esc(h.ts || '')}</span>
-                </div>
-                <div class="text-slate-700">${esc(h.message)}</div>
-                ${h.adminReply ? `<div class="text-[11px] text-emerald-700 font-semibold">↳ Admin phản hồi: ${esc(h.adminReply)}</div>` : ''}
-              </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                ${h.resolved
-                  ? `<span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10.5px] font-bold">✓ Admin đã xử lý</span>`
-                  : (isAdm
-                    ? `<button type="button" data-action="reply-mytask-help" data-id="${esc(h.id)}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold">✓ Phản hồi / Xử lý</button>`
-                    : `<span class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10.5px] font-semibold">⏳ Chờ Admin</span>`)}
-              </div>
-            </div>`).join('') : `<div class="text-slate-400 italic py-2 text-center">${isAdm ? 'Chưa có cập nhật hay yêu cầu trợ giúp nào từ nhân sự.' : 'Bạn chưa gửi cập nhật hoặc yêu cầu trợ giúp nào tới Admin.'}</div>`;
-        }
+
 
         // Monthly Evaluation & Summary Table (Admin ONLY)
         const monthlyCard = document.getElementById('mytask-monthly-card');
@@ -11646,33 +11628,6 @@ function doPost(e) {
         }
       }
 
-      const _mtHelpForm = document.getElementById('mytask-help-form');
-      if (_mtHelpForm) _mtHelpForm.addEventListener('submit', e => {
-        e.preventDefault();
-        const cur = getCurrentUser();
-        const tp = document.getElementById('mytask-help-type')?.value || 'Cập nhật công việc';
-        const tTitle = document.getElementById('mytask-help-task')?.value || '';
-        const msgInp = document.getElementById('mytask-help-msg');
-        const msg = (msgInp ? msgInp.value : '').trim();
-        if (!msg) return;
-        if (!Array.isArray(state.myTaskHelpRequests)) state.myTaskHelpRequests = [];
-        state.myTaskHelpRequests.unshift({
-          id: 'mth_' + Date.now(),
-          username: cur ? cur.username : 'user',
-          fullName: cur ? cur.fullName : 'Nhân sự',
-          type: tp,
-          taskTitle: tTitle,
-          message: msg,
-          ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
-          resolved: false,
-          adminReply: ''
-        });
-        if (msgInp) msgInp.value = '';
-        pushAdminNotif(`${tp}: ${cur ? cur.fullName : 'Nhân sự'}`, `${tTitle ? '[' + tTitle + '] ' : ''}${msg}`, 'Công việc cá nhân');
-        saveState();
-        renderMyTasksTab();
-        showToast(`Đã gửi "${tp}" tới Admin!`);
-      });
       const _mtMonthEl = document.getElementById('mytask-monthly-month');
       if (_mtMonthEl) _mtMonthEl.addEventListener('change', () => { renderMyTasksTab(); applyUserPermissions(); });
       const _btnSendMonthly = document.getElementById('btn-send-monthly-mytasks');
