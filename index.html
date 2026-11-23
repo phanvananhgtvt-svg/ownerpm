@@ -6655,7 +6655,8 @@
             saveState(); renderAll(); showToast(`Đã cập nhật ${om.code}`);
           }
         } else if (el.dataset.mytaskPctId) {
-          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
+          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskPctId);
           if (t) {
             t.progress = Math.min(100, Math.max(0, Number(el.value) || 0));
@@ -6673,7 +6674,8 @@
             showToast(t.status === 'Chờ Admin duyệt' ? 'Đã gửi thông báo hoàn thành cho Admin duyệt' : 'Đã cập nhật tiến độ công việc cá nhân');
           }
         } else if (el.dataset.mytaskStatusId) {
-          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
+          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskStatusId);
           if (t) {
             const newSt = el.value;
@@ -6699,7 +6701,8 @@
           saveState();
           showToast('Đã lưu nhận xét đánh giá tháng');
         } else if (el.dataset.mytaskNoteId) {
-          if (!canEditModule('mytasks')) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
+          const _curMtu = getCurrentUser(); const _curMtuName = _curMtu ? String(_curMtu.username || '').toLowerCase() : ''; const _targetMtid = el.dataset.mytaskPctId || el.dataset.mytaskStatusId || el.dataset.mytaskNoteId; const _targetMt = _targetMtid ? ensurePersonalTasks().find(x => x.id === _targetMtid) : null; const _isOwnMt = Boolean(_curMtuName && _targetMt && String(_targetMt.assignee || '').toLowerCase() === _curMtuName);
+          if (!canEditModule('mytasks') && !_isOwnMt) { renderMyTasksTab(); applyUserPermissions(); showToast('Không có quyền sửa Công việc cá nhân', 'error'); return; }
           const t = ensurePersonalTasks().find(x => x.id === el.dataset.mytaskNoteId);
           if (t) { t.note = el.value; t.updatedAt = state.reportDate; saveState(); showToast('Đã lưu ghi chú công việc'); }
         } else if (el.dataset.splitCid && el.dataset.splitRid && el.dataset.splitId && el.dataset.splitField) {
@@ -11544,6 +11547,8 @@ function doPost(e) {
           const pObj = state.projects.find(p => p.id === t.projectId);
           const isOver = t.status !== 'Hoàn thành' && t.dueDate && iso(t.dueDate) < refMs;
           const priCls = t.priority === 'Cao' ? 'bg-rose-50 text-rose-700 border-rose-200' : (t.priority === 'Thấp' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-amber-50 text-amber-700 border-amber-200');
+          const isOwnTask = Boolean(myU && String(t.assignee || '').toLowerCase() === myU);
+          const rowEditable = editable || isOwnTask;
           const assignedNote = (t.createdBy && String(t.createdBy).toLowerCase() !== String(t.assignee || '').toLowerCase()) ? `<div class="text-[10px] text-indigo-600 font-medium">Giao bởi: @${esc(t.createdBy)}</div>` : '';
           return `<tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3">
@@ -11559,19 +11564,20 @@ function doPost(e) {
             <td class="py-2.5 px-2.5 text-center ${isOver ? 'text-rose-600 font-bold' : 'text-slate-600'}">${fmtDateVN(t.dueDate)}${isOver ? ' ⚠️' : ''}</td>
             <td class="py-2.5 px-2.5 text-center">
               <div class="inline-flex items-center gap-1.5">
-                <input type="range" min="0" max="100" value="${Number(t.progress) || 0}" data-mytask-pct-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="w-16 accent-brand-600" />
+                <input type="range" min="0" max="100" value="${Number(t.progress) || 0}" data-mytask-pct-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} class="w-16 accent-brand-600" />
                 <span class="font-bold text-slate-700 w-8 text-right">${Number(t.progress) || 0}%</span>
               </div>
             </td>
             <td class="py-2.5 px-2.5 text-center">
-              <select data-mytask-status-id="${esc(t.id)}" ${editable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white ${t.status === 'Chờ Admin duyệt' ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : ''}">
+              <select data-mytask-status-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white ${t.status === 'Chờ Admin duyệt' ? 'border-amber-400 bg-amber-50 font-semibold text-amber-800' : ''}">
                 ${(isAdm ? ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Hoàn thành', 'Tạm dừng'] : ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ Admin duyệt', 'Tạm dừng']).map(st => `<option ${t.status === st ? 'selected' : ''}>${st}</option>`).join('')}
               </select>
             </td>
-            <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${editable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
+            <td class="py-2.5 px-2.5"><input type="text" value="${esc(t.note || '')}" data-mytask-note-id="${esc(t.id)}" ${rowEditable ? '' : 'disabled'} placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white" /></td>
             <td class="py-2.5 px-2.5 text-right whitespace-nowrap space-x-1.5">
-              ${(isAdm && t.helpRequested && !t.helpResolved) ? `<button type="button" data-action="mytask-admin-reply" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">💬 Phản hồi</button>` : (editable ? `<button type="button" data-action="mytask-update-help" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200" title="Cập nhật công việc hoặc gửi yêu cầu trợ giúp tới Admin">💬 Cập nhật / Trợ giúp</button>` : '')}
-              ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && editable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
+              ${rowEditable ? `<button type="button" data-action="mytask-update-help" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200" title="Cập nhật công việc hoặc gửi yêu cầu trợ giúp tới Admin">💬 Cập nhật / Trợ giúp</button>` : ''}
+              ${(isAdm && (t.helpRequested || t.lastUpdateMsg) && !t.helpResolved) ? `<button type="button" data-action="mytask-admin-reply" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-white">💬 Phản hồi</button>` : ''}
+              ${(!isAdm && t.status !== 'Chờ Admin duyệt' && t.status !== 'Hoàn thành' && rowEditable) ? `<button type="button" data-action="submit-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Báo xong</button>` : ''}
               ${(isAdm && t.status === 'Chờ Admin duyệt') ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">✓ Duyệt &amp; Ẩn</button><button type="button" data-action="reject-mytask" data-id="${esc(t.id)}" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">↩ Trả lại</button>` : ''}
               ${(isAdm && t.status !== 'Chờ Admin duyệt' && !t.hiddenFromList) ? `<button type="button" data-action="approve-mytask" data-id="${esc(t.id)}" class="text-[11px] font-semibold text-emerald-700 hover:underline">Duyệt &amp; Ẩn</button>` : ''}
               <button type="button" data-action="edit-mytask" data-id="${esc(t.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button>
