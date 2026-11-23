@@ -726,6 +726,7 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm">
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
             <input id="task-search" type="text" placeholder="Tìm theo mã WBS, tên công việc hoặc nhà thầu..." class="flex-1 text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <button id="btn-auto-combine-project" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition shrink-0" title="Tự động nhận diện trình tự thi công liên nhà thầu, gắn ràng buộc và kiểm tra xung đột">🔗 Combine Toàn dự án</button>
             <button id="btn-save-version-inline" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0">📌 Lưu Ver (1, 2...)</button>
             <select id="task-filter-status" class="text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="all">Tất cả trạng thái</option>
@@ -1629,8 +1630,41 @@
           </div>
         </div>
 
-        <!-- Monthly Evaluation & Summary for Admin -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <!-- User Work Update & Help Request to Admin -->
+        <div id="mytask-help-card" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="font-semibold text-slate-900 text-base">📨 Cập nhật Công việc &amp; Yêu cầu Trợ giúp tới Admin</h3>
+              <p id="mytask-help-sub" class="text-xs text-slate-500">Gửi báo cáo nhanh tiến độ công việc đang làm hoặc đề xuất Admin hỗ trợ tháo gỡ vướng mắc</p>
+            </div>
+          </div>
+          <form id="mytask-help-form" class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="md:col-span-3">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Loại thông tin</label>
+              <select id="mytask-help-type" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+                <option value="Cập nhật công việc">📋 Cập nhật công việc</option>
+                <option value="Yêu cầu trợ giúp">🆘 Yêu cầu Admin trợ giúp</option>
+              </select>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Liên quan đầu việc</label>
+              <select id="mytask-help-task" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+                <option value="">-- Chung / Toàn bộ --</option>
+              </select>
+            </div>
+            <div class="md:col-span-4">
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nội dung cập nhật / cần hỗ trợ</label>
+              <input id="mytask-help-msg" type="text" required placeholder="VD: Đã xong phần A, cần Admin duyệt/hỗ trợ..." class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white" />
+            </div>
+            <div class="md:col-span-2">
+              <button type="submit" class="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition">📨 Gửi tới Admin</button>
+            </div>
+          </form>
+          <div id="mytask-help-list" class="space-y-2 max-h-60 overflow-y-auto text-xs"></div>
+        </div>
+
+        <!-- Monthly Evaluation & Summary for Admin ONLY -->
+        <div id="mytask-monthly-card" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">📊 Tổng hợp &amp; Đánh giá Công việc Hàng tháng (Gửi Admin)</h3>
@@ -4192,27 +4226,25 @@
         };
 
         const tbody = document.getElementById('task-table-body');
-        const scopeLeaves = (isC && selectedContractor) ? leaves.filter(t => t.contractor === selectedContractor) : leaves;
-        let summaryRowHtml = '';
-        if (scopeLeaves.length) {
-          const sg = aggTasks(scopeLeaves, atMs);
-          const sPs = Math.min(...scopeLeaves.map(t => iso(t.ps)));
-          const sPe = Math.max(...scopeLeaves.map(t => iso(t.pe)));
+        const buildScopeSummaryRow = (rowLeaves, titleText, subText, rowBgCls) => {
+          if (!rowLeaves.length) return '';
+          const sg = aggTasks(rowLeaves, atMs);
+          const sPs = Math.min(...rowLeaves.map(t => iso(t.ps)));
+          const sPe = Math.max(...rowLeaves.map(t => iso(t.pe)));
           const sDays = Math.max(1, Math.round((sPe - sPs) / DAY) + 1);
-          const sAsList = scopeLeaves.map(k => k.as || k.ps).filter(Boolean).sort();
+          const sAsList = rowLeaves.map(k => k.as || k.ps).filter(Boolean).sort();
           const sAs = sAsList[0] || '';
-          const sAllDone = scopeLeaves.every(k => (Number(k.progress) || 0) >= 99.5);
-          const sAeList = scopeLeaves.map(k => k.ae || k.pe).filter(Boolean).sort();
+          const sAeList = rowLeaves.map(k => k.ae || k.pe).filter(Boolean).sort();
           const sAe = sAeList[sAeList.length - 1] || '';
           const sActDays = sAs ? Math.max(1, Math.round(((sAe ? iso(sAe) : atMs) - iso(sAs)) / DAY) + 1) : null;
           const sSt = getTaskStatus({ p: sg.p, a: sg.a, ps: sPs }, atMs);
-          summaryRowHtml = `
-            <tr class="bg-blue-50/90 border-b-2 border-brand-200 font-semibold text-[11px]">
+          return `
+            <tr class="${rowBgCls} border-b border-brand-200 font-semibold text-[11px]">
               <td class="py-2 px-2">
-                <div class="text-slate-900 font-bold text-xs">📌 ${(isC && selectedContractor) ? 'TỔNG TIẾN ĐỘ – ' + esc(selectedContractor.toUpperCase()) : 'TỔNG TIẾN ĐỘ DỰ ÁN'}</div>
-                <div class="text-[10px] font-normal text-slate-500 mt-0.5">BĐ sớm nhất → KT muộn nhất</div>
+                <div class="text-slate-900 font-bold text-xs">${titleText}</div>
+                <div class="text-[10px] font-normal text-slate-500 mt-0.5">${subText}</div>
               </td>
-              <td class="py-2 px-1.5 text-[10px] text-slate-500 font-normal">CPM (${leaves.filter(x => x.pre).length} RB)</td>
+              <td class="py-2 px-1.5 text-[10px] text-slate-500 font-normal">CPM (${rowLeaves.filter(x => x.pre).length} RB)</td>
               <td class="py-2 px-1 text-center whitespace-nowrap">${fmtDateVN(sPs)}</td>
               <td class="py-2 px-1 text-center whitespace-nowrap">${fmtDateVN(sPe)}</td>
               <td class="py-2 px-1 text-center font-bold whitespace-nowrap">${sDays}n</td>
@@ -4228,6 +4260,11 @@
               <td class="py-2 px-1"></td>
               <td class="py-2 px-1"></td>
             </tr>`;
+        };
+        let summaryRowHtml = buildScopeSummaryRow(leaves, '📌 TỔNG TIẾN ĐỘ TOÀN BỘ DỰ ÁN (TẤT CẢ NHÀ THẦU)', 'Ngày đầu tiên làm → Ngày kết thúc cuối cùng toàn bộ nhà thầu', 'bg-blue-50/95 border-b-2');
+        if (isC && selectedContractor) {
+          const selLeaves = leaves.filter(t => t.contractor === selectedContractor);
+          summaryRowHtml += buildScopeSummaryRow(selLeaves, '↳ TỔNG NHÀ THẦU: ' + esc(selectedContractor.toUpperCase()), `${selLeaves.length} hạng mục con`, 'bg-indigo-50/70');
         }
         const succMap = {};
         proj.tasks.forEach(tk => {
@@ -4242,7 +4279,7 @@
           tbody.innerHTML = summaryRowHtml + `<tr><td colspan="13" class="py-6 text-center text-slate-400 text-sm">Không tìm thấy hạng mục phù hợp.</td></tr>`;
         } else {
           const canEditSched = canEditModule('schedule');
-          tbody.innerHTML = summaryRowHtml + filtered.map(t => {
+          const renderTaskRowHtml = (t) => {
             const leaf = isLeafTask(proj.tasks, t);
             const m = getTaskMetrics(proj.tasks, t, atMs);
             const st = getTaskStatus(m, atMs);
@@ -4317,7 +4354,23 @@
                   <button type="button" data-action="del-task" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-rose-600 hover:bg-rose-50 px-1 py-0.5 rounded">Xóa</button>
                 </td>
               </tr>`;
-          }).join('');
+          };
+          if (isC && !selectedContractor && contractors.length > 0) {
+            const groupedHtml = contractors.map((kName, kIdx) => {
+              const kLeaves = leaves.filter(t => t.contractor === kName);
+              const kFiltered = filtered.filter(t => {
+                if (isLeafTask(proj.tasks, t)) return t.contractor === kName;
+                return proj.tasks.some(x => String(x.c || '').startsWith(String(t.c || '') + '.') && isLeafTask(proj.tasks, x) && x.contractor === kName);
+              });
+              if (!kFiltered.length) return '';
+              const kHdr = buildScopeSummaryRow(kLeaves, `🏢 NHÀ THẦU ${kIdx + 1}: ${esc(kName)}`, `Mục tổng nhà thầu (${kLeaves.length} mục con)`, 'bg-slate-100/95');
+              return kHdr + kFiltered.map(renderTaskRowHtml).join('');
+            }).join('');
+            const unassigned = filtered.filter(t => isLeafTask(proj.tasks, t) && !t.contractor);
+            tbody.innerHTML = summaryRowHtml + groupedHtml + unassigned.map(renderTaskRowHtml).join('');
+          } else {
+            tbody.innerHTML = summaryRowHtml + filtered.map(renderTaskRowHtml).join('');
+          }
         }
 
         // Contractor SPI & Logs
@@ -7549,6 +7602,22 @@
             saveState(); renderAll();
             showToast('Đã báo xong và gửi thông báo về Admin duyệt!');
           }
+        } else if (action === 'reply-mytask-help') {
+          if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền xử lý yêu cầu này', 'error'); return; }
+          const h = (state.myTaskHelpRequests || []).find(x => x.id === id);
+          if (!h) return;
+          openModal(`Phản hồi ${h.type} — ${h.fullName || h.username}`, `
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+              ${h.taskTitle ? `<div><b>Đầu việc:</b> ${esc(h.taskTitle)}</div>` : ''}
+              <div><b>Nội dung:</b> ${esc(h.message)}</div>
+            </div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Phản hồi / Hướng dẫn của Admin</label><input name="reply" value="${esc(h.adminReply || 'Đã tiếp nhận và hỗ trợ xử lý.')}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+          `, fd => {
+            h.adminReply = (fd.get('reply') || '').trim();
+            h.resolved = true;
+            saveState(); closeModal(); renderMyTasksTab();
+            showToast('Đã phản hồi & đánh dấu đã xử lý');
+          });
         } else if (action === 'approve-mytask') {
           if (!isAdminUser()) { showToast('Chỉ Admin mới có quyền duyệt & ẩn công việc', 'error'); return; }
           const list = ensurePersonalTasks();
@@ -7604,7 +7673,13 @@
           const d = gDocs.find(x => x.id === id);
           if (d) {
             archiveBeforeDelete('Hồ sơ thư viện', `${d.code} — ${d.title}`, { document: d }, proj);
+            state.globalDocumentsInitialized = true;
+            if (!Array.isArray(state.deletedDocIds)) state.deletedDocIds = [];
+            if (!state.deletedDocIds.includes(id)) state.deletedDocIds.push(id);
             state.globalDocuments = gDocs.filter(x => x.id !== id);
+            (state.projects || []).forEach(pr => {
+              if (Array.isArray(pr.documents)) pr.documents = pr.documents.filter(x => x && x.id !== id);
+            });
             saveState(); renderAll(); showToast('Đã xóa hồ sơ (đã sao lưu cho Admin)', 'info');
           }
         } else if (action === 'del-budget') {
@@ -8026,6 +8101,130 @@
         document.getElementById('combine-result-log').innerHTML = `✅ Đã combine ${files.length} file (+${added} mới, cập nhật ${updated} dòng): ` + logs.join(' • ');
         showToast(`Đã combine ${files.length} file vào Master WBS`);
       });
+
+
+      function classifyConstructionStage(task) {
+        const txt = (String(task.name || '') + ' ' + String(task.contractor || '')).toLowerCase();
+        if (/pháp lý|gpxd|mặt bằng|bàn giao mb|chuẩn bị|lán trại|tạm/i.test(txt)) return { stage: 1, label: '1. Chuẩn bị & Mặt bằng' };
+        if (/cọc|ép cọc|đào đất|móng|đà kiềng|cổ cột|san lấp|nền|bê tông lót/i.test(txt)) return { stage: 2, label: '2. Cọc, Móng & Nền' };
+        if (/kết cấu|khung|cột|dầm|sàn|kèo|thép|mái|lợp|bê tông/i.test(txt)) return { stage: 3, label: '3. Kết cấu & Thân mái' };
+        if (/xây tường|xây gạch|vách|ngăn phòng|tường bao/i.test(txt)) return { stage: 4, label: '4. Xây tường & Vách' };
+        if (/điện|nước|me\b|mep|pccc|ống|cáp|điều hòa|hvac|âm tường|cơ điện/i.test(txt)) return { stage: 5, label: '5. Cơ điện (ME / PCCC)' };
+        if (/tô|trát|cán nền|chống thấm|ốp|lát|trần/i.test(txt)) return { stage: 6, label: '6. Tô trát & Ốp lát' };
+        if (/sơn|bả|cửa|nhôm kính|lắp thiết bị|đèn|vệ sinh|hoàn thiện/i.test(txt)) return { stage: 7, label: '7. Sơn nước & Hoàn thiện' };
+        if (/hạ tầng|sân|đường|cây|nghiệm thu|defect|hoàn công|bàn giao/i.test(txt)) return { stage: 8, label: '8. Hạ tầng & Nghiệm thu' };
+        return { stage: 4, label: '4. Thi công chung' };
+      }
+
+      function analyzeProjectCombinePlan(proj) {
+        const leaves = getLeafTasks(proj.tasks || []).slice().sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true }));
+        const classified = leaves.map(t => ({ t, ...classifyConstructionStage(t) }));
+        const byStage = {};
+        classified.forEach(item => {
+          if (!byStage[item.stage]) byStage[item.stage] = [];
+          byStage[item.stage].push(item);
+        });
+        const stages = Object.keys(byStage).map(Number).sort((a, b) => a - b);
+        const proposedLinks = [];
+        const clashes = [];
+        for (let idx = 1; idx < stages.length; idx++) {
+          const prevStage = stages[idx - 1];
+          const curStage = stages[idx];
+          const prevItems = byStage[prevStage];
+          const curItems = byStage[curStage];
+          // Link first/anchor tasks of curStage to finishing task(s) of prevStage
+          const anchorPrev = prevItems[prevItems.length - 1];
+          curItems.forEach(ci => {
+            const curPre = String(ci.t.pre || '').trim();
+            const linkCode = anchorPrev.t.c + 'FS';
+            if (!curPre.includes(anchorPrev.t.c)) {
+              proposedLinks.push({
+                task: ci.t,
+                fromTask: anchorPrev.t,
+                fromStage: anchorPrev.label,
+                toStage: ci.label,
+                newPre: curPre ? `${curPre}, ${linkCode}` : linkCode
+              });
+            }
+            if (ci.t.ps && anchorPrev.t.pe && iso(ci.t.ps) <= iso(anchorPrev.t.pe)) {
+              const overlapDays = Math.round((iso(anchorPrev.t.pe) - iso(ci.t.ps)) / DAY) + 1;
+              clashes.push({
+                from: `[${anchorPrev.t.c}] ${anchorPrev.t.name} (${anchorPrev.t.contractor || '—'})`,
+                to: `[${ci.t.c}] ${ci.t.name} (${ci.t.contractor || '—'})`,
+                msg: `Va chạm trình tự (${anchorPrev.label} → ${ci.label}): công việc sau bắt đầu (${fmtDateVN(ci.t.ps)}) trước khi công việc trước kết thúc (${fmtDateVN(anchorPrev.t.pe)}), chồng lấn ${overlapDays} ngày.`
+              });
+            }
+          });
+        }
+        const existingConflicts = detectScheduleConflicts(proj, computeCPM(proj.tasks || []), getReportMs());
+        return { classified, proposedLinks, clashes, existingConflicts };
+      }
+
+      const btnAutoCombine = document.getElementById('btn-auto-combine-project');
+      if (btnAutoCombine) {
+        btnAutoCombine.addEventListener('click', () => {
+          if (!canEditModule('schedule')) { showToast('Không có quyền chỉnh sửa Tiến độ', 'error'); return; }
+          const proj = getActiveProject();
+          const leaves = getLeafTasks(proj.tasks || []);
+          if (!leaves.length) { showToast('Chưa có hạng mục tiến độ nào để Combine', 'error'); return; }
+          const plan = analyzeProjectCombinePlan(proj);
+          openModal('🔗 Combine Toàn bộ Dự án (Phân cấp, Ràng buộc & Kiểm tra Xung đột)', `
+            <div class="grid grid-cols-3 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200"><div class="text-slate-500">Tổng hạng mục con</div><div class="text-base font-bold text-slate-900">${leaves.length}</div></div>
+              <div class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200"><div class="text-indigo-700">Ràng buộc đề xuất</div><div class="text-base font-bold text-indigo-800">${plan.proposedLinks.length} liên kết</div></div>
+              <div class="p-2.5 rounded-xl ${plan.clashes.length + plan.existingConflicts.length ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}"><div class="text-slate-600">Va chạm / Xung đột</div><div class="text-base font-bold ${plan.clashes.length + plan.existingConflicts.length ? 'text-rose-700' : 'text-emerald-700'}">${plan.clashes.length + plan.existingConflicts.length} cảnh báo</div></div>
+            </div>
+            <div class="text-xs font-semibold text-slate-700">1. Trình tự thi công &amp; Ràng buộc liên nhà thầu tự nhận diện:</div>
+            <div class="max-h-40 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 text-[11px]">
+              ${plan.proposedLinks.length ? plan.proposedLinks.map(lk => `<div class="px-3 py-1.5 flex items-center justify-between gap-2"><div><span class="font-semibold text-slate-800">[${esc(lk.fromTask.c)}] ${esc(lk.fromTask.name)}</span> <span class="text-slate-400">(${esc(lk.fromTask.contractor || '—')})</span> <span class="font-bold text-indigo-700 mx-1">➔ FS ➔</span> <span class="font-semibold text-slate-900">[${esc(lk.task.c)}] ${esc(lk.task.name)}</span> <span class="text-slate-400">(${esc(lk.task.contractor || '—')})</span></div><span class="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold shrink-0">${esc(lk.newPre)}</span></div>`).join('') : '<div class="p-3 text-center text-emerald-700">Các hạng mục đã được gắn đầy đủ ràng buộc trình tự thi công.</div>'}
+            </div>
+            <div class="text-xs font-semibold text-slate-700">2. Kiểm tra Va chạm &amp; Xung đột Tiến độ:</div>
+            <div class="max-h-40 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 text-[11px]">
+              ${plan.clashes.length ? plan.clashes.map(c => `<div class="px-3 py-2 bg-rose-50/60 text-rose-800"><b>⚠ Va chạm:</b> ${esc(c.msg)}</div>`).join('') : '<div class="p-3 text-center text-emerald-700">✅ Không phát hiện va chạm trình tự thi công giữa các nhà thầu.</div>'}
+            </div>
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 cursor-pointer">
+              <input name="cascadeDates" type="checkbox" checked class="w-4 h-4 accent-emerald-600" />
+              Tự động đẩy ngày Kế hoạch (BĐ/KT) nối tiếp theo ràng buộc FS để xử lý hết các va chạm
+            </label>
+          `, fd => {
+            const liveProj = getActiveProject();
+            const livePlan = analyzeProjectCombinePlan(liveProj);
+            livePlan.proposedLinks.forEach(lk => {
+              const target = (liveProj.tasks || []).find(x => x.id === lk.task.id || x.c === lk.task.c);
+              if (target) target.pre = lk.newPre;
+            });
+            if (fd.get('cascadeDates') === 'on') {
+              const cp = computeCPM(liveProj.tasks || []);
+              if (cp && cp.map) {
+                (liveProj.tasks || []).forEach(t => {
+                  if (!isLeafTask(liveProj.tasks, t)) return;
+                  const n = cp.map[t.c];
+                  if (n) {
+                    t.ps = new Date(cp.P0 + n.es * DAY).toISOString().slice(0, 10);
+                    t.pe = new Date(cp.P0 + (n.ef - 1) * DAY).toISOString().slice(0, 10);
+                  }
+                });
+                (liveProj.tasks || []).forEach(pt => {
+                  if (isLeafTask(liveProj.tasks, pt)) return;
+                  const kids = liveProj.tasks.filter(x => x && String(x.c || '').startsWith(String(pt.c) + '.') && isLeafTask(liveProj.tasks, x));
+                  if (kids.length) {
+                    pt.ps = new Date(Math.min(...kids.map(k => iso(k.ps)))).toISOString().slice(0, 10);
+                    pt.pe = new Date(Math.max(...kids.map(k => iso(k.pe)))).toISOString().slice(0, 10);
+                  }
+                });
+              }
+            }
+            liveProj.progressLogs.unshift({
+              ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+              contractor: 'Combine Hệ thống',
+              task: `Toàn bộ dự án (${leaves.length} mục)`,
+              change: `Gắn ${livePlan.proposedLinks.length} ràng buộc • ${livePlan.clashes.length} va chạm`
+            });
+            saveState(); closeModal(); renderAll();
+            showToast(`Đã Combine toàn dự án: gắn ${livePlan.proposedLinks.length} ràng buộc & kiểm tra xung đột!`);
+          });
+        });
+      }
 
       const btnTogDelVer = document.getElementById('btn-toggle-deleted-vers');
       const btnCloseDelVer = document.getElementById('btn-close-deleted-vers');
@@ -11361,13 +11560,55 @@ function doPost(e) {
           </tr>`;
         }).join('') : `<tr><td colspan="9" class="py-6 text-center text-slate-400">Chưa có công việc cá nhân nào phù hợp.</td></tr>`;
 
-        // Monthly Evaluation & Summary Table
+        // Work Update & Help Request to Admin
+        const helpForm = document.getElementById('mytask-help-form');
+        const helpSub = document.getElementById('mytask-help-sub');
+        const helpTaskSel = document.getElementById('mytask-help-task');
+        const helpListEl = document.getElementById('mytask-help-list');
+        if (helpForm) helpForm.classList.toggle('hidden', isAdm);
+        if (helpSub) helpSub.textContent = isAdm
+          ? 'Danh sách cập nhật công việc và yêu cầu trợ giúp do các nhân sự gửi lên'
+          : 'Gửi báo cáo nhanh tiến độ công việc đang làm hoặc đề xuất Admin hỗ trợ tháo gỡ vướng mắc';
+        if (helpTaskSel) {
+          const myActiveTasks = list.filter(t => !t.hiddenFromList && (isAdm || String(t.assignee || '').toLowerCase() === myU));
+          helpTaskSel.innerHTML = `<option value="">-- Chung / Toàn bộ --</option>` + myActiveTasks.map(t => `<option value="${esc(t.title)}">${esc(t.title)} (${esc(t.projCode || '')})</option>`).join('');
+        }
+        if (helpListEl) {
+          if (!Array.isArray(state.myTaskHelpRequests)) state.myTaskHelpRequests = [];
+          const hItems = isAdm
+            ? state.myTaskHelpRequests
+            : state.myTaskHelpRequests.filter(h => String(h.username || '').toLowerCase() === myU);
+          helpListEl.innerHTML = hItems.length ? hItems.slice(0, 30).map(h => `
+            <div class="p-3 rounded-xl border ${h.type === 'Yêu cầu trợ giúp' ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-50 border-slate-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="space-y-0.5">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.type === 'Yêu cầu trợ giúp' ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'}">${esc(h.type)}</span>
+                  <span class="font-semibold text-slate-900">${esc(h.fullName || h.username)}</span>
+                  ${h.taskTitle ? `<span class="text-[11px] font-medium text-indigo-700">• ${esc(h.taskTitle)}</span>` : ''}
+                  <span class="text-[10px] text-slate-400">${esc(h.ts || '')}</span>
+                </div>
+                <div class="text-slate-700">${esc(h.message)}</div>
+                ${h.adminReply ? `<div class="text-[11px] text-emerald-700 font-semibold">↳ Admin phản hồi: ${esc(h.adminReply)}</div>` : ''}
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${h.resolved
+                  ? `<span class="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10.5px] font-bold">✓ Admin đã xử lý</span>`
+                  : (isAdm
+                    ? `<button type="button" data-action="reply-mytask-help" data-id="${esc(h.id)}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold">✓ Phản hồi / Xử lý</button>`
+                    : `<span class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10.5px] font-semibold">⏳ Chờ Admin</span>`)}
+              </div>
+            </div>`).join('') : `<div class="text-slate-400 italic py-2 text-center">${isAdm ? 'Chưa có cập nhật hay yêu cầu trợ giúp nào từ nhân sự.' : 'Bạn chưa gửi cập nhật hoặc yêu cầu trợ giúp nào tới Admin.'}</div>`;
+        }
+
+        // Monthly Evaluation & Summary Table (Admin ONLY)
+        const monthlyCard = document.getElementById('mytask-monthly-card');
+        if (monthlyCard) monthlyCard.classList.toggle('hidden', !isAdm);
         const mInp = document.getElementById('mytask-monthly-month');
         const defMonth = (state.reportDate || new Date().toISOString().slice(0, 10)).slice(0, 7);
         if (mInp && !mInp.value) mInp.value = defMonth;
         const selMonth = (mInp && mInp.value) || defMonth;
         const mBody = document.getElementById('mytask-monthly-body');
-        if (mBody) {
+        if (mBody && isAdm) {
           const allUsers = isAdm ? (state.users || []) : (state.users || []).filter(u => String(u.username || '').toLowerCase() === myU);
           const reviews = (state.monthlyTaskReviews && state.monthlyTaskReviews[selMonth]) || {};
           const mRows = allUsers.map(u => {
@@ -11405,6 +11646,33 @@ function doPost(e) {
         }
       }
 
+      const _mtHelpForm = document.getElementById('mytask-help-form');
+      if (_mtHelpForm) _mtHelpForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const cur = getCurrentUser();
+        const tp = document.getElementById('mytask-help-type')?.value || 'Cập nhật công việc';
+        const tTitle = document.getElementById('mytask-help-task')?.value || '';
+        const msgInp = document.getElementById('mytask-help-msg');
+        const msg = (msgInp ? msgInp.value : '').trim();
+        if (!msg) return;
+        if (!Array.isArray(state.myTaskHelpRequests)) state.myTaskHelpRequests = [];
+        state.myTaskHelpRequests.unshift({
+          id: 'mth_' + Date.now(),
+          username: cur ? cur.username : 'user',
+          fullName: cur ? cur.fullName : 'Nhân sự',
+          type: tp,
+          taskTitle: tTitle,
+          message: msg,
+          ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+          resolved: false,
+          adminReply: ''
+        });
+        if (msgInp) msgInp.value = '';
+        pushAdminNotif(`${tp}: ${cur ? cur.fullName : 'Nhân sự'}`, `${tTitle ? '[' + tTitle + '] ' : ''}${msg}`, 'Công việc cá nhân');
+        saveState();
+        renderMyTasksTab();
+        showToast(`Đã gửi "${tp}" tới Admin!`);
+      });
       const _mtMonthEl = document.getElementById('mytask-monthly-month');
       if (_mtMonthEl) _mtMonthEl.addEventListener('change', () => { renderMyTasksTab(); applyUserPermissions(); });
       const _btnSendMonthly = document.getElementById('btn-send-monthly-mytasks');
@@ -11482,17 +11750,22 @@ function doPost(e) {
       // === DOCUMENT LIBRARY (THƯ VIỆN HỒ SƠ CHUNG TOÀN HỆ THỐNG) ===
       function ensureGlobalDocs() {
         if (!Array.isArray(state.globalDocuments)) {
+          if (state.globalDocumentsInitialized) {
+            state.globalDocuments = [];
+            return state.globalDocuments;
+          }
+          const delIds = new Set(Array.isArray(state.deletedDocIds) ? state.deletedDocIds : []);
           const merged = [];
           const seen = new Set();
           (state.projects || []).forEach(p => {
             (p.documents || []).forEach(d => {
-              if (d && !seen.has(d.id)) {
+              if (d && !seen.has(d.id) && !delIds.has(d.id)) {
                 seen.add(d.id);
                 merged.push({ ...d, projectCode: d.projectCode || 'CHUNG' });
               }
             });
           });
-          if (!merged.length) {
+          if (!merged.length && !delIds.size) {
             merged.push(
               { id: 'doc_1', projectCode: 'CHUNG', code: 'QĐ-01/KTĐN', title: 'Quyết định phê duyệt Dự án Đầu tư & TMĐT', category: 'Pháp lý & Đầu tư', issueDate: '2026-01-15', issuer: 'HĐQT Tập đoàn Kim Tín', uploader: 'admin', fileName: 'QD_Phe_Duyet_Du_An.pdf', fileUrl: '', note: 'Hồ sơ gốc lưu trữ tại Ban QLDA', updatedAt: '2026-01-15' },
               { id: 'doc_2', projectCode: 'CHUNG', code: 'GPXD-18/SXD', title: 'Giấy phép Xây dựng & Thẩm duyệt PCCC', category: 'Pháp lý & Đầu tư', issueDate: '2026-02-10', issuer: 'Sở Xây dựng / Cảnh sát PCCC', uploader: 'admin', fileName: 'GPXD_PCCC.pdf', fileUrl: '', note: '', updatedAt: '2026-02-10' },
@@ -11500,6 +11773,7 @@ function doPost(e) {
             );
           }
           state.globalDocuments = merged;
+          state.globalDocumentsInitialized = true;
         }
         return state.globalDocuments;
       }
