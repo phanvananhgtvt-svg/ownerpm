@@ -874,12 +874,20 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="font-semibold text-slate-900 text-base">Quản lý Phiên bản Cập nhật Tiến độ (Ver 1, Ver 2, Ver 3...)</h3>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-semibold text-slate-900 text-base">Quản lý Phiên bản Cập nhật Tiến độ (Ver 1, Ver 2, Ver 3...)</h3>
+                <span id="schedule-versions-count-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">0 phiên bản</span>
+              </div>
               <p class="text-xs text-slate-500">Lưu mốc lịch sử tiến độ theo từng đợt cập nhật để so sánh hoặc khôi phục lại bất kỳ phiên bản nào</p>
             </div>
-            <button id="btn-save-version" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition self-start sm:self-auto">
-              📌 Lưu phiên bản mới
-            </button>
+            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <button id="btn-toggle-deleted-vers" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">
+                ↩ Khôi phục Ver đã xóa / Ver 1
+              </button>
+              <button id="btn-save-version" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition">
+                📌 Lưu phiên bản mới
+              </button>
+            </div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs sm:text-sm">
@@ -896,6 +904,13 @@
               </thead>
               <tbody id="schedule-versions-body" class="divide-y divide-slate-100"></tbody>
             </table>
+          </div>
+          <div id="schedule-deleted-vers-panel" class="hidden mt-4 p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-bold text-amber-900">📜 Danh sách Phiên bản đã tạo / đã xóa — Bấm "Khôi phục" để đưa lại vào bảng</div>
+              <button id="btn-close-deleted-vers" type="button" class="text-xs text-slate-500 hover:text-slate-800 font-semibold">✕ Đóng</button>
+            </div>
+            <div id="schedule-deleted-vers-list" class="space-y-1.5 text-xs"></div>
           </div>
         </div>
       </div>
@@ -2383,15 +2398,27 @@
         pushAdminNotif(`Xóa ${type}: ${label} (đã lưu bản sao về máy chủ Admin)`, 'Xóa (Đã sao lưu)', `${type} → ${label}`);
       }
 
+      let lastLocalMutationAt = 0;
+      let lastCloudSyncedTs = 0;
       function saveState(skipAutoPush) {
-        state.lastUpdated = Date.now();
+        lastLocalMutationAt = Date.now();
+        state.lastUpdated = lastLocalMutationAt;
         state.syncId = genSyncId();
         if (!skipAutoPush) {
           latestNotifRef = pushAdminNotif('Cập nhật dữ liệu dự án', 'Chỉnh sửa');
           clearTimeout(latestNotifTimer);
           latestNotifTimer = setTimeout(() => { latestNotifRef = null; }, 80);
         }
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          try {
+            if (Array.isArray(state.deletedBackups) && state.deletedBackups.length > 10) {
+              state.deletedBackups = state.deletedBackups.slice(0, 10);
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          } catch (e2) {}
+        }
         if (!skipAutoPush && state.autoSync && state.cloudUrl) {
           updateSyncBadge('⏳ Đang lưu lên Web...', 'busy');
           clearTimeout(autoPushTimer);
@@ -3138,17 +3165,17 @@
         const roleEl = document.getElementById('hdr-role');
         if (roleEl) roleEl.textContent = 'Vai trò: ' + (roleLabels[state.role || 'admin'] || 'Chủ đầu tư');
 
-        renderProjectsTab(atMs);
-        renderAlerts(proj, totalContracted, leaves, atMs);
-        renderOverviewApprovals(proj);
-        renderScheduleTab(proj, atMs);
-        renderFinanceTab(proj, totalContracted, totalRem);
-        renderApprovalsTab(proj);
-        renderRisksTab(proj);
-        renderWeeklyTab(proj);
-        renderMyTasksTab();
-        renderDocsTab(proj);
-        if (activeTab === 'overview') renderCharts();
+        try { renderProjectsTab(atMs); } catch (e) { console.error(e); }
+        try { renderAlerts(proj, totalContracted, leaves, atMs); } catch (e) { console.error(e); }
+        try { renderOverviewApprovals(proj); } catch (e) { console.error(e); }
+        try { renderScheduleTab(proj, atMs); } catch (e) { console.error(e); }
+        try { renderFinanceTab(proj, totalContracted, totalRem); } catch (e) { console.error(e); }
+        try { renderApprovalsTab(proj); } catch (e) { console.error(e); }
+        try { renderRisksTab(proj); } catch (e) { console.error(e); }
+        try { renderWeeklyTab(proj); } catch (e) { console.error(e); }
+        try { renderMyTasksTab(); } catch (e) { console.error(e); }
+        try { renderDocsTab(proj); } catch (e) { console.error(e); }
+        try { if (activeTab === 'overview') renderCharts(); } catch (e) { console.error(e); }
         applyUserPermissions();
         setTimeout(attachTopScrollbars, 40);
       }
@@ -3944,10 +3971,80 @@
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
 
+      function getScheduleVersionsForProject(proj) {
+        if (!proj) return [];
+        const arr = Array.isArray(proj.scheduleVersions) ? proj.scheduleVersions : [];
+        const store = (state.savedScheduleVersions && typeof state.savedScheduleVersions === 'object') ? state.savedScheduleVersions[proj.id] : null;
+        if (Array.isArray(store) && store.length) {
+          const byId = new Map();
+          arr.forEach(v => { if (v && typeof v === 'object') byId.set(String(v.id || v.ver), v); });
+          store.forEach(v => { if (v && typeof v === 'object' && !byId.has(String(v.id || v.ver))) byId.set(String(v.id || v.ver), v); });
+          const merged = [...byId.values()].sort((a, b) => (Number(a.ver) || 0) - (Number(b.ver) || 0));
+          proj.scheduleVersions = merged;
+          return merged;
+        }
+        return arr;
+      }
+
+      function persistScheduleVersionsForProject(proj) {
+        if (!proj || !proj.id) return;
+        if (!state.savedScheduleVersions || typeof state.savedScheduleVersions !== 'object') state.savedScheduleVersions = {};
+        state.savedScheduleVersions[proj.id] = Array.isArray(proj.scheduleVersions) ? proj.scheduleVersions.map(v => ({ ...v })) : [];
+      }
+
+      function getNextScheduleVersionNum(proj) {
+        const curMax = (proj && Array.isArray(proj.scheduleVersions) ? proj.scheduleVersions : []).reduce((mx, v) => Math.max(mx, Number(v.ver) || 0), 0);
+        let logMax = 0;
+        ((proj && proj.progressLogs) || []).forEach(l => {
+          const m = String((l && l.change) || '').match(/Ver\s*(\d+)/i);
+          if (m) logMax = Math.max(logMax, Number(m[1]) || 0);
+        });
+        const seqMax = Number(proj && proj.lastVersionSeq) || 0;
+        return Math.max(curMax, logMax, seqMax) + 1;
+      }
+
       function renderScheduleVersionsTable(proj) {
         const tbody = document.getElementById('schedule-versions-body');
         if (!tbody) return;
-        const list = Array.isArray(proj && proj.scheduleVersions) ? proj.scheduleVersions : [];
+        const targetProj = (!state.viewAllProjects) ? getActiveProject() : proj;
+        const list = (!state.viewAllProjects && targetProj) ? getScheduleVersionsForProject(targetProj) : (Array.isArray(targetProj && targetProj.scheduleVersions) ? targetProj.scheduleVersions : []);
+        const cntBadge = document.getElementById('schedule-versions-count-badge');
+        if (cntBadge) cntBadge.textContent = `${list.length} phiên bản`;
+        const delListEl = document.getElementById('schedule-deleted-vers-list');
+        if (delListEl && targetProj) {
+          const backups = (state.deletedBackups || []).filter(b => !b.restored && b.type === 'Phiên bản tiến độ' && (b.projectId === targetProj.id || (targetProj.code && String(b.projectName || '').includes(targetProj.code))));
+          const seenVers = new Set(list.map(v => Number(v.ver) || 0));
+          const logRecovered = [];
+          (targetProj.progressLogs || []).forEach(l => {
+            const m = String((l && l.change) || '').match(/Ver\s*(\d+)/i);
+            if (m) {
+              const vn = Number(m[1]);
+              if (vn > 0 && !seenVers.has(vn) && !backups.some(b => b.snapshot && b.snapshot.version && Number(b.snapshot.version.ver) === vn) && !logRecovered.some(x => x.ver === vn)) {
+                logRecovered.push({ ver: vn, label: String(l.task || ('Ver ' + vn)), ts: String(l.ts || '') });
+              }
+            }
+          });
+          const rowsHtml = [
+            ...backups.map(b => {
+              const v = (b.snapshot && b.snapshot.version) || {};
+              return `<div class="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-amber-200">
+                <div><span class="font-bold text-indigo-700">Ver ${v.ver || '?'}</span> — ${esc(v.label || b.label)} <span class="text-slate-400">(Xóa lúc ${esc(b.deletedAt || '')})</span></div>
+                <button type="button" data-action="restore-one-deleted-ver" data-backup-id="${esc(b.id)}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shrink-0">↩ Khôi phục</button>
+              </div>`;
+            }),
+            ...logRecovered.map(r => `<div class="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-amber-200">
+              <div><span class="font-bold text-indigo-700">Ver ${r.ver}</span> — ${esc(r.label)} <span class="text-slate-400">(Từ nhật ký ${esc(r.ts)})</span></div>
+              <button type="button" data-action="restore-log-ver" data-ver="${r.ver}" data-label="${esc(r.label)}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shrink-0">↩ Khôi phục Ver ${r.ver}</button>
+            </div>`)
+          ];
+          if (!seenVers.has(1) && !rowsHtml.some(h => h.includes('Ver 1'))) {
+            rowsHtml.unshift(`<div class="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-lg border border-amber-200">
+              <div><span class="font-bold text-indigo-700">Ver 1</span> — Khôi phục mốc Ver 1 từ tiến độ hiện tại của dự án</div>
+              <button type="button" data-action="restore-log-ver" data-ver="1" data-label="Ver 1 — Cập nhật ${fmtDateVN(state.reportDate)}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shrink-0">↩ Khôi phục Ver 1</button>
+            </div>`);
+          }
+          delListEl.innerHTML = rowsHtml.join('');
+        }
         tbody.innerHTML = list.slice().reverse().map(v => `
           <tr class="hover:bg-slate-50/80">
             <td class="py-2.5 px-3 font-bold text-indigo-700">${projTagHtml(v)}Ver ${v.ver} <span class="font-medium text-slate-700 text-xs">— ${esc(String(v.label || '').replace(/^Ver \d+\s*[—-]\s*/i, ''))}</span></td>
@@ -3962,7 +4059,10 @@
               <button type="button" data-action="restore-version" data-id="${esc(v.id)}" class="text-xs font-medium text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded-lg">Khôi phục</button>
               <button type="button" data-action="del-version" data-id="${esc(v.id)}" class="text-xs font-medium text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg">Xóa</button>
             </td>
-          </tr>`).join('') || '<tr><td colspan="7" class="py-4 text-center text-slate-400">Chưa có phiên bản nào</td></tr>';
+          </tr>`).join('') || (() => {
+            const delVers = (state.deletedBackups || []).filter(b => !b.restored && b.type === 'Phiên bản tiến độ' && (!targetProj || !targetProj.id || b.projectId === targetProj.id || (targetProj.code && String(b.projectName || '').includes(targetProj.code))));
+            return `<tr><td colspan="7" class="py-4 text-center text-slate-400">Chưa có phiên bản nào — Bấm <b>📌 Lưu phiên bản mới</b> ở góc phải để lưu mốc mới.${delVers.length ? ` <button type="button" data-action="restore-deleted-ver" class="text-indigo-600 hover:underline font-semibold ml-2">↩ Khôi phục ${delVers.length} phiên bản đã xóa</button>` : ''}</td></tr>`;
+          })();
       }
 
       function renderScheduleTab(proj, atMs) {
@@ -7251,11 +7351,85 @@
             proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: 'Phiên bản', task: v.label, change: `Cập nhật Ver ${v.ver} (${v.actualPct}% TT)` });
             saveState(); closeModal(); renderAll(); showToast(`Đã cập nhật Ver ${v.ver}`);
           });
+        } else if (action === 'restore-one-deleted-ver') {
+          try {
+            const bid = btn.dataset.backupId;
+            const b = (state.deletedBackups || []).find(x => x.id === bid);
+            if (!b || !b.snapshot || !b.snapshot.version) { showToast('Không tìm thấy dữ liệu bản sao lưu', 'error'); return; }
+            if (!Array.isArray(proj.scheduleVersions)) proj.scheduleVersions = [];
+            const verObj = { ...b.snapshot.version };
+            if (!proj.scheduleVersions.some(x => x.id === verObj.id)) proj.scheduleVersions.push(verObj);
+            b.restored = true;
+            persistScheduleVersionsForProject(proj);
+            const _pnl = document.getElementById('schedule-deleted-vers-panel');
+            if (_pnl) _pnl.classList.add('hidden');
+            renderScheduleVersionsTable(proj);
+            saveState(true);
+            if (state.autoSync && state.cloudUrl) { clearTimeout(autoPushTimer); autoPushTimer = null; pushToCloud(true); }
+            renderAll();
+            renderScheduleVersionsTable(getViewProject());
+            showToast(`Đã khôi phục Ver ${verObj.ver} vào bảng phiên bản`);
+          } catch (err) { console.error(err); showToast('Lỗi khôi phục: ' + err.message, 'error'); }
+        } else if (action === 'restore-log-ver') {
+          try {
+            const vn = Number(btn.dataset.ver) || 1;
+            const lbl = btn.dataset.label || (`Ver ${vn} — Cập nhật ${fmtDateVN(state.reportDate)}`);
+            if (!Array.isArray(proj.scheduleVersions)) proj.scheduleVersions = [];
+            if (proj.scheduleVersions.some(x => Number(x.ver) === vn)) { showToast(`Ver ${vn} đã có trong danh sách`, 'info'); return; }
+            const atMsNow = getReportMs();
+            const agNow = aggTasks(getLeafTasks(proj.tasks || []), atMsNow);
+            proj.scheduleVersions.push({
+              id: 'v' + Date.now(),
+              ver: vn,
+              label: lbl,
+              date: state.reportDate || new Date().toISOString().slice(0, 10),
+              planPct: Number((Number.isFinite(agNow.p) ? agNow.p : 0).toFixed(1)),
+              actualPct: Number((Number.isFinite(agNow.a) ? agNow.a : 0).toFixed(1)),
+              spi: Number((Number.isFinite(agNow.spi) ? agNow.spi : 1).toFixed(2)),
+              note: 'Khôi phục từ nhật ký phiên bản',
+              snapshot: (proj.tasks || []).map(t => {
+                const pv = calcPlannedPct(t, atMsNow);
+                return { id: String(t.id || ''), c: String(t.c || ''), ps: String(t.ps || ''), pe: String(t.pe || ''), as: String(t.as || ''), ae: String(t.ae || ''), progress: Number(t.progress) || 0, planPct: Number.isFinite(pv) ? Number(pv.toFixed(1)) : 0 };
+              })
+            });
+            proj.scheduleVersions.sort((a, b) => (Number(a.ver) || 0) - (Number(b.ver) || 0));
+            persistScheduleVersionsForProject(proj);
+            const _pnl = document.getElementById('schedule-deleted-vers-panel');
+            if (_pnl) _pnl.classList.add('hidden');
+            renderScheduleVersionsTable(proj);
+            saveState(true);
+            if (state.autoSync && state.cloudUrl) { clearTimeout(autoPushTimer); autoPushTimer = null; pushToCloud(true); }
+            renderAll();
+            renderScheduleVersionsTable(getViewProject());
+            showToast(`Đã khôi phục Ver ${vn} vào danh sách phiên bản`);
+          } catch (err) { console.error(err); showToast('Lỗi khôi phục Ver: ' + err.message, 'error'); }
+        } else if (action === 'restore-deleted-ver') {
+          try {
+            const delVers = (state.deletedBackups || []).filter(b => !b.restored && b.type === 'Phiên bản tiến độ' && (b.projectId === proj.id || (proj.code && String(b.projectName || '').includes(proj.code))));
+            if (!delVers.length) { showToast('Không có phiên bản đã xóa nào để khôi phục', 'info'); return; }
+            if (!Array.isArray(proj.scheduleVersions)) proj.scheduleVersions = [];
+            let cnt = 0;
+            delVers.forEach(b => {
+              if (b.snapshot && b.snapshot.version && !proj.scheduleVersions.some(x => x.id === b.snapshot.version.id)) {
+                proj.scheduleVersions.push({ ...b.snapshot.version });
+                b.restored = true;
+                cnt++;
+              }
+            });
+            renderScheduleVersionsTable(proj);
+            saveState(true);
+            if (state.autoSync && state.cloudUrl) { clearTimeout(autoPushTimer); autoPushTimer = null; pushToCloud(true); }
+            renderAll();
+            renderScheduleVersionsTable(getViewProject());
+            showToast(cnt ? `Đã khôi phục ${cnt} phiên bản tiến độ` : 'Không tìm thấy dữ liệu phiên bản để khôi phục', cnt ? 'info' : 'error');
+          } catch (err) { console.error(err); showToast('Lỗi khôi phục: ' + err.message, 'error'); }
         } else if (action === 'del-version') {
           const v = (proj.scheduleVersions || []).find(x => x.id === id);
           if (!v) return;
-          archiveBeforeDelete('Phiên bản tiến độ', `Ver ${v.ver} — ${v.label}`, { version: v }, proj);
+          archiveBeforeDelete('Phiên bản tiến độ', `Ver ${v.ver} — ${v.label}`, { version: { id: v.id, ver: v.ver, label: v.label, date: v.date, planPct: v.planPct, actualPct: v.actualPct, spi: v.spi, note: v.note } }, proj);
+          proj.lastVersionSeq = Math.max(Number(proj.lastVersionSeq) || 0, Number(v.ver) || 0);
           proj.scheduleVersions = (proj.scheduleVersions || []).filter(x => x.id !== id);
+          persistScheduleVersionsForProject(proj);
           proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: 'Phiên bản', task: v.label || ('Ver ' + v.ver), change: `Xóa Ver ${v.ver}` });
           saveState(); renderAll(); showToast(`Đã xóa Ver ${v.ver} (đã sao lưu cho Admin)`, 'info');
         } else if (action === 'restore-version') {
@@ -7853,13 +8027,23 @@
         showToast(`Đã combine ${files.length} file vào Master WBS`);
       });
 
+      const btnTogDelVer = document.getElementById('btn-toggle-deleted-vers');
+      const btnCloseDelVer = document.getElementById('btn-close-deleted-vers');
+      if (btnTogDelVer) btnTogDelVer.addEventListener('click', () => {
+        const pnl = document.getElementById('schedule-deleted-vers-panel');
+        if (pnl) { pnl.classList.toggle('hidden'); renderScheduleVersionsTable(getViewProject()); }
+      });
+      if (btnCloseDelVer) btnCloseDelVer.addEventListener('click', () => {
+        const pnl = document.getElementById('schedule-deleted-vers-panel');
+        if (pnl) pnl.classList.add('hidden');
+      });
       const btnSaveVerInline = document.getElementById('btn-save-version-inline');
       if (btnSaveVerInline) btnSaveVerInline.addEventListener('click', () => document.getElementById('btn-save-version').click());
       document.getElementById('btn-save-version').addEventListener('click', () => {
         const proj = getActiveProject();
         const atMs = getReportMs();
         const ag = aggTasks(getLeafTasks(proj.tasks || []), atMs);
-        const nextVer = (proj.scheduleVersions || []).reduce((mx, v) => Math.max(mx, Number(v.ver) || 0), 0) + 1;
+        const nextVer = getNextScheduleVersionNum(proj);
         openModal(`Lưu phiên bản cập nhật tiến độ (Ver ${nextVer})`, `
           <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
             <div>% Kế hoạch: <b>${(Number.isFinite(ag.p) ? ag.p : 0).toFixed(1)}%</b></div>
@@ -7868,41 +8052,54 @@
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên phiên bản</label><input name="label" value="Ver ${nextVer} — Cập nhật ${fmtDateVN(state.reportDate)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú thay đổi</label><input name="note" placeholder="VD: Cập nhật khối lượng tuần mới..." class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
         `, fd => {
-          const liveProj = getActiveProject();
-          if (!Array.isArray(liveProj.scheduleVersions)) liveProj.scheduleVersions = [];
-          const liveVer = liveProj.scheduleVersions.reduce((mx, v) => Math.max(mx, Number(v.ver) || 0), 0) + 1;
-          const liveAtMs = getReportMs();
-          const liveAg = aggTasks(getLeafTasks(liveProj.tasks || []), liveAtMs);
-          liveProj.scheduleVersions.push({
-            id: 'v' + Date.now(),
-            ver: liveVer,
-            label: (fd.get('label') || '').trim() || `Ver ${liveVer} — Cập nhật ${fmtDateVN(state.reportDate)}`,
-            date: state.reportDate || new Date().toISOString().slice(0, 10),
-            planPct: Number((Number.isFinite(liveAg.p) ? liveAg.p : 0).toFixed(1)),
-            actualPct: Number((Number.isFinite(liveAg.a) ? liveAg.a : 0).toFixed(1)),
-            spi: Number((Number.isFinite(liveAg.spi) ? liveAg.spi : 1).toFixed(2)),
-            note: (fd.get('note') || '').trim(),
-            snapshot: (liveProj.tasks || []).map(t => {
-              const pVal = calcPlannedPct(t, liveAtMs);
-              return {
-                id: String(t.id || ''),
-                c: String(t.c || ''),
-                name: String(t.name || ''),
-                contractor: String(t.contractor || ''),
-                ps: String(t.ps || ''),
-                pe: String(t.pe || ''),
-                as: String(t.as || ''),
-                ae: String(t.ae || ''),
-                progress: Number(t.progress) || 0,
-                planPct: Number.isFinite(pVal) ? Number(pVal.toFixed(1)) : 0
-              };
-            })
-          });
-          saveState();
-          closeModal();
-          renderAll();
-          renderScheduleVersionsTable(getViewProject());
-          showToast(`Đã lưu phiên bản tiến độ Ver ${liveVer}`);
+          try {
+            const liveProj = getActiveProject();
+            if (!Array.isArray(liveProj.scheduleVersions)) liveProj.scheduleVersions = [];
+            const liveVer = getNextScheduleVersionNum(liveProj);
+            liveProj.lastVersionSeq = liveVer;
+            const liveAtMs = getReportMs();
+            const liveAg = aggTasks(getLeafTasks(liveProj.tasks || []), liveAtMs);
+            liveProj.scheduleVersions.push({
+              id: 'v' + Date.now(),
+              ver: liveVer,
+              label: (fd.get('label') || '').trim() || `Ver ${liveVer} — Cập nhật ${fmtDateVN(state.reportDate)}`,
+              date: state.reportDate || new Date().toISOString().slice(0, 10),
+              planPct: Number((Number.isFinite(liveAg.p) ? liveAg.p : 0).toFixed(1)),
+              actualPct: Number((Number.isFinite(liveAg.a) ? liveAg.a : 0).toFixed(1)),
+              spi: Number((Number.isFinite(liveAg.spi) ? liveAg.spi : 1).toFixed(2)),
+              note: (fd.get('note') || '').trim(),
+              snapshot: (liveProj.tasks || []).map(t => {
+                const pVal = calcPlannedPct(t, liveAtMs);
+                return {
+                  id: String(t.id || ''),
+                  c: String(t.c || ''),
+                  ps: String(t.ps || ''),
+                  pe: String(t.pe || ''),
+                  as: String(t.as || ''),
+                  ae: String(t.ae || ''),
+                  progress: Number(t.progress) || 0,
+                  planPct: Number.isFinite(pVal) ? Number(pVal.toFixed(1)) : 0
+                };
+              })
+            });
+            persistScheduleVersionsForProject(liveProj);
+            closeModal();
+            renderScheduleVersionsTable(liveProj);
+            saveState(true);
+            if (state.autoSync && state.cloudUrl) {
+              clearTimeout(autoPushTimer);
+              autoPushTimer = null;
+              pushToCloud(true);
+            }
+            try { renderAll(); } catch (re) { console.error(re); }
+            renderScheduleVersionsTable(getViewProject());
+            const _svEl = document.getElementById('schedule-versions-body');
+            if (_svEl) _svEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast(`Đã lưu Ver ${liveVer} (${liveProj.code || 'DA'}) — Tổng ${liveProj.scheduleVersions.length} phiên bản`);
+          } catch (err) {
+            console.error(err);
+            showToast('Lỗi lưu phiên bản: ' + err.message, 'error');
+          }
         });
       });
 
@@ -9271,8 +9468,13 @@ function doPost(e) {
 
       function applyCloudState(data, url, silent) {
         if (!data || !Array.isArray(data.projects) || data.projects.length === 0) return false;
-        const incomingId = data.syncId || String(Number(data.lastUpdated) || 0);
-        const currentId = state.syncId || String(Number(state.lastUpdated) || 0);
+        if (silent && lastLocalMutationAt > 0 && (Date.now() - lastLocalMutationAt) < 8000) return false;
+        if (silent && lastCloudSyncedTs > 0 && Number(state.lastUpdated || 0) > lastCloudSyncedTs) return false;
+        const incomingTs = Number(data.lastUpdated) || 0;
+        const currentTs = Number(state.lastUpdated) || 0;
+        if (silent && currentTs > 0 && (incomingTs === 0 || incomingTs < currentTs)) return false;
+        const incomingId = data.syncId || String(incomingTs);
+        const currentId = state.syncId || String(currentTs);
         if (!silent || incomingId !== currentId) {
           state = { ...data, cloudUrl: url, autoSync: state.autoSync };
           if (!state.syncId) state.syncId = incomingId;
@@ -9332,6 +9534,7 @@ function doPost(e) {
               body: JSON.stringify(state)
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
+            lastCloudSyncedTs = Number(state.lastUpdated) || Date.now();
           } else {
             await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
           }
