@@ -721,7 +721,45 @@
           </div>
         </div>
 
-        <div id="sched-panel-wbs" class="space-y-6">
+        <div id="sched-panel-wbs" class="space-y-5">
+        <!-- WBS / Contractor Tasks Table (Placed First & Compact to Fit Overall View) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
+            <input id="task-search" type="text" placeholder="Tìm theo mã WBS, tên công việc hoặc nhà thầu..." class="flex-1 text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <button id="btn-save-version-inline" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0">📌 Lưu Ver (1, 2...)</button>
+            <select id="task-filter-status" class="text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="Hoàn thành">Hoàn thành</option>
+              <option value="Đúng tiến độ">Đúng tiến độ</option>
+              <option value="Chậm nhẹ">Chậm nhẹ</option>
+              <option value="Trễ">Trễ</option>
+              <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto max-h-[64vh] overflow-y-auto border border-slate-100 rounded-xl">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_#e2e8f0]">
+                <tr class="border-b border-slate-200 text-[10px] text-slate-600 uppercase">
+                  <th class="py-2 px-2 font-semibold min-w-[165px]">Công việc (Mẹ/Con)</th>
+                  <th class="py-2 px-1.5 font-semibold min-w-[108px]">Ràng buộc</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">BĐ KH</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">KT KH</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">N.KH</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">Bắt đầu TT</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">Kết thúc TT</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">N.TT</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">%KH</th>
+                  <th class="py-2 px-1.5 font-semibold text-center min-w-[115px]">% Hoàn thành TT</th>
+                  <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">Trạng thái</th>
+                  <th class="py-2 px-1 font-semibold">Ghi chú</th>
+                  <th class="py-2 px-1.5 font-semibold text-right whitespace-nowrap">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="task-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
           <!-- Contractor Advance Milestone & Revision Comparison -->
           <div id="contractor-rev-bar" class="hidden bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -751,20 +789,39 @@
               </table>
             </div>
           </div>
-        <!-- Gantt Timeline, Dependency Links & Critical Path + Conflict Alerts (hidden in contractor detail view) -->
+        <!-- Gantt Timeline, Dependency Links & Critical Path + Conflict Alerts -->
         <div id="sched-gantt-card" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div>
-              <h3 class="font-semibold text-slate-900 text-base">Timeline Gantt, Mối liên kết Ràng buộc &amp; Đường găng</h3>
-              <p class="text-xs text-slate-500">Đỏ đậm = Công tác &amp; liên kết trên Đường găng • Xanh = Bình thường • Nét đứt xanh lá = Ngày báo cáo hiện tại</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-semibold text-slate-900 text-base">Timeline Tiến độ (Kế hoạch &amp; Thực tế) • Ràng buộc &amp; Đường găng</h3>
+                <span id="gantt-scope-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">Tất cả nhà thầu</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[11px] text-slate-600">
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-blue-500 border border-blue-700"></span> Kế hoạch</span>
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-emerald-500"></span> Thực tế (Đúng hạn)</span>
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-amber-500"></span> Thực tế (Đang làm)</span>
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-rose-600"></span> Thực tế Trễ / Đường găng</span>
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 border-t-2 border-slate-500"></span>➔ Ràng buộc (FS/SS/FF/SF)</span>
+                <span class="inline-flex items-center gap-1"><span class="inline-block w-3 border-t-2 border-dashed border-emerald-600"></span> Ngày báo cáo</span>
+              </div>
             </div>
-            <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
-              <input id="gantt-crit-only" type="checkbox" class="accent-rose-600 w-4 h-4" />
-              Chỉ hiển thị công tác trên Đường găng
-            </label>
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <label class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 cursor-pointer mr-1">
+                <input id="gantt-crit-only" type="checkbox" class="accent-rose-600 w-4 h-4" />
+                Chỉ Đường găng
+              </label>
+              <div class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 text-xs">
+                <button id="btn-gantt-zoom-out" type="button" title="Thu nhỏ timeline" class="px-2 py-1 rounded-lg hover:bg-white text-slate-700 font-bold">➖</button>
+                <span id="gantt-zoom-label" class="px-2 py-1 font-semibold text-slate-700 min-w-[46px] text-center">100%</span>
+                <button id="btn-gantt-zoom-in" type="button" title="Phóng to timeline" class="px-2 py-1 rounded-lg hover:bg-white text-slate-700 font-bold">➕</button>
+                <button id="btn-gantt-zoom-fit" type="button" title="Vừa khung nhìn" class="px-2 py-1 rounded-lg hover:bg-white text-brand-700 font-medium border-l border-slate-200 ml-0.5">⊞ Vừa khung</button>
+              </div>
+              <button id="btn-gantt-fullscreen" type="button" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition">⛶ Phóng to xem hết</button>
+            </div>
           </div>
-          <div class="overflow-x-auto border border-slate-100 rounded-xl bg-slate-50/40 p-2">
-            <canvas id="gantt-canvas" width="1080" height="280" class="w-full min-w-[820px]"></canvas>
+          <div id="gantt-scroll-wrap" class="overflow-x-auto border border-slate-200 rounded-xl bg-white p-2">
+            <canvas id="gantt-canvas" width="1080" height="280"></canvas>
           </div>
 
           <div>
@@ -785,44 +842,7 @@
           </div>
         </div>
 
-        <!-- WBS / Contractor Tasks Table -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
-            <input id="task-search" type="text" placeholder="Tìm theo mã WBS, tên công việc hoặc nhà thầu..." class="flex-1 text-sm border border-slate-300 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-            <button id="btn-save-version-inline" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0">📌 Lưu Ver (1, 2...)</button>
-            <select id="task-filter-status" class="text-sm border border-slate-300 rounded-xl px-3.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="all">Tất cả trạng thái</option>
-              <option value="Hoàn thành">Hoàn thành</option>
-              <option value="Đúng tiến độ">Đúng tiến độ</option>
-              <option value="Chậm nhẹ">Chậm nhẹ</option>
-              <option value="Trễ">Trễ</option>
-              <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-            </select>
-          </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr class="border-b border-slate-200 text-[11px] text-slate-500 uppercase bg-slate-50/70">
-                  <th class="py-3 px-3 font-semibold min-w-[250px]">Công việc (Mục mẹ &amp; Con)</th>
-                  <th class="py-3 px-2 font-semibold min-w-[165px]">Ràng buộc (Trước ⇄ Sau)</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Bắt đầu KH</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Kết thúc KH</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Ngày KH</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Bắt đầu TT</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Kết thúc TT</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">Ngày TT</th>
-                  <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">% KH</th>
-                  <th class="py-3 px-3 font-semibold text-center min-w-[170px]">% Hoàn thành TT</th>
-                  <th class="py-3 px-2 font-semibold text-center">Trạng thái</th>
-                  <th class="py-3 px-2 font-semibold">Ghi chú</th>
-                  <th class="py-3 px-2 font-semibold text-right">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody id="task-table-body" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
-        </div>
 
         <!-- Contractor Update Log & SPI Summary -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2396,6 +2416,7 @@
         p.status = String(p.status || 'Đang triển khai');
         p.weekLabel = String(p.weekLabel || 'Báo cáo tuần');
         p.tmdt = Number(p.tmdt) || 0;
+        if (p.scheduleVersions && !Array.isArray(p.scheduleVersions) && typeof p.scheduleVersions === 'object') { p.scheduleVersions = Object.values(p.scheduleVersions); }
         ['budgetItems', 'tasks', 'progressLogs', 'snaps', 'contracts', 'payments', 'vos', 'inspections', 'legalDocs', 'risks', 'weeklyTasks', 'sitePhotos', 'holidays', 'weeklyArchive', 'scheduleVersions'].forEach(k => {
           if (!Array.isArray(p[k])) p[k] = [];
         });
@@ -3002,7 +3023,7 @@
           weeklyTasks: allowed.flatMap(p => tag(p.weeklyTasks, p)),
           sitePhotos: allowed.flatMap(p => tag(p.sitePhotos, p)),
           holidays: allowed.flatMap(p => p.holidays || []),
-          scheduleVersions: [],
+          scheduleVersions: allowed.flatMap(p => tag(p.scheduleVersions, p)),
           progressLogs: allowed.flatMap(p => tag(p.progressLogs, p)),
           snaps: []
         };
@@ -3413,114 +3434,282 @@
           : `<tr><td colspan="4" class="py-3 text-center text-emerald-700 font-medium">✅ Toàn bộ tiến độ các nhà thầu hợp lệ, không phát hiện xung đột logic hay sai lệch ngày.</td></tr>`;
       }
 
-      function renderGanttChart(proj, cp, atMs) {
-        const cv = document.getElementById('gantt-canvas');
-        if (!cv) return;
-        const g = cv.getContext('2d');
+      let ganttZoomScale = 1;
+      let ganttFsZoomScale = 'fit';
+
+      function getGanttTaskList(proj, cp) {
         const critOnly = document.getElementById('gantt-crit-only') && document.getElementById('gantt-crit-only').checked;
-        const allSorted = [...proj.tasks].sort((a, b) => a.c.localeCompare(b.c, undefined, { numeric: true }));
+        let allSorted = [...proj.tasks].sort((a, b) => a.c.localeCompare(b.c, undefined, { numeric: true }));
+        if (scheduleViewMode === 'contractors' && selectedContractor) {
+          const matchLeafCodes = new Set(allSorted.filter(t => isLeafTask(proj.tasks, t) && t.contractor === selectedContractor).map(t => t.c));
+          allSorted = allSorted.filter(t => {
+            if (isLeafTask(proj.tasks, t)) return t.contractor === selectedContractor;
+            return [...matchLeafCodes].some(c => c.startsWith(t.c + '.'));
+          });
+        }
         const critSet = new Set(cp && cp.chain ? cp.chain.map(n => n.t.c) : []);
         const L = critOnly && critSet.size
           ? allSorted.filter(t => critSet.has(t.c) || (!isLeafTask(proj.tasks, t) && allSorted.some(x => x.c.startsWith(t.c + '.') && critSet.has(x.c))))
           : allSorted;
+        return { L, critSet };
+      }
 
-        const rh = 26, top = 32, lw = 250, W = cv.width;
-        cv.height = Math.max(120, top + L.length * rh + 14);
+      function drawGanttOnCanvas(cv, scrollWrap, proj, cp, atMs, zoomScale) {
+        if (!cv) return;
+        const { L, critSet } = getGanttTaskList(proj, cp);
+        const scopeTxt = (scheduleViewMode === 'contractors' && selectedContractor ? 'Nhà thầu: ' + selectedContractor : 'Tất cả nhà thầu') + ` • ${L.length} hạng mục`;
+        const b1 = document.getElementById('gantt-scope-badge'); if (b1) b1.textContent = scopeTxt;
+        const b2 = document.getElementById('gantt-fs-scope-badge'); if (b2) b2.textContent = scopeTxt;
+
+        const wrapW = scrollWrap && scrollWrap.clientWidth ? Math.max(820, scrollWrap.clientWidth - 20) : 1080;
+        const W = zoomScale === 'fit' ? wrapW : Math.max(wrapW, Math.round(wrapW * Number(zoomScale || 1)));
+        const rh = 38, top = 36, lw = 275;
+        cv.width = W;
+        cv.style.width = W + 'px';
+        cv.height = Math.max(140, top + L.length * rh + 18);
+
+        const g = cv.getContext('2d');
         g.clearRect(0, 0, W, cv.height);
-        if (!L.length) { const ctx0 = cv.getContext('2d'); if (ctx0) ctx0.clearRect(0, 0, cv.width, cv.height); return; }
+        if (!L.length) {
+          g.font = '13px Inter, sans-serif';
+          g.fillStyle = '#94a3b8';
+          g.fillText('Chưa có hạng mục tiến độ để hiển thị Timeline.', 20, 60);
+          return;
+        }
 
         const metricsMap = {};
-        L.forEach(t => { metricsMap[t.c] = getTaskMetrics(proj.tasks, t, atMs); });
+        const actualRangeMap = {};
+        L.forEach(t => {
+          const m = getTaskMetrics(proj.tasks, t, atMs);
+          metricsMap[t.c] = m;
+          const leaf = isLeafTask(proj.tasks, t);
+          if (leaf) {
+            const pct = Number(t.progress) || 0;
+            const aS = t.as ? iso(t.as) : m.ps;
+            let aE = m.ps;
+            if (t.ae) aE = iso(t.ae) + DAY;
+            else if (pct >= 99.5) aE = m.pe + DAY;
+            else if (pct > 0 || t.as) aE = Math.max(aS + DAY, atMs);
+            else aE = aS;
+            actualRangeMap[t.c] = { as: aS, ae: Math.max(aS, aE), pct, started: pct > 0 || Boolean(t.as), done: pct >= 99.5 };
+          } else {
+            const kids = proj.tasks.filter(x => x && String(x.c || '').startsWith(t.c + '.') && isLeafTask(proj.tasks, x));
+            const asList = kids.map(k => k.as ? iso(k.as) : iso(k.ps)).filter(Boolean);
+            const aS = asList.length ? Math.min(...asList) : m.ps;
+            const aeList = kids.map(k => {
+              const kp = Number(k.progress) || 0;
+              if (k.ae) return iso(k.ae) + DAY;
+              if (kp >= 99.5) return iso(k.pe) + DAY;
+              if (kp > 0 || k.as) return Math.max((k.as ? iso(k.as) : iso(k.ps)) + DAY, atMs);
+              return null;
+            }).filter(Boolean);
+            const aE = aeList.length ? Math.max(...aeList) : aS;
+            actualRangeMap[t.c] = { as: aS, ae: Math.max(aS, aE), pct: m.a || 0, started: aeList.length > 0, done: m.a >= 99.5 };
+          }
+        });
+
         const N = cp && cp.map ? cp.map : {};
         const esOf = t => N[t.c] ? cp.P0 + N[t.c].es * DAY : metricsMap[t.c].ps;
         const efOf = t => N[t.c] ? cp.P0 + N[t.c].ef * DAY : metricsMap[t.c].pe + DAY;
-        const x0 = Math.min(...L.map(t => Math.min(metricsMap[t.c].ps, esOf(t))));
-        const x1 = Math.max(...L.map(t => Math.max(metricsMap[t.c].pe + DAY, efOf(t))));
+        const rawX0 = Math.min(...L.map(t => Math.min(metricsMap[t.c].ps, esOf(t), actualRangeMap[t.c].as)));
+        const rawX1 = Math.max(...L.map(t => Math.max(metricsMap[t.c].pe + DAY, efOf(t), actualRangeMap[t.c].ae)));
+        const x0 = rawX0 - 3 * DAY;
+        const x1 = rawX1 + 10 * DAY;
         const span = Math.max(DAY, x1 - x0);
-        const X = ms => lw + ((ms - x0) / span) * (W - lw - 20);
+        const X = ms => lw + ((ms - x0) / span) * (W - lw - 70);
         const Y = i => top + i * rh;
+        const fmtShort = ms => new Date(ms).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 
-        g.font = '11px Inter, sans-serif';
+        // Header bar background
+        g.fillStyle = '#f8fafc';
+        g.fillRect(0, 0, W, top);
+        g.strokeStyle = '#cbd5e1';
+        g.beginPath(); g.moveTo(0, top); g.lineTo(W, top); g.stroke();
+        g.font = 'bold 11px Inter, sans-serif';
+        g.fillStyle = '#334155';
         g.textBaseline = 'middle';
-        g.strokeStyle = '#e2e8f0';
-        g.fillStyle = '#64748b';
-        const step = Math.max(15 * DAY, Math.round(span / 8));
+        g.fillText('HẠNG MỤC CÔNG VIỆC (KH / TT)', 10, top / 2);
+
+        // Vertical time gridlines
+        const approxCols = Math.max(6, Math.floor((W - lw - 70) / 85));
+        const step = Math.max(2 * DAY, Math.round(span / approxCols / DAY) * DAY);
+        g.font = '10px Inter, sans-serif';
         for (let d = x0; d <= x1; d += step) {
-          g.beginPath(); g.moveTo(X(d), top - 6); g.lineTo(X(d), cv.height - 6); g.stroke();
-          g.fillText(new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), X(d) - 14, 14);
+          const gx = X(d);
+          g.strokeStyle = '#e2e8f0';
+          g.beginPath(); g.moveTo(gx, top); g.lineTo(gx, cv.height - 6); g.stroke();
+          g.fillStyle = '#64748b';
+          g.fillText(fmtShort(d), gx - 12, top / 2);
         }
 
         const rowIdx = {};
         L.forEach((t, i) => rowIdx[t.c] = i);
 
+        // Draw rows + 2 nested/paired bars per task (Line 1: Plan, Line 2: Actual)
         L.forEach((t, i) => {
           const y = Y(i);
           const leaf = isLeafTask(proj.tasks, t);
           const m = metricsMap[t.c];
+          const ar = actualRangeMap[t.c];
           const isCrit = leaf && critSet.has(t.c);
           const depth = Math.max(0, t.c.split('.').length - 1);
 
+          // Row background & separator
+          g.fillStyle = !leaf ? '#f1f5f9' : (i % 2 === 1 ? '#f8fafc' : '#ffffff');
+          g.fillRect(0, y, W, rh);
+          g.strokeStyle = '#f1f5f9';
+          g.beginPath(); g.moveTo(0, y + rh); g.lineTo(W, y + rh); g.stroke();
+
+          // Left label column
+          g.font = !leaf ? 'bold 11px Inter, sans-serif' : '11px Inter, sans-serif';
+          g.fillStyle = !leaf ? '#0f172a' : (isCrit ? '#be123c' : '#1e293b');
+          const labelStr = (t.c + ' ' + t.name);
+          const maxChars = Math.max(22, Math.floor((lw - 18 - depth * 8) / 6.2));
+          g.fillText(labelStr.length > maxChars ? labelStr.slice(0, maxChars - 1) + '…' : labelStr, 8 + depth * 8, y + rh / 2);
+
+          // Vertical divider after label column
+          g.strokeStyle = '#e2e8f0';
+          g.beginPath(); g.moveTo(lw, y); g.lineTo(lw, y + rh); g.stroke();
+
+          // LINE 1: PLAN BAR (Top)
+          const px = X(m.ps), pw = Math.max(5, X(m.pe + DAY) - px);
+          const py1 = y + 6, ph1 = !leaf ? 8 : 11;
           if (!leaf) {
-            g.fillStyle = '#f1f5f9';
-            g.fillRect(0, y, W, rh);
-            g.font = 'bold 11px Inter, sans-serif';
-            g.fillStyle = '#0f172a';
-            g.fillText((t.c + ' ' + t.name).slice(0, 32), 6 + depth * 8, y + rh / 2);
-            const bx = X(m.ps), bw = Math.max(6, X(m.pe + DAY) - bx);
-            g.fillStyle = '#cbd5e1';
-            g.fillRect(bx, y + 7, bw, rh - 14);
+            // Summary black/slate bracket bar (MS Project style)
             g.fillStyle = '#334155';
-            g.fillRect(bx, y + 7, Math.max(0, bw * (m.a || 0) / 100), rh - 14);
-            g.font = '11px Inter, sans-serif';
+            g.fillRect(px, py1, pw, ph1);
+            g.beginPath(); g.moveTo(px, py1 + ph1); g.lineTo(px + 5, py1 + ph1 + 5); g.lineTo(px, py1 + ph1); g.fill();
+            g.beginPath(); g.moveTo(px + pw, py1 + ph1); g.lineTo(px + pw - 5, py1 + ph1 + 5); g.lineTo(px + pw, py1 + ph1); g.fill();
+            g.font = 'bold 9.5px Inter, sans-serif';
+            g.fillStyle = '#334155';
+            const planDays = Math.max(1, Math.round((m.pe - m.ps) / DAY) + 1);
+            g.fillText(`KH: ${fmtShort(m.ps)}–${fmtShort(m.pe)} (${planDays}n)`, px + pw + 5, py1 + ph1 / 2);
           } else {
-            g.font = '11px Inter, sans-serif';
-            g.fillStyle = isCrit ? '#dc2626' : '#334155';
-            g.fillText((t.c + ' ' + t.name).slice(0, 32), 6 + depth * 10, y + rh / 2);
-            const bx = X(m.ps), bw = Math.max(4, X(m.pe + DAY) - bx);
-            g.fillStyle = isCrit ? '#fecaca' : '#bfdbfe';
-            g.fillRect(bx, y + 5, bw, rh - 10);
-            g.fillStyle = isCrit ? '#dc2626' : '#2563eb';
-            g.fillRect(bx, y + 5, Math.max(0, bw * (Number(t.progress) || 0) / 100), rh - 10);
+            g.fillStyle = isCrit ? '#fecdd3' : '#bfdbfe';
+            g.strokeStyle = isCrit ? '#e11d48' : '#2563eb';
+            g.lineWidth = 1;
+            g.fillRect(px, py1, pw, ph1);
+            g.strokeRect(px, py1, pw, ph1);
+            g.fillStyle = isCrit ? '#f43f5e' : '#3b82f6';
+            g.fillRect(px, py1, pw, 3);
+            g.font = '9.5px Inter, sans-serif';
+            g.fillStyle = isCrit ? '#be123c' : '#1d4ed8';
+            const planDays = Math.max(1, Math.round((m.pe - m.ps) / DAY) + 1);
+            g.fillText(`KH ${planDays}n`, px + pw + 5, py1 + ph1 / 2);
+          }
+
+          // LINE 2: ACTUAL BAR (Nested/Paired below Plan bar in distinct color)
+          const py2 = y + 21, ph2 = !leaf ? 8 : 11;
+          const ax = X(ar.as), aw = Math.max(4, X(ar.ae) - ax);
+          const isLate = leaf ? (t.ae ? iso(t.ae) > m.pe : (!ar.done && atMs > m.pe)) : (ar.ae > m.pe + DAY);
+          const actColor = !ar.started ? '#94a3b8' : (isLate ? '#e11d48' : (ar.done ? '#10b981' : '#f59e0b'));
+          const actTrack = !ar.started ? '#f1f5f9' : (isLate ? '#ffe4e6' : (ar.done ? '#d1fae5' : '#fef3c7'));
+
+          if (!ar.started) {
+            g.setLineDash([3, 2]);
+            g.strokeStyle = '#94a3b8';
+            g.strokeRect(px, py2, Math.max(12, pw * 0.4), ph2);
+            g.setLineDash([]);
+            g.font = '9.5px Inter, sans-serif';
+            g.fillStyle = '#94a3b8';
+            g.fillText('TT: 0%', px + Math.max(12, pw * 0.4) + 5, py2 + ph2 / 2);
+          } else {
+            g.fillStyle = actTrack;
+            g.fillRect(ax, py2, aw, ph2);
+            g.strokeStyle = actColor;
+            g.lineWidth = 1;
+            g.strokeRect(ax, py2, aw, ph2);
+            const fillW = ar.done ? aw : Math.max(3, aw * Math.min(100, ar.pct) / 100);
+            g.fillStyle = actColor;
+            g.fillRect(ax, py2, fillW, ph2);
+
+            let lateTag = '';
+            if (isLate) {
+              const lateD = Math.max(1, Math.round(((t.ae ? iso(t.ae) : atMs) - m.pe) / DAY));
+              lateTag = ` (+${lateD}n trễ)`;
+            } else if (ar.done) {
+              lateTag = ' ✓';
+            }
+            g.font = 'bold 9.5px Inter, sans-serif';
+            g.fillStyle = actColor;
+            g.fillText(`TT ${Math.round(ar.pct)}%${lateTag}`, ax + aw + 5, py2 + ph2 / 2);
           }
         });
 
-        // Draw dependency arrows (FS, SS, FF, SF)
+        // Draw dependency arrows (FS, SS, FF, SF) connecting Plan bars
         L.forEach((t, i) => {
           parsePre(t.pre).forEach(p => {
+            if (p.bad) return;
             const j = rowIdx[p.c];
             if (j == null || p.c === t.c) return;
             const prev = L[j];
             const fx = (p.t === 'SS' || p.t === 'SF') ? X(iso(prev.ps)) : X(iso(prev.pe) + DAY);
             const tx = (p.t === 'FS' || p.t === 'SS') ? X(iso(t.ps)) : X(iso(t.pe) + DAY);
-            const y1 = Y(j) + rh / 2, y2 = Y(i) + rh / 2;
+            const y1 = Y(j) + 11.5, y2 = Y(i) + 11.5;
             const isCritLink = critSet.has(t.c) && critSet.has(prev.c);
 
-            g.strokeStyle = isCritLink ? '#dc2626' : '#64748b';
-            g.lineWidth = isCritLink ? 2 : 1;
+            g.strokeStyle = isCritLink ? '#dc2626' : '#475569';
+            g.lineWidth = isCritLink ? 1.8 : 1.1;
             g.beginPath();
             g.moveTo(fx, y1);
-            g.lineTo(fx + 6, y1);
-            g.lineTo(fx + 6, y2);
-            g.lineTo(tx, y2);
+            if (p.t === 'SS' || p.t === 'SF') {
+              g.lineTo(fx - 7, y1);
+              g.lineTo(fx - 7, y2);
+              g.lineTo(tx, y2);
+            } else {
+              g.lineTo(fx + 6, y1);
+              if (tx >= fx + 6) {
+                g.lineTo(fx + 6, y2);
+                g.lineTo(tx, y2);
+              } else {
+                const midY = (y1 + y2) / 2;
+                g.lineTo(fx + 6, midY);
+                g.lineTo(tx - 8, midY);
+                g.lineTo(tx - 8, y2);
+                g.lineTo(tx, y2);
+              }
+            }
             g.stroke();
 
-            g.fillStyle = isCritLink ? '#dc2626' : '#64748b';
+            g.fillStyle = isCritLink ? '#dc2626' : '#475569';
             g.beginPath();
             g.moveTo(tx, y2);
             g.lineTo(tx - 5, y2 - 3);
             g.lineTo(tx - 5, y2 + 3);
             g.closePath();
             g.fill();
+
+            if (W >= 950) {
+              g.font = '8.5px Inter, sans-serif';
+              g.fillStyle = isCritLink ? '#dc2626' : '#64748b';
+              g.fillText(p.t, fx + (p.t === 'SS' || p.t === 'SF' ? -18 : 8), y1 - 5);
+            }
           });
         });
         g.lineWidth = 1;
 
         // Report date line
         if (atMs >= x0 && atMs <= x1) {
+          const rx = X(atMs);
           g.setLineDash([4, 4]);
           g.strokeStyle = '#16a34a';
-          g.beginPath(); g.moveTo(X(atMs), top - 6); g.lineTo(X(atMs), cv.height - 6); g.stroke();
+          g.lineWidth = 1.6;
+          g.beginPath(); g.moveTo(rx, top); g.lineTo(rx, cv.height - 6); g.stroke();
           g.setLineDash([]);
+          g.lineWidth = 1;
+          g.fillStyle = '#16a34a';
+          g.font = 'bold 9.5px Inter, sans-serif';
+          g.fillText('Báo cáo ' + fmtShort(atMs), Math.min(W - 85, rx + 4), top + 9);
+        }
+      }
+
+      function renderGanttChart(proj, cp, atMs) {
+        const cv = document.getElementById('gantt-canvas');
+        const wrap = document.getElementById('gantt-scroll-wrap');
+        drawGanttOnCanvas(cv, wrap, proj, cp, atMs, ganttZoomScale);
+        const fsModal = document.getElementById('gantt-fullscreen-modal');
+        if (fsModal && !fsModal.classList.contains('hidden')) {
+          drawGanttOnCanvas(document.getElementById('gantt-fullscreen-canvas'), document.getElementById('gantt-fs-scroll-wrap'), proj, cp, atMs, ganttFsZoomScale);
         }
       }
 
@@ -3755,7 +3944,29 @@
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
 
+      function renderScheduleVersionsTable(proj) {
+        const tbody = document.getElementById('schedule-versions-body');
+        if (!tbody) return;
+        const list = Array.isArray(proj && proj.scheduleVersions) ? proj.scheduleVersions : [];
+        tbody.innerHTML = list.slice().reverse().map(v => `
+          <tr class="hover:bg-slate-50/80">
+            <td class="py-2.5 px-3 font-bold text-indigo-700">${projTagHtml(v)}Ver ${v.ver} <span class="font-medium text-slate-700 text-xs">— ${esc(String(v.label || '').replace(/^Ver \d+\s*[—-]\s*/i, ''))}</span></td>
+            <td class="py-2.5 px-3 text-xs text-slate-500">${fmtDateVN(v.date)}</td>
+            <td class="py-2.5 px-3 text-right text-xs">${Number(v.planPct || 0).toFixed(1)}%</td>
+            <td class="py-2.5 px-3 text-right text-xs font-bold text-brand-700">${Number(v.actualPct || 0).toFixed(1)}%</td>
+            <td class="py-2.5 px-3 text-right text-xs font-semibold">${Number(v.spi || 1).toFixed(2)}</td>
+            <td class="py-2.5 px-3 text-xs text-slate-600">${esc(v.note || '')}</td>
+            <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
+              <button type="button" data-action="view-version" data-id="${esc(v.id)}" class="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded-lg">So sánh</button>
+              <button type="button" data-action="update-version" data-id="${esc(v.id)}" class="text-xs font-medium text-indigo-700 hover:bg-indigo-50 px-2 py-1 rounded-lg">Cập nhật</button>
+              <button type="button" data-action="restore-version" data-id="${esc(v.id)}" class="text-xs font-medium text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded-lg">Khôi phục</button>
+              <button type="button" data-action="del-version" data-id="${esc(v.id)}" class="text-xs font-medium text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg">Xóa</button>
+            </td>
+          </tr>`).join('') || '<tr><td colspan="7" class="py-4 text-center text-slate-400">Chưa có phiên bản nào</td></tr>';
+      }
+
       function renderScheduleTab(proj, atMs) {
+        renderScheduleVersionsTable(proj);
         const hCntEl = document.getElementById('sched-holiday-count');
         if (hCntEl) hCntEl.textContent = String(getHolidaySet(proj).size) + ' ngày';
         const cp = computeCPM(proj.tasks);
@@ -3896,26 +4107,26 @@
           const sActDays = sAs ? Math.max(1, Math.round(((sAe ? iso(sAe) : atMs) - iso(sAs)) / DAY) + 1) : null;
           const sSt = getTaskStatus({ p: sg.p, a: sg.a, ps: sPs }, atMs);
           summaryRowHtml = `
-            <tr class="bg-blue-50/90 border-b-2 border-brand-200 font-semibold text-xs">
-              <td class="py-3 px-3">
-                <div class="text-slate-900 font-bold text-sm">📌 ${(isC && selectedContractor) ? 'TỔNG TIẾN ĐỘ – ' + esc(selectedContractor.toUpperCase()) : 'TỔNG TIẾN ĐỘ DỰ ÁN'}</div>
-                <div class="text-[11px] font-normal text-slate-500 mt-0.5">Tính từ ngày bắt đầu sớm nhất đến ngày kết thúc muộn nhất, không cộng dồn các mục</div>
+            <tr class="bg-blue-50/90 border-b-2 border-brand-200 font-semibold text-[11px]">
+              <td class="py-2 px-2">
+                <div class="text-slate-900 font-bold text-xs">📌 ${(isC && selectedContractor) ? 'TỔNG TIẾN ĐỘ – ' + esc(selectedContractor.toUpperCase()) : 'TỔNG TIẾN ĐỘ DỰ ÁN'}</div>
+                <div class="text-[10px] font-normal text-slate-500 mt-0.5">BĐ sớm nhất → KT muộn nhất</div>
               </td>
-              <td class="py-3 px-2 text-xs text-slate-500 font-normal">Mạng liên kết CPM (${leaves.filter(x => x.pre).length} ràng buộc)</td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${fmtDateVN(sPs)}</td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${fmtDateVN(sPe)}</td>
-              <td class="py-3 px-2 text-center font-bold whitespace-nowrap">${sDays} ngày</td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${sAs ? fmtDateVN(sAs) : '—'}</td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${sAe ? fmtDateVN(sAe) : '—'}</td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${sActDays ? sActDays + ' ngày' : '—'}</td>
-              <td class="py-3 px-2 text-center">
+              <td class="py-2 px-1.5 text-[10px] text-slate-500 font-normal">CPM (${leaves.filter(x => x.pre).length} RB)</td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${fmtDateVN(sPs)}</td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${fmtDateVN(sPe)}</td>
+              <td class="py-2 px-1 text-center font-bold whitespace-nowrap">${sDays}n</td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${sAs ? fmtDateVN(sAs) : '—'}</td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${sAe ? fmtDateVN(sAe) : '—'}</td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${sActDays ? sActDays + 'n' : '—'}</td>
+              <td class="py-2 px-1 text-center">
                 <div class="font-bold text-slate-700">${sg.p.toFixed(0)}%</div>
-                <div class="w-12 mx-auto bg-slate-200 rounded-full h-1 mt-1"><div class="bg-slate-600 h-1 rounded-full" style="width:${Math.min(100, sg.p)}%"></div></div>
+                <div class="w-9 mx-auto bg-slate-200 rounded-full h-1 mt-0.5"><div class="bg-slate-600 h-1 rounded-full" style="width:${Math.min(100, sg.p)}%"></div></div>
               </td>
-              <td class="py-3 px-3 text-center"><b class="text-slate-900 text-sm">${sg.a.toFixed(1)}%</b> <span class="text-slate-500 ml-1">SPI ${sg.spi.toFixed(2)}</span></td>
-              <td class="py-3 px-2 text-center whitespace-nowrap">${statusBadge(sSt)}</td>
-              <td class="py-3 px-2"></td>
-              <td class="py-3 px-2"></td>
+              <td class="py-2 px-1.5 text-center whitespace-nowrap"><b class="text-slate-900 text-xs">${sg.a.toFixed(1)}%</b> <span class="text-slate-500 text-[10px]">SPI ${sg.spi.toFixed(2)}</span></td>
+              <td class="py-2 px-1 text-center whitespace-nowrap">${statusBadge(sSt)}</td>
+              <td class="py-2 px-1"></td>
+              <td class="py-2 px-1"></td>
             </tr>`;
         }
         const succMap = {};
@@ -3942,68 +4153,68 @@
             const pctCls = m.a >= m.p - 3 ? 'text-emerald-600' : 'text-rose-600';
             return `
               <tr class="hover:bg-slate-50/80 ${!leaf ? 'bg-slate-50/90 font-semibold' : ''}">
-                <td class="py-2.5 px-3" style="padding-left:${12 + (t.c.split('.').length - 1) * 16}px">
-                  <div class="text-slate-900 text-xs sm:text-sm">${esc(t.c)} ${esc(t.name)}</div>
-                  <div class="flex flex-wrap items-center gap-1 mt-1">
-                    ${t.contractor ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">${esc(t.contractor)}</span>` : ''}
-                    ${!leaf ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Mục mẹ (${act.kidsCount} con)</span>` : ''}
-                    ${isCrit ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">ĐƯỜNG GĂNG</span>` : ''}
+                <td class="py-1.5 px-2" style="padding-left:${8 + (t.c.split('.').length - 1) * 10}px">
+                  <div class="text-slate-900 text-[11.5px] leading-snug">${esc(t.c)} ${esc(t.name)}</div>
+                  <div class="flex flex-wrap items-center gap-1 mt-0.5">
+                    ${t.contractor ? `<span class="text-[9.5px] font-semibold px-1 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">${esc(t.contractor)}</span>` : ''}
+                    ${!leaf ? `<span class="text-[9.5px] font-semibold px-1 py-0.5 rounded bg-blue-100 text-blue-700">Mẹ (${act.kidsCount})</span>` : ''}
+                    ${isCrit ? `<span class="text-[9.5px] font-bold px-1 py-0.5 rounded bg-rose-100 text-rose-700">GĂNG</span>` : ''}
                   </div>
-                  ${act.updatedAt ? `<div class="text-[10px] text-sky-600 mt-0.5">🔄 Cập nhật: ${esc(act.updatedAt)}</div>` : ''}
+                  ${act.updatedAt ? `<div class="text-[9.5px] text-sky-600 mt-0.5">🔄 ${esc(act.updatedAt)}</div>` : ''}
                 </td>
-                <td class="py-2.5 px-2 text-[11px] align-top">
+                <td class="py-1.5 px-1.5 text-[10px] align-top">
                   ${leaf ? `
-                    <div class="flex items-center gap-1 mb-1">
-                      <span class="text-[10px] font-semibold text-slate-500 shrink-0">Trước:</span>
-                      <input type="text" value="${esc(t.pre || '')}" data-task-pre-id="${esc(t.id)}" placeholder="VD: 1.1FS" class="w-24 text-[11px] font-medium text-slate-800 border border-slate-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" title="Nhập mã công việc tiên quyết (VD: 1.1FS, 1.2SS+5)" />
-                    </div>` : `<div class="text-[10px] text-slate-400 mb-0.5">Tổng hợp nhóm</div>`}
+                    <div class="flex items-center gap-1 mb-0.5">
+                      <span class="text-[9.5px] font-semibold text-slate-500 shrink-0">Tr:</span>
+                      <input type="text" value="${esc(t.pre || '')}" data-task-pre-id="${esc(t.id)}" placeholder="1.1FS" class="w-[74px] text-[10.5px] font-medium text-slate-800 border border-slate-200 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" title="Nhập mã công việc tiên quyết (VD: 1.1FS, 1.2SS+5)" />
+                    </div>` : `<div class="text-[9.5px] text-slate-400 mb-0.5">Tổng hợp</div>`}
                   ${(succMap[t.c] && succMap[t.c].length) ? `
-                    <div class="flex flex-wrap items-center gap-1">
-                      <span class="text-[10px] font-semibold text-slate-500">Sau:</span>
-                      ${succMap[t.c].map(sc => `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${sc.isCrit ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}" title="${esc(sc.name)}">→ ${esc(sc.code)} (${esc(sc.rel)})</span>`).join('')}
-                    </div>` : (leaf ? `<div class="text-[10px] text-slate-400">Sau: —</div>` : '')}
-                  ${(cpmN && leaf) ? `<div class="text-[10px] text-slate-400 mt-0.5">Float: <b>${cpmN.tf}d</b></div>` : ''}
+                    <div class="flex flex-wrap items-center gap-0.5">
+                      ${succMap[t.c].map(sc => `<span class="px-1 py-0.5 rounded text-[9.5px] font-semibold ${sc.isCrit ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}" title="${esc(sc.name)}">→${esc(sc.code)}(${esc(sc.rel)})</span>`).join('')}
+                    </div>` : ''}
+                  ${(cpmN && leaf) ? `<div class="text-[9.5px] text-slate-400 mt-0.5">Float: <b>${cpmN.tf}d</b></div>` : ''}
                 </td>
-                <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${fmtDateVN(m.ps)}</td>
-                <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${fmtDateVN(m.pe)}</td>
-                <td class="py-2.5 px-2 text-center text-xs font-medium text-slate-700 whitespace-nowrap">${planDays} ngày</td>
-                <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${leaf ? `<input type="date" value="${esc(t.as || act.asStr || '')}" data-task-as-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Sửa ngày bắt đầu thực tế" class="w-[116px] text-[11px] border border-slate-200 rounded-lg px-1.5 py-1 bg-white" />` : (act.asStr ? fmtDateVN(act.asStr) : '—')}</td>
-                <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">${leaf ? (() => {
-                  const aeVal = act.done ? (t.ae || act.aeStr || '') : '';
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${fmtDateVN(m.ps)}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${fmtDateVN(m.pe)}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] font-medium text-slate-700 whitespace-nowrap">${planDays}n</td>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${leaf ? `<input type="date" value="${esc(t.as || act.asStr || '')}" data-task-as-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Sửa ngày bắt đầu thực tế" class="w-[102px] text-[10.5px] border border-slate-200 rounded px-1 py-0.5 bg-white" />` : (act.asStr ? fmtDateVN(act.asStr) : '—')}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] whitespace-nowrap">${leaf ? (() => {
+                  const aeVal = t.ae || (act.done ? (act.aeStr || '') : '');
                   let delayTag = '';
-                  if (act.done && aeVal && t.pe) {
+                  if (aeVal && t.pe) {
                     const diffD = Math.round((iso(aeVal) - iso(t.pe)) / DAY);
+                    const prefix = act.done ? '' : 'DK ';
                     delayTag = diffD > 0
-                      ? `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-bold">Trễ +${diffD} ngày</span></div>`
+                      ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-rose-100 text-rose-700 text-[9.5px] font-bold">${prefix}Trễ +${diffD}n</span></div>`
                       : (diffD < 0
-                        ? `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Sớm ${-diffD} ngày</span></div>`
-                        : `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Đúng hạn</span></div>`);
+                        ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-semibold">${prefix}Sớm ${-diffD}n</span></div>`
+                        : `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-semibold">${prefix}Đúng hạn</span></div>`);
                   } else if (act.started && !act.done) {
                     const overNow = t.pe && atMs > iso(t.pe) ? Math.round((atMs - iso(t.pe)) / DAY) : 0;
-                    delayTag = overNow > 0 ? `<div class="mt-0.5 text-[10px] text-rose-600 font-semibold">Đang trễ +${overNow}n</div>` : `<div class="mt-0.5 text-[10px] text-brand-600 font-medium">Đang triển khai</div>`;
+                    delayTag = overNow > 0 ? `<div class="mt-0.5 text-[9.5px] text-rose-600 font-semibold">Trễ +${overNow}n</div>` : `<div class="mt-0.5 text-[9.5px] text-brand-600 font-medium">Đang làm</div>`;
                   }
-                  return `<input type="date" value="${esc(aeVal)}" data-task-ae-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Nhập ngày kết thúc thực tế để tính số ngày trễ" class="w-[116px] text-[11px] border ${act.done ? 'border-indigo-300 font-semibold text-indigo-800' : 'border-slate-200 text-slate-500'} rounded-lg px-1.5 py-1 bg-white" />${delayTag}`;
-                })() : (act.done ? fmtDateVN(act.aeStr) : (act.started ? '<span class="text-brand-600 font-medium">Đang triển khai</span>' : '<span class="text-slate-400">—</span>'))}</td>
-                <td class="py-2.5 px-2 text-center text-xs text-slate-700 whitespace-nowrap">${act.aDays ? act.aDays + ' ngày' : '—'}</td>
-                <td class="py-2.5 px-2 text-center text-xs">
+                  return `<input type="date" value="${esc(aeVal)}" data-task-ae-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Ngày kết thúc thực tế (tự tính theo số ngày KH khi đổi BĐ TT, hoặc chỉnh trực tiếp)" class="w-[102px] text-[10.5px] border ${act.done ? 'border-indigo-300 font-semibold text-indigo-800' : (aeVal ? 'border-sky-300 text-slate-800' : 'border-slate-200 text-slate-500')} rounded px-1 py-0.5 bg-white" />${delayTag}`;
+                })() : (act.done ? fmtDateVN(act.aeStr) : (act.started ? '<span class="text-brand-600 font-medium">Đang làm</span>' : '<span class="text-slate-400">—</span>'))}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-700 whitespace-nowrap">${act.aDays ? act.aDays + 'n' : '—'}</td>
+                <td class="py-1.5 px-1 text-center text-[11px]">
                   <div class="font-semibold text-slate-700">${m.p.toFixed(0)}%</div>
-                  <div class="w-10 mx-auto bg-slate-200 rounded-full h-1 mt-1"><div class="bg-slate-600 h-1 rounded-full" style="width:${Math.min(100, m.p)}%"></div></div>
+                  <div class="w-8 mx-auto bg-slate-200 rounded-full h-1 mt-0.5"><div class="bg-slate-600 h-1 rounded-full" style="width:${Math.min(100, m.p)}%"></div></div>
                 </td>
-                <td class="py-2.5 px-2 text-center">
+                <td class="py-1.5 px-1 text-center">
                   ${leaf ? `
-                    <div class="inline-flex items-center gap-1.5 ${canEditSched ? '' : 'opacity-60'}">
-                      <button type="button" data-action="step-task" data-delta="-5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">-</button>
-                      <input type="range" min="0" max="100" value="${t.progress}" data-task-pct-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-20 accent-brand-600 ${canEditSched ? 'cursor-pointer' : 'cursor-not-allowed'}" />
-                      <button type="button" data-action="step-task" data-delta="5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-5 h-5 flex items-center justify-center text-xs bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">+</button>
-                      <span class="text-xs font-bold ${pctCls} w-8 text-right">${t.progress}%</span>
-                    </div>` : `<div class="text-xs font-semibold text-slate-500">tổng hợp <span class="ml-1 font-bold ${pctCls}">${m.a.toFixed(0)}%</span></div>`}
+                    <div class="inline-flex items-center gap-1 ${canEditSched ? '' : 'opacity-60'}">
+                      <button type="button" data-action="step-task" data-delta="-5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-4 h-4 flex items-center justify-center text-[10px] bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">-</button>
+                      <input type="range" min="0" max="100" value="${t.progress}" data-task-pct-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-12 accent-brand-600 ${canEditSched ? 'cursor-pointer' : 'cursor-not-allowed'}" />
+                      <button type="button" data-action="step-task" data-delta="5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-4 h-4 flex items-center justify-center text-[10px] bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">+</button>
+                      <span class="text-[11px] font-bold ${pctCls} w-7 text-right">${t.progress}%</span>
+                    </div>` : `<div class="text-[11px] font-semibold text-slate-500">TB <span class="font-bold ${pctCls}">${m.a.toFixed(0)}%</span></div>`}
                 </td>
-                <td class="py-2.5 px-2 text-center whitespace-nowrap">${statusBadge(st)}</td>
-                <td class="py-2.5 px-2"><input type="text" value="${esc(t.note || '')}" data-task-note-id="${esc(t.id)}" placeholder="Ghi chú..." class="w-28 text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></td>
-                <td class="py-2.5 px-2 text-right whitespace-nowrap space-x-0.5">
-                  <button type="button" data-action="add-subtask" data-id="${esc(t.id)}" class="text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 px-1.5 py-1 rounded" title="Thêm tiến độ con">+Con</button>
-                  <button type="button" data-action="edit-task" data-id="${esc(t.id)}" class="text-[11px] font-medium text-brand-600 hover:bg-brand-50 px-1.5 py-1 rounded">Sửa</button>
-                  <button type="button" data-action="del-task" data-id="${esc(t.id)}" class="text-[11px] font-medium text-rose-600 hover:bg-rose-50 px-1.5 py-1 rounded">Xóa</button>
+                <td class="py-1.5 px-1 text-center whitespace-nowrap">${statusBadge(st)}</td>
+                <td class="py-1.5 px-1"><input type="text" value="${esc(t.note || '')}" data-task-note-id="${esc(t.id)}" placeholder="Ghi chú..." class="w-20 text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></td>
+                <td class="py-1.5 px-1 text-right whitespace-nowrap space-x-0.5">
+                  <button type="button" data-action="add-subtask" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-emerald-700 hover:bg-emerald-50 px-1 py-0.5 rounded" title="Thêm tiến độ con">+Con</button>
+                  <button type="button" data-action="edit-task" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-brand-600 hover:bg-brand-50 px-1 py-0.5 rounded">Sửa</button>
+                  <button type="button" data-action="del-task" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-rose-600 hover:bg-rose-50 px-1 py-0.5 rounded">Xóa</button>
                 </td>
               </tr>`;
           }).join('');
@@ -4026,27 +4237,15 @@
           ? proj.progressLogs.slice(0, 30).map(l => `<div class="p-2 rounded-lg bg-slate-50 border border-slate-200 flex justify-between gap-2"><div><span class="font-semibold text-slate-800">${esc(l.contractor || 'Hệ thống')}</span>: ${esc(l.task)}</div><div class="shrink-0 font-bold text-brand-600">${esc(l.change)} <span class="font-normal text-slate-400">(${esc(l.ts)})</span></div></div>`).join('')
           : `<div class="text-slate-400">Chưa có cập nhật tiến độ nào.</div>`;
 
-        renderGanttChart(proj, cp, atMs);
-        renderScheduleConflicts(proj, cp, atMs);
-        if (scheduleViewMode === 'tracking') renderTrackingPanel(proj, atMs);
-        if (scheduleViewMode === 'cpm') renderCpmReservePanel(proj, cp);
-        if (scheduleViewMode === 'ai') renderAiAnalyzerPanel(proj, cp, atMs);
+        try { renderGanttChart(proj, cp, atMs); } catch (e) { console.error(e); }
+        try { renderScheduleConflicts(proj, cp, atMs); } catch (e) { console.error(e); }
+        try {
+          if (scheduleViewMode === 'tracking') renderTrackingPanel(proj, atMs);
+          if (scheduleViewMode === 'cpm') renderCpmReservePanel(proj, cp);
+          if (scheduleViewMode === 'ai') renderAiAnalyzerPanel(proj, cp, atMs);
+        } catch (e) { console.error(e); }
 
-        document.getElementById('schedule-versions-body').innerHTML = (proj.scheduleVersions || []).slice().reverse().map(v => `
-          <tr class="hover:bg-slate-50/80">
-            <td class="py-2.5 px-3 font-bold text-indigo-700">Ver ${v.ver} <span class="font-medium text-slate-700 text-xs">— ${esc(v.label.replace(/^Ver \d+\s*[—-]\s*/i, ''))}</span></td>
-            <td class="py-2.5 px-3 text-xs text-slate-500">${fmtDateVN(v.date)}</td>
-            <td class="py-2.5 px-3 text-right text-xs">${Number(v.planPct || 0).toFixed(1)}%</td>
-            <td class="py-2.5 px-3 text-right text-xs font-bold text-brand-700">${Number(v.actualPct || 0).toFixed(1)}%</td>
-            <td class="py-2.5 px-3 text-right text-xs font-semibold">${Number(v.spi || 1).toFixed(2)}</td>
-            <td class="py-2.5 px-3 text-xs text-slate-600">${esc(v.note || '')}</td>
-            <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
-              <button type="button" data-action="view-version" data-id="${esc(v.id)}" class="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded-lg">So sánh</button>
-              <button type="button" data-action="update-version" data-id="${esc(v.id)}" class="text-xs font-medium text-indigo-700 hover:bg-indigo-50 px-2 py-1 rounded-lg">Cập nhật</button>
-              <button type="button" data-action="restore-version" data-id="${esc(v.id)}" class="text-xs font-medium text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded-lg">Khôi phục</button>
-              <button type="button" data-action="del-version" data-id="${esc(v.id)}" class="text-xs font-medium text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg">Xóa</button>
-            </td>
-          </tr>`).join('') || '<tr><td colspan="7" class="py-4 text-center text-slate-400">Chưa có phiên bản nào</td></tr>';
+        renderScheduleVersionsTable(proj);
 
         document.getElementById('recovery-scenarios').innerHTML = g.spi < 0.98
           ? `<div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900"><b>Phân tích nhanh (SPI ${g.spi.toFixed(2)}):</b> Gợi ý tăng ca +20% nhân lực tại các công tác găng để bù tiến độ tổng thể.</div>`
@@ -4942,8 +5141,8 @@
               </div>
               ${rptType === 'schedule' && imgScurve ? `<div class="border border-slate-200 rounded-xl p-2 mb-3"><div class="text-[11px] font-bold text-slate-700 mb-1">Đường cong S-Curve Tiến độ (PV vs EV)</div><img src="${imgScurve}" style="max-height:170px;margin:0 auto;" /></div>` : ''}
               <table class="w-full text-[10.5px] border-collapse border border-slate-300">
-                <thead><tr class="bg-blue-900 text-white"><th class="p-1.5 text-left">Hạng mục</th><th class="p-1.5 text-left">Nhà thầu</th><th class="p-1.5 text-center">BĐ → KT KH</th><th class="p-1.5 text-center">% KH</th><th class="p-1.5 text-center">% TT</th><th class="p-1.5 text-center">Trạng thái</th></tr></thead>
-                <tbody>${leaves.map(t => { const m = getTaskMetrics(proj.tasks, t, atMs); return `<tr class="border-b border-slate-200"><td class="p-1.5">${esc(t.c)} ${esc(t.name)}</td><td class="p-1.5">${esc(t.contractor)}</td><td class="p-1.5 text-center whitespace-nowrap">${fmtDateVN(t.ps)} → ${fmtDateVN(t.pe)}</td><td class="p-1.5 text-center">${m.p.toFixed(0)}%</td><td class="p-1.5 text-center font-bold">${m.a.toFixed(0)}%</td><td class="p-1.5 text-center">${esc(getTaskStatus(m, atMs))}</td></tr>`; }).join('') || '<tr><td colspan="6" class="p-3 text-center text-slate-400">Chưa có hạng mục tiến độ</td></tr>'}</tbody>
+                <thead><tr class="bg-blue-900 text-white"><th class="p-1.5 text-left">Hạng mục (Cấp cha &amp; Con)</th><th class="p-1.5 text-left">Nhà thầu</th><th class="p-1.5 text-center">BĐ → KT KH</th><th class="p-1.5 text-center">% KH</th><th class="p-1.5 text-center">% TT</th><th class="p-1.5 text-center">Trạng thái</th></tr></thead>
+                <tbody>${[...(proj.tasks || [])].sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true })).map(t => { const leaf = isLeafTask(proj.tasks, t); const m = getTaskMetrics(proj.tasks, t, atMs); const depth = Math.max(0, String(t.c || '').split('.').length - 1); return `<tr class="border-b border-slate-200 ${!leaf ? 'bg-slate-100 font-bold' : ''}"><td class="p-1.5" style="padding-left:${6 + depth * 10}px">${esc(t.c)} ${esc(t.name)} ${!leaf ? '<span class="text-[9px] text-blue-700 font-semibold">[Cấp cha]</span>' : ''}</td><td class="p-1.5">${esc(t.contractor || (leaf ? '' : 'Tổng hợp'))}</td><td class="p-1.5 text-center whitespace-nowrap">${fmtDateVN(m.ps)} → ${fmtDateVN(m.pe)}</td><td class="p-1.5 text-center">${m.p.toFixed(0)}%</td><td class="p-1.5 text-center font-bold">${m.a.toFixed(0)}%</td><td class="p-1.5 text-center">${esc(getTaskStatus(m, atMs))}</td></tr>`; }).join('') || '<tr><td colspan="6" class="p-3 text-center text-slate-400">Chưa có hạng mục tiến độ</td></tr>'}</tbody>
               </table>
               ${cp && cp.chain && cp.chain.length ? `<div class="mt-2 p-2 bg-rose-50 border border-rose-200 rounded-lg text-[10px]"><b>Đường găng (${cp.fin} ngày):</b> ${cp.chain.map(n => `[${esc(n.t.c)}] ${esc(n.t.name)}`).join(' → ')}</div>` : ''}
             </div>${makeFooter(ftrLabel, pg++)}</div>`);
@@ -5091,14 +5290,29 @@
           return { k, count: kl.length, weight: (kl.reduce((s, t) => s + (Number(t.weight) || 1), 0) / (leaves.reduce((s, x) => s + (Number(x.weight) || 1), 0) || 1)) * 100, p: ag.p, a: ag.a, diff, statusTxt };
         }).sort((a, b) => b.diff - a.diff);
 
-        const taskDetailRows = leaves.map(t => {
+        const allSortedForRpt = [...(proj.tasks || [])].sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true }));
+        const taskDetailRows = allSortedForRpt.map(t => {
+          const leaf = isLeafTask(proj.tasks, t);
           const m = getTaskMetrics(proj.tasks, t, atMs);
-          const pct = Number(t.progress) || 0;
-          const actAs = t.as || (pct > 0 ? t.ps : '');
-          const actAe = pct >= 99.5 ? (t.ae || state.reportDate) : '';
+          const depth = Math.max(0, String(t.c || '').split('.').length - 1);
+          let actAs = '', actAe = '';
+          if (leaf) {
+            const pct = Number(t.progress) || 0;
+            actAs = t.as || (pct > 0 ? t.ps : '');
+            actAe = pct >= 99.5 ? (t.ae || state.reportDate) : '';
+          } else {
+            const kids = (proj.tasks || []).filter(x => x && String(x.c || '').startsWith(String(t.c) + '.') && isLeafTask(proj.tasks, x));
+            const asList = kids.map(k => k.as || ((Number(k.progress) || 0) > 0 ? k.ps : '')).filter(Boolean).sort();
+            actAs = asList[0] || '';
+            const allDone = kids.length > 0 && kids.every(k => (Number(k.progress) || 0) >= 99.5);
+            if (allDone) {
+              const aeList = kids.map(k => k.ae || state.reportDate).filter(Boolean).sort();
+              actAe = aeList[aeList.length - 1] || '';
+            }
+          }
           const diff = m.a - m.p;
           const stTxt = m.a >= 99.5 ? 'Hoàn thành' : (diff >= 3 ? `Nhanh +${diff.toFixed(1)}%` : (diff >= -3 ? 'Đúng tiến độ' : (diff >= -10 ? `Chậm nhẹ ${diff.toFixed(1)}%` : `Trễ ${diff.toFixed(1)}%`)));
-          return { c: t.c, name: t.name, contractor: t.contractor || '—', ps: m.ps, pe: m.pe, as: actAs, ae: actAe, p: m.p, a: m.a, diff, stTxt, isCrit: critSet.has(t.c), note: t.note || '' };
+          return { c: t.c, name: t.name, isParent: !leaf, depth, contractor: t.contractor || (leaf ? '—' : 'Tổng hợp'), ps: m.ps, pe: m.pe, as: actAs, ae: actAe, p: m.p, a: m.a, diff, stTxt, isCrit: leaf && critSet.has(t.c), note: t.note || '' };
         });
 
         const totalBudget = (proj.budgetItems || []).reduce((s, b) => s + (Number(b.budget) || 0), 0) || (Number(proj.tmdt) || 0);
@@ -5149,7 +5363,7 @@
           <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">2. Bảng Chi tiết từng Công việc (Nắm tiến độ &amp; Găng)</div>
           <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:14px;">
             <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4px 5px;text-align:left;">Mã &amp; Tên công việc</th><th style="padding:4px 5px;text-align:left;">Nhà thầu</th><th style="padding:4px 5px;text-align:center;">KH (BĐ→KT)</th><th style="padding:4px 5px;text-align:center;">TT (BĐ→KT)</th><th style="padding:4px 5px;text-align:right;">% KH</th><th style="padding:4px 5px;text-align:right;">% TT</th><th style="padding:4px 5px;text-align:center;">Đánh giá</th><th style="padding:4px 5px;text-align:left;">Ghi chú</th></tr></thead>
-            <tbody>${taskDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(r.c)}</strong> ${esc(r.name)} ${r.isCrit ? '<span style="color:#be123c;font-weight:700;">[GĂNG]</span>' : ''}</td><td style="padding:3.5px 5px;">${esc(r.contractor)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.ps)}→${fmtDateVN(r.pe)}</td><td style="padding:3.5px 5px;text-align:center;">${r.as ? fmtDateVN(r.as) : '—'}→${r.ae ? fmtDateVN(r.ae) : (r.as ? 'Đang TH' : '—')}</td><td style="padding:3.5px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.stTxt)}</td><td style="padding:3.5px 5px;color:#475569;">${esc(r.note || '—')}</td></tr>`).join('')}</tbody>
+            <tbody>${taskDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;${r.isParent ? 'background:#f1f5f9;font-weight:700;' : ''}"><td style="padding:3.5px 5px;padding-left:${5 + r.depth * 10}px;"><strong>${esc(r.c)}</strong> ${esc(r.name)} ${r.isParent ? '<span style="color:#1d4ed8;font-size:8px;font-weight:700;">[CẤP CHA]</span>' : ''} ${r.isCrit ? '<span style="color:#be123c;font-weight:700;">[GĂNG]</span>' : ''}</td><td style="padding:3.5px 5px;">${esc(r.contractor)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.ps)}→${fmtDateVN(r.pe)}</td><td style="padding:3.5px 5px;text-align:center;">${r.as ? fmtDateVN(r.as) : '—'}→${r.ae ? fmtDateVN(r.ae) : (r.as ? 'Đang TH' : '—')}</td><td style="padding:3.5px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.stTxt)}</td><td style="padding:3.5px 5px;color:#475569;">${esc(r.note || '—')}</td></tr>`).join('')}</tbody>
           </table>` : '';
 
         const payHtml = showPay ? `
@@ -5823,8 +6037,10 @@
           const pDays = Math.max(1, Math.round((m.pe - m.ps) / DAY) + 1);
           const cpmN = cp && cp.map ? cp.map[t.c] : null;
           const pct = Number(m.a) || 0;
-          const asStr = leaf ? (t.as || (pct > 0 ? t.ps : '')) : '';
-          const aeStr = leaf ? (pct >= 99.5 ? (t.ae || state.reportDate) : '') : '';
+          const kidsForDates = leaf ? [] : proj.tasks.filter(x => x && String(x.c || '').startsWith(String(t.c) + '.') && isLeafTask(proj.tasks, x));
+          const asStr = leaf ? (t.as || (pct > 0 ? t.ps : '')) : (kidsForDates.map(k => k.as || ((Number(k.progress) || 0) > 0 ? k.ps : '')).filter(Boolean).sort()[0] || '');
+          const allKidsDone = !leaf && kidsForDates.length > 0 && kidsForDates.every(k => (Number(k.progress) || 0) >= 99.5);
+          const aeStr = leaf ? (pct >= 99.5 ? (t.ae || state.reportDate) : '') : (allKidsDone ? (kidsForDates.map(k => k.ae || state.reportDate).filter(Boolean).sort().pop() || '') : '');
           const aDays = asStr ? Math.max(1, Math.round(((aeStr ? iso(aeStr) : atMs) - iso(asStr)) / DAY) + 1) : '';
           const kidsCount = leaf ? 0 : proj.tasks.filter(x => x && String(x.c || '').startsWith(String(t.c) + '.') && isLeafTask(proj.tasks, x)).length;
           masterRows.push([
@@ -6038,6 +6254,8 @@
         document.getElementById('sched-panel-plan').classList.toggle('hidden', mode !== 'plan');
         document.getElementById('sched-panel-combine').classList.toggle('hidden', mode !== 'plan');
         document.getElementById('sched-panel-wbs').classList.toggle('hidden', !isWbsMode);
+        const _ganttCard = document.getElementById('sched-gantt-card');
+        if (_ganttCard) _ganttCard.classList.toggle('hidden', !isWbsMode && mode !== 'cpm');
         document.getElementById('cpm-summary-grid').classList.toggle('hidden', !isWbsMode && mode !== 'cpm');
         document.getElementById('cpm-critical-chain').classList.toggle('hidden', !isWbsMode && mode !== 'cpm');
         document.getElementById('sched-panel-tracking').classList.toggle('hidden', mode !== 'tracking');
@@ -6089,6 +6307,43 @@
       document.getElementById('task-search').addEventListener('input', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
       document.getElementById('task-filter-status').addEventListener('change', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
       document.getElementById('gantt-crit-only').addEventListener('change', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
+      (function wireGanttZoomControls() {
+        const updateInlineZoom = (next) => {
+          ganttZoomScale = next;
+          const lbl = document.getElementById('gantt-zoom-label');
+          if (lbl) lbl.textContent = next === 'fit' ? 'Vừa' : Math.round(next * 100) + '%';
+          const p = getViewProject();
+          renderGanttChart(p, calcCPM(p.tasks), getReportMs());
+        };
+        const updateFsZoom = (next) => {
+          ganttFsZoomScale = next;
+          const lbl = document.getElementById('gantt-fs-zoom-label');
+          if (lbl) lbl.textContent = next === 'fit' ? 'Vừa' : Math.round(next * 100) + '%';
+          const p = getViewProject();
+          drawGanttOnCanvas(document.getElementById('gantt-fullscreen-canvas'), document.getElementById('gantt-fs-scroll-wrap'), p, calcCPM(p.tasks), getReportMs(), ganttFsZoomScale);
+        };
+        const bOut = document.getElementById('btn-gantt-zoom-out');
+        const bIn = document.getElementById('btn-gantt-zoom-in');
+        const bFit = document.getElementById('btn-gantt-zoom-fit');
+        const bFs = document.getElementById('btn-gantt-fullscreen');
+        const fsModal = document.getElementById('gantt-fullscreen-modal');
+        const fsClose = document.getElementById('btn-gantt-fs-close');
+        const fsOut = document.getElementById('btn-gantt-fs-zoom-out');
+        const fsIn = document.getElementById('btn-gantt-fs-zoom-in');
+        const fsFit = document.getElementById('btn-gantt-fs-zoom-fit');
+        if (bOut) bOut.addEventListener('click', () => updateInlineZoom(Math.max(0.6, Number(ganttZoomScale === 'fit' ? 1 : ganttZoomScale) - 0.25)));
+        if (bIn) bIn.addEventListener('click', () => updateInlineZoom(Math.min(3, Number(ganttZoomScale === 'fit' ? 1 : ganttZoomScale) + 0.35)));
+        if (bFit) bFit.addEventListener('click', () => updateInlineZoom('fit'));
+        if (bFs && fsModal) bFs.addEventListener('click', () => {
+          fsModal.classList.remove('hidden');
+          updateFsZoom(ganttFsZoomScale || 'fit');
+        });
+        if (fsClose && fsModal) fsClose.addEventListener('click', () => fsModal.classList.add('hidden'));
+        if (fsModal) fsModal.addEventListener('click', e => { if (e.target === fsModal) fsModal.classList.add('hidden'); });
+        if (fsOut) fsOut.addEventListener('click', () => updateFsZoom(Math.max(0.6, Number(ganttFsZoomScale === 'fit' ? 1 : ganttFsZoomScale) - 0.25)));
+        if (fsIn) fsIn.addEventListener('click', () => updateFsZoom(Math.min(3.5, Number(ganttFsZoomScale === 'fit' ? 1 : ganttFsZoomScale) + 0.4)));
+        if (fsFit) fsFit.addEventListener('click', () => updateFsZoom('fit'));
+      })();
 
       ['cfg-owner', 'cfg-week', 'cfg-pm', 'cfg-approver', 'cfg-nextplan'].forEach(id => {
         document.getElementById(id).addEventListener('input', e => {
@@ -6128,15 +6383,21 @@
           const t = proj.tasks.find(x => x.id === el.dataset.taskAsId);
           if (t) {
             t.as = el.value;
+            if (t.as && t.ps && t.pe) {
+              const planDays = Math.max(1, Math.round((iso(t.pe) - iso(t.ps)) / DAY) + 1);
+              const eD = new Date(iso(t.as) + (planDays - 1) * DAY);
+              t.ae = eD.toISOString().slice(0, 10);
+            } else if (!t.as) {
+              t.ae = '';
+            }
             t.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
-            saveState(); renderAll(); showToast(`Đã cập nhật ngày BĐ thực tế [${t.c}]: ${el.value ? fmtDateVN(el.value) : 'Trống'}`);
+            saveState(); renderAll(); showToast(`Đã cập nhật BĐ TT [${t.c}]${t.ae ? ' & tự tính KT TT: ' + fmtDateVN(t.ae) : ''}`);
           }
         } else if (el.dataset.taskAeId) {
           if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => x.id === el.dataset.taskAeId);
           if (t) {
             t.ae = el.value;
-            if (t.ae && Number(t.progress) < 100) t.progress = 100;
             t.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
             const diffD = (t.ae && t.pe) ? Math.round((iso(t.ae) - iso(t.pe)) / DAY) : 0;
             proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: t.contractor || 'Nhà thầu', task: `${t.c} ${t.name}`, change: `KT TT: ${t.ae ? fmtDateVN(t.ae) : '—'}${diffD > 0 ? ' (Trễ +' + diffD + 'n)' : ''}` });
@@ -6339,8 +6600,10 @@
           if (c) {
             const fld = el.dataset.advField;
             c[fld] = fld === 'adv' ? parseVnd(el.value) : el.value;
+            let shiftedCnt = 0;
+            if (fld === 'advDate' && c.advDate) shiftedCnt = syncContractorScheduleFromAdv(proj, c);
             saveState(); renderAll();
-            showToast('Đã cập nhật thông tin tạm ứng hợp đồng');
+            showToast(shiftedCnt ? 'Đã cập nhật ngày tạm ứng & tự động cộng dồn link tiến độ nhà thầu' : 'Đã cập nhật thông tin tạm ứng hợp đồng');
           }
         } else if (el.classList.contains('photo-upload-input')) {
           const file = el.files[0]; if (!file) return;
@@ -6438,8 +6701,9 @@
           if (c && Number(c.adv) > 0) {
             c.advDate = state.reportDate;
             if (!c.advInvDate) c.advInvDate = state.reportDate;
+            const shiftedCnt = syncContractorScheduleFromAdv(proj, c);
             saveState(); renderAll();
-            showToast(`Đã duyệt chi tạm ứng ${fmtTy(c.adv)} cho ${c.contractor}`);
+            showToast(`Đã duyệt chi tạm ứng ${fmtTy(c.adv)} cho ${c.contractor}` + (shiftedCnt ? ' & đồng bộ tiến độ' : ''));
           }
         } else if (action === 'approve-round') {
           const c = proj.contracts.find(x => String(x.id) === String(btn.dataset.cid));
@@ -7211,6 +7475,7 @@
             liveC.status = fd.get('status') || 'Đã ký';
             liveC.payTermDays = Math.max(1, Number(fd.get('payTermDays')) || 15);
             liveC.advDate = fd.get('advDate') || '';
+            if (liveC.advDate) syncContractorScheduleFromAdv(proj, liveC);
             saveState();
             if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → Hợp đồng ${liveC.code}`;
             closeModal();
@@ -7593,28 +7858,51 @@
       document.getElementById('btn-save-version').addEventListener('click', () => {
         const proj = getActiveProject();
         const atMs = getReportMs();
-        const ag = aggTasks(getLeafTasks(proj.tasks), atMs);
-        const nextVer = (proj.scheduleVersions || []).reduce((mx, v) => Math.max(mx, v.ver || 0), 0) + 1;
+        const ag = aggTasks(getLeafTasks(proj.tasks || []), atMs);
+        const nextVer = (proj.scheduleVersions || []).reduce((mx, v) => Math.max(mx, Number(v.ver) || 0), 0) + 1;
         openModal(`Lưu phiên bản cập nhật tiến độ (Ver ${nextVer})`, `
           <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <div>% Kế hoạch: <b>${ag.p.toFixed(1)}%</b></div>
-            <div>% Thực tế: <b class="text-brand-700">${ag.a.toFixed(1)}%</b> (SPI ${ag.spi.toFixed(2)})</div>
+            <div>% Kế hoạch: <b>${(Number.isFinite(ag.p) ? ag.p : 0).toFixed(1)}%</b></div>
+            <div>% Thực tế: <b class="text-brand-700">${(Number.isFinite(ag.a) ? ag.a : 0).toFixed(1)}%</b> (SPI ${(Number.isFinite(ag.spi) ? ag.spi : 1).toFixed(2)})</div>
           </div>
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên phiên bản</label><input name="label" value="Ver ${nextVer} — Cập nhật ${fmtDateVN(state.reportDate)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú thay đổi</label><input name="note" placeholder="VD: Cập nhật khối lượng tuần mới..." class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
         `, fd => {
-          proj.scheduleVersions.push({
+          const liveProj = getActiveProject();
+          if (!Array.isArray(liveProj.scheduleVersions)) liveProj.scheduleVersions = [];
+          const liveVer = liveProj.scheduleVersions.reduce((mx, v) => Math.max(mx, Number(v.ver) || 0), 0) + 1;
+          const liveAtMs = getReportMs();
+          const liveAg = aggTasks(getLeafTasks(liveProj.tasks || []), liveAtMs);
+          liveProj.scheduleVersions.push({
             id: 'v' + Date.now(),
-            ver: nextVer,
-            label: fd.get('label').trim(),
-            date: state.reportDate,
-            planPct: Number(ag.p.toFixed(1)),
-            actualPct: Number(ag.a.toFixed(1)),
-            spi: Number(ag.spi.toFixed(2)),
-            note: fd.get('note').trim(),
-            snapshot: proj.tasks.map(t => ({ id: t.id, c: t.c, name: t.name, contractor: t.contractor, ps: t.ps, pe: t.pe, as: t.as || '', ae: t.ae || '', progress: t.progress, planPct: Number(calcPlannedPct(t, atMs).toFixed(1)) }))
+            ver: liveVer,
+            label: (fd.get('label') || '').trim() || `Ver ${liveVer} — Cập nhật ${fmtDateVN(state.reportDate)}`,
+            date: state.reportDate || new Date().toISOString().slice(0, 10),
+            planPct: Number((Number.isFinite(liveAg.p) ? liveAg.p : 0).toFixed(1)),
+            actualPct: Number((Number.isFinite(liveAg.a) ? liveAg.a : 0).toFixed(1)),
+            spi: Number((Number.isFinite(liveAg.spi) ? liveAg.spi : 1).toFixed(2)),
+            note: (fd.get('note') || '').trim(),
+            snapshot: (liveProj.tasks || []).map(t => {
+              const pVal = calcPlannedPct(t, liveAtMs);
+              return {
+                id: String(t.id || ''),
+                c: String(t.c || ''),
+                name: String(t.name || ''),
+                contractor: String(t.contractor || ''),
+                ps: String(t.ps || ''),
+                pe: String(t.pe || ''),
+                as: String(t.as || ''),
+                ae: String(t.ae || ''),
+                progress: Number(t.progress) || 0,
+                planPct: Number.isFinite(pVal) ? Number(pVal.toFixed(1)) : 0
+              };
+            })
           });
-          saveState(); closeModal(); renderAll(); showToast(`Đã lưu phiên bản tiến độ Ver ${nextVer}`);
+          saveState();
+          closeModal();
+          renderAll();
+          renderScheduleVersionsTable(getViewProject());
+          showToast(`Đã lưu phiên bản tiến độ Ver ${liveVer}`);
         });
       });
 
@@ -11159,7 +11447,53 @@ function doPost(e) {
         if (!na || !nb) return false;
         if (na === nb || na.includes(nb) || nb.includes(na)) return true;
         const ia = contractorInitials(a), ib = contractorInitials(b);
-        return (ia.length >= 2 && (ia === nb || ib === na || (ib.length >= 2 && ia === ib)));
+        if (ia.length >= 2 && (ia === nb || ib === na || (ib.length >= 2 && ia === ib))) return true;
+        const stop = new Set(['nha', 'thau', 'cong', 'ty', 'tnhh', 'cp', 'co', 'phan', 'goi', 'he', 'thong', 'cac']);
+        const ta = na.split(/[^a-z0-9]+/).filter(w => w.length >= 2 && !stop.has(w));
+        const tb = new Set(nb.split(/[^a-z0-9]+/).filter(w => w.length >= 2 && !stop.has(w)));
+        const shared = ta.filter(w => tb.has(w));
+        if (shared.length >= 2) return true;
+        if (na.includes('tong thau') && nb.includes('tong thau')) return true;
+        return false;
+      }
+
+      function syncContractorScheduleFromAdv(proj, onlyContract) {
+        if (!proj || !Array.isArray(proj.tasks)) return 0;
+        const targets = onlyContract ? [onlyContract] : (proj.contracts || []);
+        let shifted = 0;
+        targets.forEach(c => {
+          if (!c || !c.advDate || !c.contractor) return;
+          const kTasks = proj.tasks.filter(t => isLeafTask(proj.tasks, t) && (matchContractorName(t.contractor, c.contractor) || matchContractorName(t.contractor, c.name)));
+          if (!kTasks.length) return;
+          const psList = kTasks.map(t => iso(t.ps)).filter(Boolean);
+          if (!psList.length) return;
+          const minPs = Math.min(...psList);
+          const advMs = iso(c.advDate);
+          if (!isFinite(minPs) || !advMs || minPs === advMs) return;
+          const deltaDays = Math.round((advMs - minPs) / DAY);
+          kTasks.forEach(t => {
+            const sD = new Date(iso(t.ps)); sD.setDate(sD.getDate() + deltaDays);
+            const eD = new Date(iso(t.pe)); eD.setDate(eD.getDate() + deltaDays);
+            t.ps = sD.toISOString().slice(0, 10);
+            t.pe = eD.toISOString().slice(0, 10);
+            if (t.as) {
+              const aD = new Date(iso(t.as)); aD.setDate(aD.getDate() + deltaDays);
+              t.as = aD.toISOString().slice(0, 10);
+            }
+          });
+          // Recompute parent summary task plan dates from shifted children
+          proj.tasks.forEach(pt => {
+            if (isLeafTask(proj.tasks, pt)) return;
+            const kids = proj.tasks.filter(x => x && String(x.c || '').startsWith(String(pt.c) + '.') && isLeafTask(proj.tasks, x));
+            if (!kids.length) return;
+            const kPs = kids.map(x => iso(x.ps)).filter(Boolean);
+            const kPe = kids.map(x => iso(x.pe)).filter(Boolean);
+            if (kPs.length) pt.ps = new Date(Math.min(...kPs)).toISOString().slice(0, 10);
+            if (kPe.length) pt.pe = new Date(Math.max(...kPe)).toISOString().slice(0, 10);
+          });
+          shifted++;
+        });
+        return shifted;
       }
 
       function renderOwnerMasterTable(proj, atMs) {
@@ -11282,7 +11616,7 @@ function doPost(e) {
         const skipOwnerCmp = proj.projectType === 'maintenance' && !isSubModuleEnabledForProject(proj, 'sch_owner');
         const owners = skipOwnerCmp ? [] : (proj.ownerMasterItems || []);
         const rows = Object.entries(byK).map(([k, kLeaves]) => {
-          const cObj = (proj.contracts || []).find(c => (c.contractor || '').toLowerCase() === k.toLowerCase());
+          const cObj = (proj.contracts || []).find(c => matchContractorName(c.contractor, k)) || (proj.contracts || []).find(c => c.advDate && matchContractorName(c.name, k));
           const advDate = cObj && cObj.advDate ? cObj.advDate : '';
           const minPs = Math.min(...kLeaves.map(t => iso(t.ps)).filter(Boolean));
           const maxPe = Math.max(...kLeaves.map(t => iso(t.pe)).filter(Boolean));
@@ -11314,7 +11648,7 @@ function doPost(e) {
         const bodyEl = document.getElementById('contractor-rev-compare-body');
         if (!infoEl || !selEl || !bodyEl) return;
         const kKey = selectedContractor || '__ALL__';
-        const cObj = selectedContractor ? (proj.contracts || []).find(c => (c.contractor || '').toLowerCase() === selectedContractor.toLowerCase()) : null;
+        const cObj = selectedContractor ? ((proj.contracts || []).find(c => matchContractorName(c.contractor, selectedContractor)) || (proj.contracts || []).find(c => c.advDate && matchContractorName(c.name, selectedContractor))) : null;
         infoEl.innerHTML = selectedContractor
           ? `Nhà thầu: <strong>${esc(selectedContractor)}</strong> • Mốc Ngày tạm ứng: <strong class="text-brand-700">${cObj && cObj.advDate ? fmtDateVN(cObj.advDate) : 'Chưa khai báo (dùng ngày KH gốc)'}</strong>`
           : `Đang xem <strong>Toàn bộ nhà thầu</strong> • Chọn 1 thẻ nhà thầu phía trên để xem mốc Tạm ứng và lưu Rev riêng`;
@@ -11496,23 +11830,7 @@ function doPost(e) {
         btnSyncAdv.addEventListener('click', () => {
           if (!canEditModule('schedule')) { showToast('Không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const proj = getActiveProject();
-          let shifted = 0;
-          (proj.contracts || []).forEach(c => {
-            if (!c.advDate || !c.contractor) return;
-            const kTasks = (proj.tasks || []).filter(t => isLeafTask(proj.tasks, t) && (t.contractor || '').toLowerCase() === c.contractor.toLowerCase());
-            if (!kTasks.length) return;
-            const minPs = Math.min(...kTasks.map(t => iso(t.ps)).filter(Boolean));
-            const advMs = iso(c.advDate);
-            if (!isFinite(minPs) || !advMs || minPs === advMs) return;
-            const deltaDays = Math.round((advMs - minPs) / DAY);
-            kTasks.forEach(t => {
-              const sD = new Date(iso(t.ps)); sD.setDate(sD.getDate() + deltaDays);
-              const eD = new Date(iso(t.pe)); eD.setDate(eD.getDate() + deltaDays);
-              t.ps = sD.toISOString().slice(0, 10);
-              t.pe = eD.toISOString().slice(0, 10);
-            });
-            shifted++;
-          });
+          const shifted = syncContractorScheduleFromAdv(proj);
           if (shifted) { saveState(); renderAll(); showToast(`Đã đồng bộ mốc bắt đầu theo Ngày Tạm ứng cho ${shifted} nhà thầu`); }
           else showToast('Các nhà thầu đã khớp Ngày Tạm ứng hoặc chưa có Ngày Tạm ứng trong hợp đồng', 'info');
         });
@@ -11542,5 +11860,39 @@ function doPost(e) {
       renderAll();
     })();
   </script>
+
+  <!-- Fullscreen Gantt Timeline Modal -->
+  <div id="gantt-fullscreen-modal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+    <div class="w-[97vw] h-[93vh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-slate-900 text-base">Timeline Tổng thể — Kế hoạch vs Thực tế &amp; Ràng buộc</h3>
+            <span id="gantt-fs-scope-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"></span>
+          </div>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-slate-600">
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-blue-500 border border-blue-700"></span> Kế hoạch</span>
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-emerald-500"></span> Thực tế (Đúng hạn)</span>
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-amber-500"></span> Thực tế (Đang làm)</span>
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-2 rounded-sm bg-rose-600"></span> Thực tế Trễ / Đường găng</span>
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 border-t-2 border-slate-500"></span>➔ Ràng buộc (FS/SS/FF/SF)</span>
+            <span class="inline-flex items-center gap-1"><span class="inline-block w-3 border-t-2 border-dashed border-emerald-600"></span> Ngày báo cáo</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white p-0.5 text-xs">
+            <button id="btn-gantt-fs-zoom-out" type="button" class="px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-700 font-bold">➖</button>
+            <span id="gantt-fs-zoom-label" class="px-2 py-1 font-semibold text-slate-700 min-w-[48px] text-center">Vừa</span>
+            <button id="btn-gantt-fs-zoom-in" type="button" class="px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-700 font-bold">➕</button>
+            <button id="btn-gantt-fs-zoom-fit" type="button" class="px-2.5 py-1 rounded-lg hover:bg-slate-100 text-brand-700 font-medium border-l border-slate-200 ml-0.5">⊞ Vừa màn hình</button>
+          </div>
+          <button id="btn-gantt-fs-close" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">✕ Đóng</button>
+        </div>
+      </div>
+      <div id="gantt-fs-scroll-wrap" class="flex-1 overflow-auto p-4 bg-white">
+        <canvas id="gantt-fullscreen-canvas" width="1400" height="400"></canvas>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
