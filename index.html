@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KIMTIN GROUP — Hệ thống Quản lý Dự án Đầu tư Xây dựng</title>
+  <title>KIMTIN GROUP — Hệ thống Quản lý Dự án</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -328,7 +328,7 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="font-semibold text-slate-900 text-base">Danh mục Toàn bộ Dự án Đầu tư Xây dựng</h3>
+              <h3 class="font-semibold text-slate-900 text-base">Danh mục Toàn bộ Dự án</h3>
               <p class="text-xs text-slate-500">Hiển thị đồng thời tất cả dự án, so sánh ngân sách, giải ngân, công nợ &amp; tiến độ tổng hợp</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -340,6 +340,9 @@
                 <option value="Tạm dừng">Tạm dừng</option>
                 <option value="Hoàn thành">Hoàn thành</option>
               </select>
+              <button id="btn-batch-maintenance-cfg" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">
+                ⚙ Cấu hình Bảo trì hàng loạt
+              </button>
               <button id="btn-new-project-2" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition">
                 + Thêm dự án mới
               </button>
@@ -2929,7 +2932,7 @@
         { key: 'docs', label: 'Thư viện Hồ sơ', children: [] }
       ];
       const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'weekly', 'mytasks', 'docs'];
-      const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_owner', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
+      const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_plan', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
 
       function isModuleEnabledForProject(proj, modKey) {
         if (state.viewAllProjects || modKey === 'projects' || !proj) return true;
@@ -7283,6 +7286,72 @@
       }
       document.getElementById('btn-new-project').addEventListener('click', openNewProjectModal);
       document.getElementById('btn-new-project-2').addEventListener('click', openNewProjectModal);
+      const _btnBatchMaint = document.getElementById('btn-batch-maintenance-cfg');
+      if (_btnBatchMaint) _btnBatchMaint.addEventListener('click', () => {
+        if (!isAdminUser()) { showToast('Chỉ Admin mới được cấu hình hàng loạt', 'error'); return; }
+        const projs = state.projects || [];
+        const cfgHtml = buildProjectTypeFieldsHtml('maintenance', DEFAULT_MAINTENANCE_MODULES, DEFAULT_MAINTENANCE_SUBMODULES);
+        openModal('⚙ Áp dụng Cấu hình Bảo trì Hàng loạt', `
+          <div class="space-y-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-800">1. Chọn các dự án cần áp dụng đồng loạt:</span>
+                <div class="flex gap-1.5">
+                  <button type="button" id="btn-batch-pick-maint" class="text-[11px] font-medium px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">Chỉ DA Bảo trì</button>
+                  <button type="button" id="btn-batch-pick-all" class="text-[11px] font-medium px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">Chọn tất cả</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                ${projs.map(p => {
+                  const isM = p.projectType === 'maintenance' || /bảo trì/i.test(p.name || '');
+                  return `<label class="flex items-center gap-2 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer hover:bg-brand-50">
+                    <input type="checkbox" name="batchProjectIds" value="${esc(p.id)}" data-is-maint="${isM ? '1' : '0'}" ${isM ? 'checked' : ''} class="accent-brand-600" />
+                    <span class="font-bold text-slate-800">${esc(p.code)}</span>
+                    <span class="text-slate-600 truncate">${esc(p.name)}</span>
+                  </label>`;
+                }).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-800 mb-1">2. Cấu hình phân hệ &amp; mục con áp dụng (đã chọn sẵn định dạng Bảo trì):</div>
+              ${cfgHtml}
+            </div>
+          </div>
+        `, fd => {
+          const targetIds = new Set(fd.getAll('batchProjectIds').map(String));
+          if (!targetIds.size) { showToast('Vui lòng chọn ít nhất 1 dự án', 'error'); return; }
+          const pType = fd.get('projectType') === 'maintenance' ? 'maintenance' : 'new';
+          const selMods = fd.getAll('visibleModules');
+          const selSubs = fd.getAll('visibleSubModules');
+          const allSubKeys = PROJECT_OPTIONAL_MODULES.flatMap(m => (m.children || []).map(c => c.key));
+          const visMods = pType === 'maintenance' ? (selMods.length ? selMods : ['overview']) : PROJECT_OPTIONAL_MODULES.map(m => m.key);
+          const visSubs = pType === 'maintenance' ? selSubs : allSubKeys;
+          let cnt = 0;
+          state.projects.forEach(p => {
+            if (targetIds.has(String(p.id))) {
+              p.projectType = pType;
+              p.visibleModules = [...visMods];
+              p.visibleSubModules = [...visSubs];
+              cnt++;
+            }
+          });
+          saveState(); closeModal(); renderAll();
+          showToast(`Đã áp dụng cấu hình đồng loạt cho ${cnt} dự án!`);
+        });
+        setTimeout(() => {
+          bindProjectTypeModalEvents();
+          const pWrap = document.getElementById('modal-proj-type')?.closest('div');
+          if (pWrap) pWrap.classList.add('hidden');
+          const mBox = document.getElementById('modal-proj-modules-wrap')?.closest('.max-w-lg, .max-w-xl, .max-w-2xl, .max-w-4xl');
+          if (mBox) { mBox.classList.remove('max-w-lg', 'max-w-xl', 'max-w-2xl'); mBox.classList.add('max-w-4xl'); }
+          document.getElementById('btn-batch-pick-maint')?.addEventListener('click', () => {
+            document.querySelectorAll('input[name="batchProjectIds"]').forEach(cb => { cb.checked = cb.dataset.isMaint === '1'; });
+          });
+          document.getElementById('btn-batch-pick-all')?.addEventListener('click', () => {
+            document.querySelectorAll('input[name="batchProjectIds"]').forEach(cb => { cb.checked = true; });
+          });
+        }, 30);
+      });
 
       document.getElementById('btn-snap-progress').addEventListener('click', () => {
         const proj = getActiveProject(), leaves = getLeafTasks(proj.tasks);
@@ -9154,6 +9223,8 @@ function doPost(e) {
         if (btnNewProj) btnNewProj.classList.toggle('hidden', !isAdmin);
         const btnNewProj2 = document.getElementById('btn-new-project-2');
         if (btnNewProj2) btnNewProj2.classList.toggle('hidden', !isAdmin);
+        const btnBatchMaint = document.getElementById('btn-batch-maintenance-cfg');
+        if (btnBatchMaint) btnBatchMaint.classList.toggle('hidden', !isAdmin);
         document.querySelectorAll('#project-directory-body [data-action="delete-project"]').forEach(b => b.classList.toggle('hidden', !isAdmin));
         const btnResetDemo = document.getElementById('btn-reset-demo');
         if (btnResetDemo) btnResetDemo.classList.toggle('hidden', !isAdmin);
@@ -11051,8 +11122,8 @@ function doPost(e) {
                 const sDates = kLeaves.map(t => t.as || t.ps).filter(Boolean).sort();
                 const allDone = kLeaves.every(t => Number(t.progress) >= 100);
                 const eDates = allDone ? kLeaves.map(t => t.ae || t.pe).filter(Boolean).sort() : kLeaves.map(t => t.pe).filter(Boolean).sort();
-                if (!effActStart && sDates.length) effActStart = sDates[0];
-                if (!effActEnd && eDates.length) effActEnd = eDates[eDates.length - 1];
+                if (!om.manualActual && sDates.length) effActStart = sDates[0];
+                if (!om.manualActual && eDates.length) effActEnd = eDates[eDates.length - 1];
                 if (!om.manualProg) effProg = Math.round(aggTasks(kLeaves, refMs).a);
               }
               const pkgLabel = om.packageName || (kContract ? `${kContract.code} — ${kContract.name}` : '');
