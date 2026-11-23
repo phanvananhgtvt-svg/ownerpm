@@ -2438,13 +2438,18 @@
             ...r,
             id: String(r.id || ('rd_' + j)),
             label: String(r.label || ('Đợt ' + (j + 1))),
-            amount: Number(r.amount) || 0,
             splits: Array.isArray(r.splits) ? r.splits.filter(sp => sp && typeof sp === 'object').map((sp, k) => ({
               id: String(sp.id || ('sp_' + j + '_' + k)),
               amount: Number(sp.amount) || 0,
               payDate: String(sp.payDate || ''),
               note: String(sp.note || '')
-            })) : []
+            })) : [],
+            amount: (() => {
+              const sps = Array.isArray(r.splits) ? r.splits.filter(sp => sp && typeof sp === 'object') : [];
+              const spSum = sps.reduce((s, sp) => s + (Number(sp.amount) || 0), 0);
+              const rawAmt = Number(r.amount) || 0;
+              return spSum > rawAmt ? spSum : rawAmt;
+            })()
           }))
         };
         });
@@ -2715,13 +2720,15 @@
         const total = Number(r && r.amount) || 0;
         const splits = (r && Array.isArray(r.splits)) ? r.splits : [];
         if (splits.length > 0) {
+          const splitSum = splits.reduce((s, sp) => s + (Number(sp.amount) || 0), 0);
+          const effTotal = Math.max(total, splitSum);
           const paid = splits.filter(sp => Boolean(sp.payDate)).reduce((s, sp) => s + (Number(sp.amount) || 0), 0);
-          const remaining = Math.max(0, total - paid);
+          const remaining = Math.max(0, effTotal - paid);
           const submitted = (r.invDate && remaining > 0) ? remaining : 0;
           const isFullyPaid = paid > 0 && remaining <= 0;
           const isPartiallyPaid = paid > 0 && remaining > 0;
           const lastPayDate = splits.filter(sp => Boolean(sp.payDate)).map(sp => sp.payDate).sort().pop() || '';
-          return { total, paid, remaining, submitted, isFullyPaid, isPartiallyPaid, lastPayDate, hasSplits: true };
+          return { total: effTotal, paid, remaining, submitted, isFullyPaid, isPartiallyPaid, lastPayDate, hasSplits: true };
         }
         const paid = (r && r.payDate) ? total : 0;
         const remaining = (r && r.payDate) ? 0 : total;
@@ -3960,8 +3967,23 @@
                 <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${fmtDateVN(m.ps)}</td>
                 <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${fmtDateVN(m.pe)}</td>
                 <td class="py-2.5 px-2 text-center text-xs font-medium text-slate-700 whitespace-nowrap">${planDays} ngày</td>
-                <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${act.asStr ? fmtDateVN(act.asStr) : '—'}</td>
-                <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">${act.done ? fmtDateVN(act.aeStr) : (act.started ? '<span class="text-brand-600 font-medium">Đang triển khai</span>' : '<span class="text-slate-400">—</span>')}</td>
+                <td class="py-2.5 px-2 text-center text-xs text-slate-600 whitespace-nowrap">${leaf ? `<input type="date" value="${esc(t.as || act.asStr || '')}" data-task-as-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Sửa ngày bắt đầu thực tế" class="w-[116px] text-[11px] border border-slate-200 rounded-lg px-1.5 py-1 bg-white" />` : (act.asStr ? fmtDateVN(act.asStr) : '—')}</td>
+                <td class="py-2.5 px-2 text-center text-xs whitespace-nowrap">${leaf ? (() => {
+                  const aeVal = act.done ? (t.ae || act.aeStr || '') : '';
+                  let delayTag = '';
+                  if (act.done && aeVal && t.pe) {
+                    const diffD = Math.round((iso(aeVal) - iso(t.pe)) / DAY);
+                    delayTag = diffD > 0
+                      ? `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-bold">Trễ +${diffD} ngày</span></div>`
+                      : (diffD < 0
+                        ? `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Sớm ${-diffD} ngày</span></div>`
+                        : `<div class="mt-0.5"><span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Đúng hạn</span></div>`);
+                  } else if (act.started && !act.done) {
+                    const overNow = t.pe && atMs > iso(t.pe) ? Math.round((atMs - iso(t.pe)) / DAY) : 0;
+                    delayTag = overNow > 0 ? `<div class="mt-0.5 text-[10px] text-rose-600 font-semibold">Đang trễ +${overNow}n</div>` : `<div class="mt-0.5 text-[10px] text-brand-600 font-medium">Đang triển khai</div>`;
+                  }
+                  return `<input type="date" value="${esc(aeVal)}" data-task-ae-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Nhập ngày kết thúc thực tế để tính số ngày trễ" class="w-[116px] text-[11px] border ${act.done ? 'border-indigo-300 font-semibold text-indigo-800' : 'border-slate-200 text-slate-500'} rounded-lg px-1.5 py-1 bg-white" />${delayTag}`;
+                })() : (act.done ? fmtDateVN(act.aeStr) : (act.started ? '<span class="text-brand-600 font-medium">Đang triển khai</span>' : '<span class="text-slate-400">—</span>'))}</td>
                 <td class="py-2.5 px-2 text-center text-xs text-slate-700 whitespace-nowrap">${act.aDays ? act.aDays + ' ngày' : '—'}</td>
                 <td class="py-2.5 px-2 text-center text-xs">
                   <div class="font-semibold text-slate-700">${m.p.toFixed(0)}%</div>
@@ -4368,6 +4390,7 @@
               <button type="button" data-action="preview-vo" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition">👁 Xem ĐX</button>
               <button type="button" data-action="export-vo-word" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Xuất Word</button>
               <button type="button" data-action="edit-vo" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">✏ Sửa</button>
+              <button type="button" data-action="del-vo" data-id="${esc(v.id)}" class="px-2 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Xóa</button>
               ${v.status === 'Chờ duyệt' ? `
                 <button type="button" data-action="approve-vo" data-id="${esc(v.id)}" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">Phê duyệt VO</button>
                 <button type="button" data-action="reject-vo" data-id="${esc(v.id)}" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Từ chối</button>` : ''}
@@ -6100,6 +6123,26 @@
             renderAll();
             showToast(`Đã cập nhật [${t.c}] từ ${oldP}% → ${t.progress}% & đồng bộ Tiến độ tổng`);
           }
+        } else if (el.dataset.taskAsId) {
+          if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
+          const t = proj.tasks.find(x => x.id === el.dataset.taskAsId);
+          if (t) {
+            t.as = el.value;
+            t.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+            saveState(); renderAll(); showToast(`Đã cập nhật ngày BĐ thực tế [${t.c}]: ${el.value ? fmtDateVN(el.value) : 'Trống'}`);
+          }
+        } else if (el.dataset.taskAeId) {
+          if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
+          const t = proj.tasks.find(x => x.id === el.dataset.taskAeId);
+          if (t) {
+            t.ae = el.value;
+            if (t.ae && Number(t.progress) < 100) t.progress = 100;
+            t.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+            const diffD = (t.ae && t.pe) ? Math.round((iso(t.ae) - iso(t.pe)) / DAY) : 0;
+            proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: t.contractor || 'Nhà thầu', task: `${t.c} ${t.name}`, change: `KT TT: ${t.ae ? fmtDateVN(t.ae) : '—'}${diffD > 0 ? ' (Trễ +' + diffD + 'n)' : ''}` });
+            saveState(); renderAll();
+            showToast(`Đã cập nhật ngày KT thực tế [${t.c}]${diffD > 0 ? ' — Trễ +' + diffD + ' ngày' : (diffD < 0 ? ' — Sớm ' + (-diffD) + ' ngày' : '')}`);
+          }
         } else if (el.dataset.taskPreId) {
           if (!canEditModule('schedule')) { renderScheduleTab(proj, getReportMs()); applyUserPermissions(); showToast('Tài khoản Chỉ xem không có quyền chỉnh sửa Tiến độ', 'error'); return; }
           const t = proj.tasks.find(x => String(x.id) === String(el.dataset.taskPreId));
@@ -6285,6 +6328,10 @@
           if (sp) {
             const fld = el.dataset.splitField;
             sp[fld] = fld === 'amount' ? parseVnd(el.value) : el.value;
+            if (fld === 'amount') {
+              const spSum = (r.splits || []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
+              if (spSum > (Number(r.amount) || 0)) r.amount = spSum;
+            }
             saveState(); renderAll(); showToast('Đã cập nhật lần chi nhỏ trong đợt');
           }
         } else if (el.dataset.advCid && el.dataset.advField) {
@@ -6435,6 +6482,8 @@
               const amt = parseVnd(fd.get('amount'));
               if (amt <= 0) { showToast('Số tiền lần chi phải lớn hơn 0', 'error'); return; }
               liveR.splits.push({ id: 'sp_' + Date.now(), amount: amt, payDate: fd.get('payDate') || '', note: (fd.get('note') || '').trim() });
+              const spSum = liveR.splits.reduce((s, sp) => s + (Number(sp.amount) || 0), 0);
+              if (spSum > (Number(liveR.amount) || 0)) liveR.amount = spSum;
               saveState(); closeModal(); renderAll(); showToast(`Đã thêm lần chi ${fmtTy(amt)} vào ${liveR.label}`);
             });
             setTimeout(() => {
@@ -6602,8 +6651,20 @@
             }, 30);
           }
         } else if (action === 'reject-vo') {
-          const vo = proj.vos.find(v => v.id === id);
-          if (vo) { vo.status = 'Từ chối'; saveState(); renderAll(); showToast(`Đã từ chối ${vo.code}`, 'info'); }
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo) {
+            vo.status = 'Từ chối';
+            syncContractFromVo(proj, vo, '', 0);
+            saveState(); renderAll(); showToast(`Đã từ chối ${vo.code}`, 'info');
+          }
+        } else if (action === 'del-vo') {
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo) {
+            archiveBeforeDelete('Phát sinh (VO)', `${vo.code} — ${vo.title}`, { vo }, proj);
+            syncContractFromVo(proj, vo, '', 0);
+            proj.vos = proj.vos.filter(v => String(v.id) !== String(id));
+            saveState(); renderAll(); showToast(`Đã xóa ${vo.code} và cập nhật lại giá trị hợp đồng`, 'info');
+          }
         } else if (action === 'contractor-new') {
           window._newContractorRows = null;
           const parents = proj.tasks.filter(t => !isLeafTask(proj.tasks, t));
@@ -6999,9 +7060,11 @@
             if (nP !== Number(t.progress)) diffs.push(`${t.progress}%→${nP}%`);
             if (nW !== Number(t.weight)) diffs.push(`TS: ${t.weight}%→${nW}%`);
             if (nPre !== (t.pre || '')) diffs.push(`LK: ${nPre || '—'}`);
-            t.name = nName; t.contractor = nK; t.weight = nW; t.ps = nPs; t.pe = nPe; t.progress = nP; t.pre = nPre;
-            t.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
-            if (diffs.length) proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: t.contractor || 'Nhà thầu', task: `${t.c} ${t.name}`, change: 'Sửa: ' + diffs.join(', ') });
+            const liveP = getActiveProject();
+            const liveT = (liveP.tasks || []).find(x => String(x.id) === String(id)) || t;
+            liveT.name = nName; liveT.contractor = nK; liveT.weight = nW; liveT.ps = nPs; liveT.pe = nPe; liveT.progress = nP; liveT.pre = nPre;
+            liveT.updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+            if (diffs.length) liveP.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: liveT.contractor || 'Nhà thầu', task: `${liveT.c} ${liveT.name}`, change: 'Sửa: ' + diffs.join(', ') });
             saveState(); closeModal(); renderAll(); showToast('Đã cập nhật hạng mục WBS');
           });
         } else if (action === 'edit-budget') {
@@ -7017,7 +7080,7 @@
             </div>
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thực tế có VAT (VNĐ)${linked.length ? ' (Tự động từ HĐ)' : ''}</label><input name="actual" type="text" inputmode="numeric" value="${fmtVndInput(actVal)}" ${linked.length ? 'readonly class="w-full text-sm border border-slate-200 bg-slate-100 text-slate-600 rounded-xl px-3 py-2"' : 'required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2"'} /></div>
             ${linked.length ? `<div class="text-xs text-brand-700 bg-brand-50 border border-brand-200 rounded-xl p-2.5">🔗 Đang tự động cộng từ ${linked.length} hợp đồng: <strong>${linked.map(c => esc(c.code)).join(', ')}</strong></div>` : ''}
-          `, fd => { b.name = fd.get('name').trim(); b.category = fd.get('category').trim(); b.budget = parseVnd(fd.get('budget')); b.vatRate = Number(fd.get('vatRate')); if (!linked.length) b.actual = parseVnd(fd.get('actual')); saveState(); if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → ${b.name}`; closeModal(); renderAll(); showToast('Đã cập nhật ngân sách'); });
+          `, fd => { const liveP = getActiveProject(); const liveB = (liveP.budgetItems || []).find(x => String(x.id) === String(id)) || b; liveB.name = fd.get('name').trim(); liveB.category = fd.get('category').trim(); liveB.budget = parseVnd(fd.get('budget')); liveB.vatRate = Number(fd.get('vatRate')); if (!getLinkedContractsForBudget(liveP, liveB.id).length) liveB.actual = parseVnd(fd.get('actual')); saveState(); if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → ${liveB.name}`; closeModal(); renderAll(); showToast('Đã cập nhật ngân sách'); });
         } else if (action === 'combine-view-contractor') {
           selectedContractor = btn.dataset.k || '';
           setScheduleMode('contractors');
@@ -7134,28 +7197,31 @@
             </div>
             <p class="text-[11px] text-slate-500">Giá trị HĐ này sẽ tự động cộng vào cột Thực tế của mục Ngân sách được liên kết.</p>
           `, fd => {
-            c.code = (fd.get('code') || '').trim();
-            c.name = (fd.get('name') || '').trim();
-            c.contractor = (fd.get('contractor') || '').trim();
-            (proj.payments || []).forEach(p => { if (String(p.contractId) === String(c.id)) p.contractor = c.contractor; });
-            (proj.vos || []).forEach(v => { if (String(v.contractId) === String(c.id)) v.contractor = c.contractor; });
-            c.value = parseVnd(fd.get('value'));
+            const liveProj = getActiveProject();
+            const liveC = (liveProj.contracts || []).find(x => String(x.id) === String(id)) || c;
+            liveC.code = (fd.get('code') || '').trim();
+            liveC.name = (fd.get('name') || '').trim();
+            liveC.contractor = (fd.get('contractor') || '').trim();
+            (liveProj.payments || []).forEach(p => { if (String(p.contractId) === String(liveC.id)) p.contractor = liveC.contractor; });
+            (liveProj.vos || []).forEach(v => { if (String(v.contractId) === String(liveC.id)) v.contractor = liveC.contractor; });
+            liveC.value = parseVnd(fd.get('value'));
             const stRaw = String(fd.get('settle') || '').trim();
-            c.settle = stRaw !== '' ? parseVnd(stRaw) : '';
-            c.budgetItemId = fd.get('budgetItemId') || '';
-            c.status = fd.get('status') || 'Đã ký';
-            c.payTermDays = Math.max(1, Number(fd.get('payTermDays')) || 15);
-            c.advDate = fd.get('advDate') || '';
+            liveC.settle = stRaw !== '' ? parseVnd(stRaw) : '';
+            liveC.budgetItemId = fd.get('budgetItemId') || '';
+            liveC.status = fd.get('status') || 'Đã ký';
+            liveC.payTermDays = Math.max(1, Number(fd.get('payTermDays')) || 15);
+            liveC.advDate = fd.get('advDate') || '';
             saveState();
-            if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → Hợp đồng ${c.code}`;
+            if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → Hợp đồng ${liveC.code}`;
             closeModal();
             renderAll();
-            showToast(`Đã cập nhật ${c.code}: ${fmtTy(c.value)}`);
+            showToast(`Đã cập nhật ${liveC.code}: ${fmtTy(liveC.value)}`);
           });
         } else if (action === 'del-contract') {
           const c = proj.contracts.find(x => String(x.id) === String(id)); if (!c) return;
           archiveBeforeDelete('Hợp đồng', `${c.code} — ${c.name}`, { contract: c }, proj);
           proj.contracts = proj.contracts.filter(x => String(x.id) !== String(id));
+          (proj.vos || []).forEach(v => { if (String(v.contractId) === String(id)) { v.contractId = ''; v.appliedContractId = ''; v.appliedAmount = 0; } });
           saveState(); renderAll(); showToast(`Đã xóa gói thầu ${c.code}`, 'info');
         } else if (action === 'pass-ins' || action === 'fail-ins') {
           const ins = proj.inspections.find(i => i.id === id);
