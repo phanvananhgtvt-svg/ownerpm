@@ -2406,6 +2406,14 @@
           ] : [];
         }
         p.contracts.forEach(c => { if (!Array.isArray(c.rounds)) c.rounds = []; });
+        (p.vos || []).forEach(v => {
+          if (v && v.appliedContractId && Number(v.appliedAmount)) {
+            const oc = (p.contracts || []).find(x => String(x.id) === String(v.appliedContractId));
+            if (oc) oc.value = Math.max(0, Number((Number(oc.value) - Number(v.appliedAmount)).toFixed(2)));
+            v.appliedContractId = '';
+            v.appliedAmount = 0;
+          }
+        });
         // Clean accidentally auto-seeded demo CĐT items from maintenance projects
         if (p.projectType === 'maintenance' && Array.isArray(p.ownerMasterItems) && p.ownerMasterItems.length === 5
             && p.ownerMasterItems.every(x => ['om_1', 'om_2', 'om_3', 'om_4', 'om_5'].includes(x.id) && ['PL-01', 'XD-01', 'ME-01', 'PCCC-01', 'HC-01'].includes(x.code))) {
@@ -2647,8 +2655,28 @@
         const submitted = (r && !r.payDate && r.invDate) ? total : 0;
         return { total, paid, remaining, submitted, isFullyPaid: Boolean(r && r.payDate), isPartiallyPaid: false, lastPayDate: (r && r.payDate) || '', hasSplits: false };
       }
+      function getContractVoSum(c) {
+        if (!c) return 0;
+        const p = (state && Array.isArray(state.projects)) ? state.projects.find(pr => (pr.contracts || []).some(x => String(x.id) === String(c.id))) : null;
+        if (!p) return 0;
+        return (p.vos || []).filter(v => String(v.contractId) === String(c.id) && v.status === 'Đã duyệt').reduce((s, v) => s + (Number(v.costImpact) || 0), 0);
+      }
+      function syncContractFromVo(proj, vo, newCid, newAmt) {
+        if (!proj || !vo) return null;
+        // Reverse any legacy baked-in appliedAmount so c.value remains strictly the original signed contract
+        if (vo.appliedContractId && Number(vo.appliedAmount)) {
+          const oldC = (proj.contracts || []).find(x => String(x.id) === String(vo.appliedContractId));
+          if (oldC) oldC.value = Math.max(0, Number((Number(oldC.value) - Number(vo.appliedAmount)).toFixed(2)));
+          vo.appliedContractId = '';
+          vo.appliedAmount = 0;
+        }
+        return (proj.contracts || []).find(x => String(x.id) === String(newCid)) || null;
+      }
       function calcContract(c) {
-        const base = (c.settle !== '' && c.settle != null && Number(c.settle) > 0) ? Number(c.settle) : (Number(c.value) || 0);
+        const signedVal = Number(c.value) || 0;
+        const voSum = getContractVoSum(c);
+        const contractTotal = signedVal + voSum;
+        const base = (c.settle !== '' && c.settle != null && Number(c.settle) > 0) ? Number(c.settle) : contractTotal;
         const advAmt = Number(c.adv) || 0;
         const advPaid = (advAmt > 0 && Boolean(c.advDate)) ? advAmt : 0;
         const advSubmitted = (advAmt > 0 && !c.advDate && Boolean(c.advInvDate)) ? advAmt : 0;
@@ -2662,7 +2690,7 @@
         const paid = advPaid + roundsPaid;
         const rem = base - paid;
         const pct = base > 0 ? (paid / base) * 100 : 0;
-        return { base, paid, rem, pct, submitted, submittedCount: submittedRoundsCnt + (advSubmitted > 0 ? 1 : 0) };
+        return { base, signedVal, voSum, contractTotal, paid, rem, pct, submitted, submittedCount: submittedRoundsCnt + (advSubmitted > 0 ? 1 : 0) };
       }
       function calcProjectSubmittedDebt(proj) {
         let total = 0, count = 0;
@@ -2714,7 +2742,7 @@
         modalSubmitHandler = onSubmit;
         document.getElementById('modal-backdrop').classList.remove('hidden');
       }
-      function closeModal() { document.getElementById('modal-backdrop').classList.add('hidden'); modalSubmitHandler = null; }
+      function closeModal() { const mb = document.getElementById('modal-backdrop'); mb.classList.add('hidden'); const box = mb.querySelector('.max-w-4xl'); if (box) { box.classList.remove('max-w-4xl'); box.classList.add('max-w-lg'); } modalSubmitHandler = null; }
       document.getElementById('modal-close').addEventListener('click', closeModal);
       document.getElementById('modal-cancel').addEventListener('click', closeModal);
       document.getElementById('modal-backdrop').addEventListener('click', e => { if (e.target.id === 'modal-backdrop') closeModal(); });
@@ -2903,6 +2931,25 @@
         return state.viewAllProjects ? getCombinedAllProject() : getActiveProject();
       }
 
+      function resetProjectViewFilters() {
+        selectedContractor = '';
+        ['task-search', 'contractor-rev-compare-sel'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        ['task-filter-status', 'filter-contract-rounds', 'tracking-eval-filter'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = 'all';
+        });
+        const gCrit = document.getElementById('gantt-crit-only');
+        if (gCrit) gCrit.checked = false;
+        if (typeof charts === 'object' && charts) {
+          Object.keys(charts).forEach(k => {
+            try { if (charts[k]) charts[k].destroy(); } catch (e) {}
+            delete charts[k];
+          });
+        }
+      }
       // Main Render
       function renderAll() {
         const activeProj = getActiveProject();
@@ -3299,7 +3346,7 @@
         const rh = 26, top = 32, lw = 250, W = cv.width;
         cv.height = Math.max(120, top + L.length * rh + 14);
         g.clearRect(0, 0, W, cv.height);
-        if (!L.length) return;
+        if (!L.length) { const ctx0 = cv.getContext('2d'); if (ctx0) ctx0.clearRect(0, 0, cv.width, cv.height); return; }
 
         const metricsMap = {};
         L.forEach(t => { metricsMap[t.c] = getTaskMetrics(proj.tasks, t, atMs); });
@@ -3416,6 +3463,10 @@
           return `<tr><td class="py-2 px-3">${fmtDateVN(S.d)} ${S.live ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">hiện tại</span>' : ''}</td><td class="py-2 px-3 text-right">${p.toFixed(1)}%</td><td class="py-2 px-3 text-right font-bold text-brand-700">${a.toFixed(1)}%</td><td class="py-2 px-3 text-right font-semibold">${spi.toFixed(2)}</td><td class="py-2 px-3 text-right">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%</td><td class="py-2 px-3 text-center">${late}</td></tr>`;
         }).join('');
 
+        if (!leaves.length && charts['scurve-tracking-canvas']) {
+          try { charts['scurve-tracking-canvas'].destroy(); } catch (e) {}
+          delete charts['scurve-tracking-canvas'];
+        }
         if (leaves.length && typeof Chart !== 'undefined') {
           const minPs = Math.min(...leaves.map(t => iso(t.ps))), maxPe = Math.max(...leaves.map(t => iso(t.pe))), steps = 6;
           const labels = [], pv = [];
@@ -3464,7 +3515,17 @@
 
       function renderAiAnalyzerPanel(proj, cp, atMs) {
         const leaves = getLeafTasks(proj.tasks);
-        if (!leaves.length) return;
+        if (!leaves.length) {
+          const kpiEl = document.getElementById('ai-kpi-strip');
+          if (kpiEl) kpiEl.innerHTML = '';
+          const sumEl = document.getElementById('ai-summary-box');
+          if (sumEl) sumEl.innerHTML = '<span class="text-slate-500">Dự án chưa có dữ liệu tiến độ công việc để phân tích.</span>';
+          const priEl = document.getElementById('ai-priority-body');
+          if (priEl) priEl.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-slate-400">Chưa có dữ liệu công việc.</td></tr>';
+          const scEl = document.getElementById('ai-scenarios-body');
+          if (scEl) scEl.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400">Chưa có dữ liệu công việc.</td></tr>';
+          return;
+        }
         const g = aggTasks(leaves, atMs);
         const maxPe = Math.max(...leaves.map(t => iso(t.pe)));
         const minPs = Math.min(...leaves.map(t => iso(t.ps)));
@@ -3581,6 +3642,13 @@
             <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Tiến độ tổng / SPI</div><div class="text-lg font-bold ${g.spi >= 0.97 ? 'text-emerald-600' : 'text-rose-600'}">${g.a.toFixed(1)}% (${g.spi.toFixed(2)})</div></div>
             <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Độ lệch đường găng</div><div class="text-lg font-bold ${slip > 0 ? 'text-rose-600' : 'text-emerald-600'}">${slip > 0 ? '+' + slip : slip} ngày</div></div>`;
           chainEl.innerHTML = `<span class="font-semibold text-rose-700">Đường găng (Critical Path):</span> ` + cp.chain.map(n => `<span class="inline-block bg-white border border-rose-200 text-rose-800 px-2 py-0.5 rounded-md font-medium mx-0.5">[${esc(n.t.c)}] ${esc(n.t.name.slice(0, 28))}</span>`).join(' → ');
+        } else {
+          if (cpmGrid) cpmGrid.innerHTML = `
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Tổng thời gian (CPM)</div><div class="text-lg font-bold text-slate-400">0 ngày</div></div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Dự kiến hoàn thành</div><div class="text-lg font-bold text-slate-400">—</div></div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Tiến độ tổng / SPI</div><div class="text-lg font-bold text-slate-400">0.0% (1.00)</div></div>
+            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200"><div class="text-[11px] text-slate-500">Độ lệch đường găng</div><div class="text-lg font-bold text-slate-400">0 ngày</div></div>`;
+          if (chainEl) chainEl.innerHTML = `<span class="text-slate-400">Chưa có dữ liệu công việc để tính đường găng (Critical Path).</span>`;
         }
 
         // Table rows
@@ -3905,7 +3973,7 @@
             <td class="py-3 px-3 text-slate-600 text-xs">
               <input type="text" value="${esc(c.contractor)}" data-contract-contractor-cid="${esc(c.id)}" placeholder="Nhập tên nhà thầu..." title="Sửa trực tiếp tên nhà thầu" class="w-full min-w-[140px] text-xs font-medium text-slate-700 border border-slate-200 hover:border-slate-300 focus:border-brand-500 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500 transition" />
             </td>
-            <td class="py-3 px-3 text-right font-semibold text-slate-900">${fmtTy(c.value)}</td>
+            <td class="py-3 px-3 text-right font-semibold text-slate-900">${fmtTy(m.contractTotal)}${m.voSum ? `<div class="text-[10px] text-indigo-600 font-normal">HĐ ký + VO</div>` : ''}</td>
             <td class="py-3 px-3 text-right text-slate-600">${c.settle ? fmtTy(c.settle) : '—'}</td>
             <td class="py-3 px-3 text-right text-slate-600">${fmtTy(c.adv || 0)}</td>
             <td class="py-3 px-3 text-right text-brand-600 font-medium">${fmtTy(m.paid)} <span class="text-xs text-slate-400">(${m.pct.toFixed(0)}%)</span></td>
@@ -3913,13 +3981,51 @@
             <td class="py-3 px-3 text-right font-semibold ${m.rem < 0 ? 'text-rose-600' : 'text-emerald-600'}">${fmtTy(m.rem)}</td>
             <td class="py-3 px-3">${statusBadge(c.status)}</td>
             <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5"><button type="button" data-action="edit-contract" data-id="${esc(c.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button><button type="button" data-action="del-contract" data-id="${esc(c.id)}" class="text-xs text-rose-600 hover:underline">Xóa</button></td>
-          </tr>`;
+          </tr>` + (() => {
+            const linkedVos = (proj.vos || []).filter(v => String(v.contractId) === String(c.id));
+            if (!linkedVos.length) return '';
+            const baseRow = `<tr class="bg-slate-50/80 text-xs">
+              <td class="py-2 px-3 pl-7" colspan="2">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400 font-bold">↳</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold text-[10px]">HĐ GỐC</span>
+                  <span class="font-medium text-slate-800">Hợp đồng đã ký ban đầu</span>
+                </div>
+              </td>
+              <td class="py-2 px-3 text-right whitespace-nowrap"><input type="text" inputmode="numeric" value="${fmtVndInput(c.value)}" data-contract-val-cid="${esc(c.id)}" title="Sửa trực tiếp giá trị hợp đồng gốc" class="w-32 text-right text-xs font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" /></td>
+              <td class="py-2 px-3 text-slate-400" colspan="5">Cơ sở tính tổng HĐ</td>
+              <td class="py-2 px-3">${statusBadge('Đã ký')}</td>
+              <td class="py-2 px-3 text-right"><button type="button" data-action="edit-contract" data-id="${esc(c.id)}" class="text-[11px] text-slate-600 hover:underline">Sửa HĐ gốc</button></td>
+            </tr>`;
+            const voRows = linkedVos.map(v => {
+              const vCost = Number(v.costImpact) || 0;
+              return `<tr class="bg-indigo-50/35 hover:bg-indigo-50/60 text-xs">
+                <td class="py-2 px-3 pl-7" colspan="2">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-indigo-500 font-bold">↳</span>
+                    <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold text-[10px]">${esc(v.code)}</span>
+                    <span class="font-medium text-slate-800">${esc(v.title)}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 pl-4 mt-0.5">${v.proposalNo ? 'ĐX: ' + esc(v.proposalNo) + ' • ' : ''}${Number(v.timeImpact) ? 'Tiến độ: +' + Number(v.timeImpact) + 'n' : 'Phát sinh VO'}</div>
+                </td>
+                <td class="py-2 px-3 text-right font-semibold ${v.status === 'Đã duyệt' ? 'text-indigo-700' : 'text-slate-400'} whitespace-nowrap">+${fmtTy(vCost)}</td>
+                <td class="py-2 px-3 text-slate-400" colspan="5">${v.status === 'Đã duyệt' ? '<span class="text-[11px] text-emerald-700 font-medium">✓ Đã cộng vào tổng HĐ</span>' : '<span class="text-[11px] text-slate-400">Chờ duyệt (chưa cộng)</span>'}</td>
+                <td class="py-2 px-3">${statusBadge(v.status)}</td>
+                <td class="py-2 px-3 text-right whitespace-nowrap space-x-1.5">
+                  <button type="button" data-action="edit-vo" data-id="${esc(v.id)}" class="text-[11px] font-semibold text-brand-600 hover:underline">✏ Sửa VO</button>
+                </td>
+              </tr>`;
+            }).join('');
+            return baseRow + voRows;
+          })();
         }).join('');
 
         // Payment Rounds Table
         const filterSel = document.getElementById('filter-contract-rounds');
-        const curFilter = filterSel.value || 'all';
+        let curFilter = filterSel.value || 'all';
+        if (curFilter !== 'all' && !(proj.contracts || []).some(c => String(c.id) === String(curFilter))) curFilter = 'all';
         filterSel.innerHTML = `<option value="all">Tất cả hợp đồng</option>` + proj.contracts.map(c => `<option value="${esc(c.id)}" ${curFilter === c.id ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)}</option>`).join('');
+        filterSel.value = curFilter;
 
         const roundRows = [];
         proj.contracts.forEach(c => {
@@ -4080,17 +4186,19 @@
         document.getElementById('vo-list').innerHTML = proj.vos.length ? proj.vos.map(v => `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div class="flex flex-wrap items-center gap-2">${projTagHtml(v)}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(v.code)}</span><span class="font-semibold text-sm text-slate-900">${esc(v.title)}</span>${statusBadge(v.status)}</div>
-              <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(v.contractor || '—')}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(v.costImpact || 0)}</strong> • Tiến độ: <strong>+${Number(v.timeImpact) || 0} ngày</strong></p>
+              <div class="flex flex-wrap items-center gap-2">${projTagHtml(v)}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(v.code)}</span>${v.proposalNo ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">ĐX: ${esc(v.proposalNo)}</span>` : ''}<span class="font-semibold text-sm text-slate-900">${esc(v.title)}</span>${statusBadge(v.status)}</div>
+              <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(v.chosenContractor || v.contractor || '—')}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(v.costImpact || 0)}</strong> • Tiến độ: <strong>+${Number(v.timeImpact) || 0} ngày</strong></p>
               <p class="text-xs text-slate-500 mt-0.5">Lý do: ${esc(v.reason || '—')}</p>
             </div>
-            ${v.status === 'Chờ duyệt' ? `
-              <div class="flex items-center gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+              <button type="button" data-action="preview-vo" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition">👁 Xem ĐX</button>
+              <button type="button" data-action="export-vo-word" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Xuất Word</button>
+              <button type="button" data-action="edit-vo" data-id="${esc(v.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">✏ Sửa</button>
+              ${v.status === 'Chờ duyệt' ? `
                 <button type="button" data-action="approve-vo" data-id="${esc(v.id)}" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">Phê duyệt VO</button>
-                <button type="button" data-action="reject-vo" data-id="${esc(v.id)}" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Từ chối</button>
-              </div>` : ''}
+                <button type="button" data-action="reject-vo" data-id="${esc(v.id)}" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Từ chối</button>` : ''}
+            </div>
           </div>`).join('') : `<div class="text-sm text-slate-400 text-center py-4">Không có yêu cầu phát sinh (VO) nào.</div>`;
-
       }
 
       function renderRisksTab(proj) {
@@ -4296,6 +4404,10 @@
           }
         });
 
+        if (!leaves.length && charts['chart-scurve']) {
+          try { charts['chart-scurve'].destroy(); } catch (e) {}
+          delete charts['chart-scurve'];
+        }
         if (leaves.length) {
           const minPs = Math.min(...leaves.map(t => iso(t.ps))), maxPe = Math.max(...leaves.map(t => iso(t.pe))), steps = 6;
           const labels = [], pvData = [], evData = [];
@@ -4741,7 +4853,7 @@
       }
 
       async function openWeeklyPdfPreview() {
-        _previewPayContext = null;
+        _previewPayContext = null; _previewVoContext = null;
         document.getElementById('rpt-filter-bar').classList.remove('hidden');
         document.getElementById('btn-rpt-export-word').classList.add('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
@@ -4896,7 +5008,7 @@
       document.getElementById('btn-open-pdf-report').addEventListener('click', openWeeklyPdfPreview);
       document.getElementById('btn-preview-pdf-2').addEventListener('click', openWeeklyPdfPreview);
       document.getElementById('btn-close-rpt').addEventListener('click', () => { document.getElementById('rpt-preview').classList.add('hidden'); document.getElementById('rpt-filter-bar').classList.remove('hidden'); document.getElementById('btn-rpt-export-word').classList.add('hidden'); document.getElementById('quick-rpt-mode-bar').classList.add('hidden'); });
-      document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); });
+      document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); else if (_previewVoContext) exportVoProposalWord(_previewVoContext.proj, _previewVoContext.vo); });
       document.getElementById('btn-print-rpt').addEventListener('click', () => window.print());
 
       // Warning Letter
@@ -5757,7 +5869,7 @@
         const val = e.target.value;
         if (val === '__ALL__') {
           state.viewAllProjects = true;
-          selectedContractor = '';
+          resetProjectViewFilters();
           saveState();
           renderAll();
           switchTab('projects');
@@ -5766,7 +5878,7 @@
         }
         state.viewAllProjects = false;
         state.activeProjectId = val;
-        selectedContractor = '';
+        resetProjectViewFilters();
         saveState();
         renderAll();
         showToast('Đã chuyển dự án: ' + getActiveProject().name, 'info');
@@ -5868,6 +5980,15 @@
             if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → Liên kết HĐ ${c.code}`;
             renderAll();
             showToast(`Đã liên kết ${c.code} vào mục ngân sách`);
+          }
+        } else if (el.dataset.contractValCid) {
+          const c = proj.contracts.find(x => String(x.id) === String(el.dataset.contractValCid));
+          if (c) {
+            c.value = parseVnd(el.value);
+            saveState();
+            if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → HĐ ${c.code}`;
+            renderAll();
+            showToast(`Đã cập nhật giá trị HĐ gốc ${c.code}: ${fmtTy(c.value)}`);
           }
         } else if (el.dataset.contractContractorCid) {
           const c = proj.contracts.find(x => String(x.id) === String(el.dataset.contractContractorCid));
@@ -6001,7 +6122,7 @@
         const action = btn.dataset.action, id = btn.dataset.id, proj = getActiveProject();
 
         if (action === 'select-project') {
-          state.viewAllProjects = false; state.activeProjectId = id; selectedContractor = ''; saveState(); renderAll(); switchTab('overview'); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
+          state.viewAllProjects = false; state.activeProjectId = id; resetProjectViewFilters(); saveState(); renderAll(); switchTab('overview'); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
         } else if (action === 'edit-project') {
           const p = state.projects.find(x => x.id === id); if (!p) return;
           openModal('Sửa thông tin dự án', `
@@ -6151,14 +6272,101 @@
         } else if (action === 'export-pay-word') {
           const pay = proj.payments.find(p => String(p.id) === String(id));
           if (pay) exportPaymentWord(proj, pay);
+        } else if (action === 'preview-vo') {
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo) previewVoProposalForm(proj, vo);
+        } else if (action === 'export-vo-word') {
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo) exportVoProposalWord(proj, vo);
+        } else if (action === 'resync-vo-contract') {
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo && vo.status === 'Đã duyệt') {
+            const c = syncContractFromVo(proj, vo, vo.contractId, vo.costImpact);
+            vo.approvedCost = Number(vo.costImpact) || 0;
+            saveState(); renderAll();
+            showToast(c ? `Đã cập nhật lại HĐ ${c.code} theo ${vo.code} (${fmtTy(vo.costImpact)})` : `Đã đồng bộ lại ${vo.code}`);
+          }
+        } else if (action === 'edit-vo') {
+          const vo = proj.vos.find(v => String(v.id) === String(id));
+          if (vo) openVoModal(vo);
         } else if (action === 'approve-vo') {
-          const vo = proj.vos.find(v => v.id === id);
+          const vo = proj.vos.find(v => String(v.id) === String(id));
           if (vo && vo.status === 'Chờ duyệt') {
-            vo.status = 'Đã duyệt';
-            const c = proj.contracts.find(x => x.id === vo.contractId);
-            if (c) c.value = Number((Number(c.value) + Number(vo.costImpact)).toFixed(2));
-            proj.contingency = Math.max(0, Number((Number(proj.contingency) - Number(vo.costImpact)).toFixed(2)));
-            saveState(); renderAll(); showToast(`Đã phê duyệt phát sinh ${vo.code}`);
+            const propVal = Number(vo.costImpact) || 0;
+            const vat10Val = Math.round(propVal * 1.1);
+            openModal(`Xác nhận Phê duyệt ${vo.code} & Cập nhật Hợp đồng`, `
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+                <div class="font-bold text-slate-900">${esc(vo.code)} — ${esc(vo.title)}</div>
+                <div class="text-slate-600">Giá trị đề xuất ban đầu: <strong class="text-brand-700">${fmtTy(propVal)}</strong> (${fmtVndInput(propVal)} VNĐ${vo.vatNote ? ', ' + esc(vo.vatNote) : ''})</div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Hợp đồng cập nhật giá trị phát sinh</label>
+                <select id="vo-app-cid" name="contractId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+                  <option value="">-- Không cộng vào hợp đồng (chỉ duyệt ĐX) --</option>
+                  ${proj.contracts.map(c => `<option value="${esc(c.id)}" ${String(c.id) === String(vo.contractId) ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)} (HĐ: ${fmtTy(c.value)})</option>`).join('')}
+                </select>
+              </div>
+              <div class="space-y-2 border border-emerald-200 bg-emerald-50/50 rounded-xl p-3">
+                <div class="text-xs font-semibold text-emerald-900">Chọn giá trị cập nhật vào hợp đồng:</div>
+                <label class="flex items-center gap-2 text-xs text-slate-800 cursor-pointer">
+                  <input type="radio" name="appMode" value="exact" checked class="accent-emerald-600" />
+                  <span>Nhập đúng giá trị đề xuất: <strong>${fmtTy(propVal)}</strong> (${fmtVndInput(propVal)} VNĐ)</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs text-slate-800 cursor-pointer">
+                  <input type="radio" name="appMode" value="custom" class="accent-emerald-600" />
+                  <span>Nhập giá trị phê duyệt khác (VNĐ):</span>
+                </label>
+                <div class="flex items-center gap-2 pl-5">
+                  <input id="vo-app-custom-val" name="customVal" type="text" inputmode="numeric" value="${fmtVndInput(propVal)}" class="flex-1 text-sm font-bold text-slate-900 border border-slate-300 rounded-xl px-3 py-1.5 bg-white" />
+                  <button type="button" id="vo-app-add-vat" class="px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">+10% VAT</button>
+                </div>
+              </div>
+              <div id="vo-app-preview" class="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-2.5"></div>
+            `, fd => {
+              const mode = fd.get('appMode');
+              const finalVal = mode === 'custom' ? parseVnd(fd.get('customVal')) : propVal;
+              const targetCid = fd.get('contractId') || '';
+              vo.status = 'Đã duyệt';
+              vo.approvedCost = finalVal;
+              vo.costImpact = finalVal;
+              vo.contractId = targetCid;
+              const c = syncContractFromVo(proj, vo, targetCid, finalVal);
+              if (c) vo.contractor = c.contractor;
+              saveState(); closeModal(); renderAll();
+              showToast(c ? `Đã duyệt ${vo.code} và cộng ${fmtTy(finalVal)} vào HĐ ${c.code}` : `Đã phê duyệt ${vo.code} (${fmtTy(finalVal)})`);
+            });
+            setTimeout(() => {
+              const cidEl = document.getElementById('vo-app-cid');
+              const cusEl = document.getElementById('vo-app-custom-val');
+              const prevEl = document.getElementById('vo-app-preview');
+              const vatBtn = document.getElementById('vo-app-add-vat');
+              const radios = document.querySelectorAll('input[name="appMode"]');
+              function updatePrev() {
+                const mode = document.querySelector('input[name="appMode"]:checked')?.value || 'exact';
+                const val = mode === 'custom' ? parseVnd(cusEl?.value) : propVal;
+                const c = proj.contracts.find(x => String(x.id) === String(cidEl?.value || ''));
+                if (prevEl) {
+                  const curTot = c ? calcContract(c).contractTotal : 0;
+                  prevEl.innerHTML = c
+                    ? `Tổng HĐ <strong>${esc(c.code)}</strong>: ${fmtTy(curTot)} + <strong class="text-emerald-700">${fmtTy(val)}</strong> = <strong class="text-brand-700">${fmtTy(curTot + val)}</strong>`
+                    : `Không gắn hợp đồng — ghi nhận giá trị duyệt: <strong class="text-emerald-700">${fmtTy(val)}</strong>`;
+                }
+              }
+              if (cusEl) cusEl.addEventListener('input', () => {
+                const cusRadio = document.querySelector('input[name="appMode"][value="custom"]');
+                if (cusRadio) cusRadio.checked = true;
+                updatePrev();
+              });
+              if (vatBtn && cusEl) vatBtn.addEventListener('click', () => {
+                const cusRadio = document.querySelector('input[name="appMode"][value="custom"]');
+                if (cusRadio) cusRadio.checked = true;
+                cusEl.value = fmtVndInput(vat10Val);
+                updatePrev();
+              });
+              if (cidEl) cidEl.addEventListener('change', updatePrev);
+              radios.forEach(r => r.addEventListener('change', updatePrev));
+              updatePrev();
+            }, 30);
           }
         } else if (action === 'reject-vo') {
           const vo = proj.vos.find(v => v.id === id);
@@ -6641,7 +6849,7 @@
             </div>
             <div class="grid grid-cols-3 gap-3">
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nhà thầu</label><input name="contractor" value="${esc(c.contractor)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Giá trị HĐ</label><input name="value" type="text" inputmode="numeric" value="${fmtVndInput(c.value)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Giá trị HĐ gốc (chưa VO)</label><input name="value" type="text" inputmode="numeric" value="${fmtVndInput(c.value)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">Quyết toán</label><input name="settle" type="text" inputmode="numeric" value="${c.settle !== '' && c.settle != null ? fmtVndInput(c.settle) : ''}" placeholder="Chưa QT" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             </div>
             <div class="grid grid-cols-2 gap-3">
@@ -6796,7 +7004,7 @@
             progressLogs: [], snaps: [], contracts: [], payments: [], vos: [], inspections: [],
             legalDocs: [], risks: [], weeklyTasks: [], sitePhotos: [], holidays: [], weeklyArchive: [], documents: []
           });
-          selectedContractor = '';
+          resetProjectViewFilters();
           state.viewAllProjects = false;
           state.activeProjectId = newId; saveState(); closeModal(); renderAll();
           showToast(pType === 'maintenance' ? 'Đã tạo dự án Bảo trì mới' : 'Đã tạo dự án Triển khai mới (Full chức năng)');
@@ -7077,6 +7285,7 @@
       });
 
       let _previewPayContext = null;
+      let _previewVoContext = null;
       function buildPaymentFormInnerHtml(proj, p) {
         const isAdv = p.formType === 'BMKT_02';
         const amt = Math.round(Number(p.amount) || 0);
@@ -7366,25 +7575,538 @@
       document.getElementById('btn-add-payment').addEventListener('click', () => openPaymentModal());
       document.getElementById('btn-quick-payment').addEventListener('click', () => openPaymentModal());
 
-      function openVoModal() {
+      function buildVoProposalInnerHtml(proj, vo) {
+        const logoSrc = (document.querySelector('aside img') && document.querySelector('aside img').src) || '';
+        const companyName = (vo.companyName || proj.owner || 'CÔNG TY CỔ PHẦN KIM TÍN').toUpperCase();
+        const companyAddr = vo.companyAddress || proj.location || '';
+        const proposalNo = vo.proposalNo || `01/${new Date().getFullYear()}/ĐX-CP`;
+        const vendors = Array.isArray(vo.vendors) && vo.vendors.length ? vo.vendors : [vo.contractor || 'Nhà thầu A'];
+        const rows = Array.isArray(vo.priceRows) ? vo.priceRows : [];
+        const totalCols = 5 + vendors.length * 2;
+
+        const vendorTotals = vendors.map((_, vi) => rows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[vi]) || 0)), 0));
+        const chosenIdx = Math.min(vendors.length - 1, Math.max(0, Number(vo.chosenVendorIdx) || 0));
+        const chosenTotal = rows.length ? vendorTotals[chosenIdx] : (Number(vo.costImpact) || 0);
+        const chosenName = vo.chosenContractor || vendors[chosenIdx] || vo.contractor || 'Nhà thầu';
+
+        const tblHtml = rows.length ? `
+          <table style="width:100%;border-collapse:collapse;font-size:10pt;margin:8px 0;">
+            <thead>
+              <tr style="background:#f8fafc;font-weight:bold;text-align:center;">
+                <td rowspan="2" style="border:1px solid #000;padding:4px;width:32px;">STT</td>
+                <td rowspan="2" style="border:1px solid #000;padding:4px;">HẠNG MỤC</td>
+                <td rowspan="2" style="border:1px solid #000;padding:4px;width:45px;">ĐVT</td>
+                <td rowspan="2" style="border:1px solid #000;padding:4px;width:65px;">Khối lượng</td>
+                ${vendors.map(vn => `<td colspan="2" style="border:1px solid #000;padding:4px;">${esc(vn)}</td>`).join('')}
+                <td rowspan="2" style="border:1px solid #000;padding:4px;width:130px;">Các bước thực hiện</td>
+              </tr>
+              <tr style="background:#f8fafc;font-weight:bold;text-align:center;">
+                ${vendors.map(() => `<td style="border:1px solid #000;padding:4px;">Đơn giá</td><td style="border:1px solid #000;padding:4px;">Thành Tiền</td>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((r, ri) => {
+                const q = Number(r.qty) || 0;
+                return `<tr>
+                  <td style="border:1px solid #000;padding:4px;text-align:center;">${ri + 1}</td>
+                  <td style="border:1px solid #000;padding:4px;">${esc(r.name || '')}</td>
+                  <td style="border:1px solid #000;padding:4px;text-align:center;">${esc(r.unit || '')}</td>
+                  <td style="border:1px solid #000;padding:4px;text-align:right;">${q ? q.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ''}</td>
+                  ${vendors.map((_, vi) => {
+                    const pr = Number((r.prices || [])[vi]) || 0;
+                    const amt = Math.round(q * pr);
+                    return `<td style="border:1px solid #000;padding:4px;text-align:right;">${pr ? pr.toLocaleString('en-US') : ''}</td><td style="border:1px solid #000;padding:4px;text-align:right;">${amt ? amt.toLocaleString('en-US') : ''}</td>`;
+                  }).join('')}
+                  <td style="border:1px solid #000;padding:4px;">${esc(r.steps || '')}</td>
+                </tr>`;
+              }).join('')}
+              <tr style="font-weight:bold;background:#f8fafc;">
+                <td colspan="4" style="border:1px solid #000;padding:5px;text-align:center;">TỔNG CỘNG (CHƯA VAT)</td>
+                ${vendorTotals.map(tot => `<td style="border:1px solid #000;padding:5px;"></td><td style="border:1px solid #000;padding:5px;text-align:right;">${tot.toLocaleString('en-US')}</td>`).join('')}
+                <td style="border:1px solid #000;padding:5px;"></td>
+              </tr>
+            </tbody>
+          </table>` : '';
+
+        const imgHtml = vo.priceImage ? `<div style="margin:8px 0;text-align:center;"><img src="${vo.priceImage}" style="max-width:100%;max-height:420px;border:1px solid #cbd5e1;" alt="Bảng giá đính kèm" /></div>` : '';
+
+        const innerHtml = `
+          <div style="font-family:'Times New Roman',Georgia,serif;color:#000;line-height:1.4;">
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
+              <tr>
+                <td rowspan="2" style="border:1px solid #000;width:130px;text-align:center;vertical-align:middle;padding:6px;">
+                  ${logoSrc ? `<img src="${logoSrc}" style="max-width:95px;max-height:95px;display:inline-block;" alt="KIM TIN" />` : '<b>KIM TIN</b>'}
+                </td>
+                <td style="border:1px solid #000;padding:6px 10px;font-size:10.5pt;">
+                  <div style="font-weight:bold;font-size:11.5pt;">${esc(companyName)}</div>
+                  <div>Địa chỉ : ${esc(companyAddr)}</div>
+                  <div>Điện thoại : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Fax :</div>
+                </td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #000;padding:8px 10px;text-align:center;">
+                  <div style="font-weight:bold;font-size:15pt;letter-spacing:0.5px;">ĐỀ XUẤT</div>
+                  <div style="font-size:11pt;">(Vv: ${esc(vo.title || '')})</div>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" style="border:1px solid #000;padding:4px 10px;font-weight:bold;font-size:11pt;">
+                  Số: ${esc(proposalNo)}
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:6px 0;"><strong>Kính gửi:</strong> ${esc(vo.sendTo || 'Ban Giám Đốc Công Ty')}</p>
+            <p style="margin:6px 0;"><strong>Tôi:</strong> ${esc(vo.proposer || 'Phan Văn Anh')} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <strong>Bộ phận:</strong> ${esc(vo.department || 'Phòng PTHT.')}</p>
+
+            <p style="margin:10px 0 4px;"><strong>1. Mục tiêu đề xuất:</strong></p>
+            <p style="margin:2px 0 8px 14px;">- ${esc(vo.goal || (vo.title + ' dự án ' + proj.code + ' — ' + proj.name))}</p>
+
+            <p style="margin:8px 0 4px;"><strong>2. Nội dung đề xuất:</strong></p>
+            <p style="margin:2px 0 8px;white-space:pre-line;">${esc(vo.content || vo.reason || '')}</p>
+
+            <p style="margin:8px 0 4px;"><strong>3. Ngân sách chi phí dự kiến</strong></p>
+            ${tblHtml}
+            ${imgHtml}
+
+            <p style="margin:10px 0 4px;">${esc((vo.department || 'Phòng PTHT').replace(/\.+$/, ''))} đề xuất duyệt chi phí cho công ty <strong>${esc(chosenName)}</strong> thực hiện</p>
+            <p style="margin:4px 0;">Giá trị là <strong>${Number(chosenTotal || 0).toLocaleString('de-DE')} đ</strong> (${esc(vo.vatNote || 'chưa vat')})</p>
+            ${Number(vo.timeImpact) ? `<p style="margin:4px 0;">Thời gian thực hiện / ảnh hưởng tiến độ: <strong>+${Number(vo.timeImpact)} ngày</strong></p>` : ''}
+            <p style="margin:8px 0 4px;">Kính đề nghị cấp trên xem xét.</p>
+            <p style="margin:4px 0 12px;">Trân trọng cám ơn!</p>
+
+            <p style="margin:14px 0 70px;font-weight:bold;">CÁC CẤP PHÊ DUYỆT:</p>
+          </div>`;
+        return { innerHtml, proposalNo };
+      }
+
+      function previewVoProposalForm(proj, vo) {
+        const built = buildVoProposalInnerHtml(proj, vo);
+        _previewPayContext = null;
+        _previewVoContext = { proj, vo };
+        document.getElementById('rpt-filter-bar').classList.add('hidden');
+        document.getElementById('btn-rpt-export-word').classList.remove('hidden');
+        document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
+        document.getElementById('rpt-pages').innerHTML = `<div class="rpt-page" style="padding:16mm 16mm;font-family:'Times New Roman',Georgia,serif;font-size:11.5pt;line-height:1.38;color:#000;"><style>.rpt-page table.no-border td{border:none!important;padding:2px 0;}</style>${built.innerHtml}</div>`;
+        document.getElementById('rpt-preview').classList.remove('hidden');
+      }
+
+      function exportVoProposalWord(proj, vo) {
+        const built = buildVoProposalInnerHtml(proj, vo);
+        const wordHtml = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Đề xuất ${esc(built.proposalNo)}</title>
+<style>
+  @page WordSection1 { size: 21cm 29.7cm; margin: 1.5cm 1.5cm 1.5cm 1.8cm; }
+  div.WordSection1 { page: WordSection1; font-family: "Times New Roman", serif; font-size: 11.5pt; line-height: 1.35; color: #000; }
+  table.no-border td { border: none !important; }
+</style></head>
+<body><div class="WordSection1">${built.innerHtml}</div></body></html>`;
+        const blob = new Blob(['﻿', wordHtml], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url;
+        a.download = `DE_XUAT_${(proj.code || 'DA').replace(/[^a-zA-Z0-9]+/g, '_')}_${(vo.code || 'VO').replace(/[^a-zA-Z0-9]+/g, '_')}.doc`;
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        showToast('Đã xuất file Word Đề xuất (HO.HTQT.QT01-BM07)');
+      }
+
+      function openVoModal(existingVo) {
         const proj = getActiveProject();
-        if (!proj.contracts.length) { showToast('Vui lòng thêm gói thầu trước', 'error'); return; }
-        openModal('Ghi nhận yêu cầu phát sinh (VO)', `
-          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Gói thầu</label><select name="contractId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">${proj.contracts.map(c => `<option value="${esc(c.id)}">${esc(c.code)} — ${esc(c.contractor)}</option>`).join('')}</select></div>
-          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nội dung phát sinh</label><input name="title" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Chi phí (VNĐ)</label><input name="costImpact" type="number" step="0.01" value="1.5" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tiến độ (Ngày)</label><input name="timeImpact" type="number" value="5" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+        const vo = existingVo && existingVo.id ? existingVo : null;
+        const curUser = getCurrentUser();
+        const defProposer = (vo && vo.proposer) || (curUser ? curUser.fullName : 'Phan Văn Anh');
+        const nextNum = String((proj.vos || []).length + 1).padStart(2, '0');
+        const defPropNo = (vo && vo.proposalNo) || `${nextNum}/${new Date().getFullYear()}/ĐX-CP`;
+        const defTitle = vo ? vo.title : '';
+        const defGoal = vo && vo.goal ? vo.goal : '';
+        const defContent = vo && (vo.content || vo.reason) ? (vo.content || vo.reason) : '';
+
+        // Working state for dynamic price table & image
+        let vendors = vo && Array.isArray(vo.vendors) && vo.vendors.length ? [...vo.vendors] : [(vo && vo.contractor) || (proj.contracts[0] ? proj.contracts[0].contractor : 'Nhà thầu 1'), 'Đơn giá tham khảo'];
+        let priceRows = vo && Array.isArray(vo.priceRows) && vo.priceRows.length
+          ? JSON.parse(JSON.stringify(vo.priceRows))
+          : [{ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' }];
+        let priceImage = (vo && vo.priceImage) || '';
+        let chosenVendorIdx = vo ? (Number(vo.chosenVendorIdx) || 0) : 0;
+
+        openModal(vo ? `Cập nhật Đề xuất & Phát sinh (${vo.code})` : 'Ghi nhận Phát sinh & Lập Đề xuất (BM07)', `
+          <div class="max-h-[72vh] overflow-y-auto pr-1 space-y-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="text-[11px] font-bold uppercase text-slate-600">Thông tin Dự án &amp; Biểu mẫu (Tự động cập nhật từ dự án ${esc(proj.code)})</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="sm:col-span-2"><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Công ty / Chủ đầu tư</label><input name="companyName" value="${esc((vo && vo.companyName) || proj.owner || '')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Số Đề xuất</label><input name="proposalNo" value="${esc(defPropNo)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold" /></div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="sm:col-span-2"><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Địa chỉ dự án</label><input name="companyAddress" value="${esc((vo && vo.companyAddress) || proj.location || '')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Kính gửi</label><input name="sendTo" value="${esc((vo && vo.sendTo) || 'Ban Giám Đốc Công Ty')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Người đề xuất (Tôi)</label><input name="proposer" value="${esc(defProposer)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Bộ phận</label><input name="department" value="${esc((vo && vo.department) || 'Phòng PTHT.')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Gắn Gói thầu (nếu có)</label><select id="vo-contract-sel" name="contractId" class="w-full text-xs border border-slate-300 rounded-lg px-2 py-1.5 bg-white"><option value="">-- Đề xuất độc lập --</option>${proj.contracts.map(c => `<option value="${esc(c.id)}" ${vo && vo.contractId === c.id ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)}</option>`).join('')}</select></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div class="sm:col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1">Về việc / Nội dung phát sinh (Vv:)</label><input id="vo-title-inp" name="title" value="${esc(defTitle)}" placeholder="VD: Đề xuất chi phí chống thấm nhà bảo vệ C2" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-1.5" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tiến độ (+Ngày)</label><input name="timeImpact" type="number" value="${vo ? (Number(vo.timeImpact) || 0) : 0}" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-1.5" /></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">1. Mục tiêu đề xuất <span class="text-[10px] font-normal text-brand-600">(tự điền)</span></label><textarea id="vo-goal-inp" name="goal" rows="2" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-1.5">${esc(defGoal)}</textarea></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">2. Nội dung đề xuất / Lý do <span class="text-[10px] font-normal text-brand-600">(tự điền)</span></label><textarea id="vo-content-inp" name="content" rows="2" required class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-1.5">${esc(defContent)}</textarea></div>
+            </div>
+
+            <!-- 3. Dynamic Price Table + Excel + Image -->
+            <div class="border border-slate-200 rounded-xl p-3 space-y-2 bg-white">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-800">3. Ngân sách chi phí dự kiến (Thêm/xóa hàng cột, nhập Excel hoặc Ảnh)</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" id="vo-add-row" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200">+ Thêm hàng</button>
+                  <button type="button" id="vo-add-col" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">+ Thêm cột Nhà thầu</button>
+                  <label class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer">
+                    ⬆ Nhập Excel <input id="vo-xlsx-inp" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
+                  </label>
+                  <button type="button" id="vo-paste-btn" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">📋 Dán từ Excel</button>
+                  <label class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 cursor-pointer">
+                    🖼 Chèn Ảnh bảng giá <input id="vo-img-inp" type="file" accept="image/*" class="hidden" />
+                  </label>
+                </div>
+              </div>
+              <div id="vo-paste-box" class="hidden bg-amber-50/70 border border-amber-200 rounded-lg p-2 space-y-1.5">
+                <div class="text-[11px] text-amber-900 font-medium">Copy vùng bảng từ Excel rồi dán (Ctrl+V) vào ô bên dưới (Hỗ trợ: STT | Hạng mục | ĐVT | KL | Đơn giá... | Các bước):</div>
+                <textarea id="vo-paste-area" rows="3" placeholder="Dán dữ liệu bảng từ Excel vào đây..." class="w-full text-xs border border-amber-300 rounded-lg p-2 bg-white"></textarea>
+                <div class="flex justify-end gap-1.5">
+                  <button type="button" id="vo-paste-cancel" class="px-2 py-1 text-[11px] rounded bg-white border border-slate-300">Đóng</button>
+                  <button type="button" id="vo-paste-apply" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-600 text-white">Áp dụng vào bảng</button>
+                </div>
+              </div>
+              <div id="vo-price-table-wrap" class="overflow-x-auto max-h-52 border border-slate-200 rounded-lg"></div>
+              <div id="vo-img-preview-wrap" class="${priceImage ? '' : 'hidden'} flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                <img id="vo-img-preview" src="${priceImage}" class="h-16 rounded border border-slate-300 object-contain" alt="Bảng giá" />
+                <div class="flex-1 text-xs text-slate-600">Đã đính kèm hình ảnh bảng giá (sẽ hiển thị trong mục 3 khi xem trước &amp; xuất Word)</div>
+                <button type="button" id="vo-img-clear" class="text-xs text-rose-600 hover:underline font-semibold">Xóa ảnh</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5">
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Chọn Nhà thầu đề xuất</label><select id="vo-chosen-vendor-sel" name="chosenVendorIdx" class="w-full text-xs border border-emerald-300 rounded-lg px-2 py-1.5 bg-white"></select></div>
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Giá trị đề xuất (VNĐ)</label><input id="vo-cost-inp" name="costImpact" type="text" inputmode="numeric" value="${fmtVndInput(vo ? vo.costImpact : 0)}" required class="w-full text-xs font-bold text-rose-700 border border-emerald-300 rounded-lg px-2.5 py-1.5 bg-white" /></div>
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Ghi chú VAT</label><input name="vatNote" value="${esc((vo && vo.vatNote) || 'chưa vat')}" class="w-full text-xs border border-emerald-300 rounded-lg px-2.5 py-1.5 bg-white" /></div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="button" id="vo-preview-btn" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200">👁 Xem trước Đề xuất (BM07) trước khi lưu</button>
+            </div>
           </div>
-          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Lý do</label><input name="reason" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
         `, fd => {
           const c = proj.contracts.find(x => x.id === fd.get('contractId'));
-          proj.vos.unshift({ id: 'vo' + Date.now(), code: 'VO-0' + (proj.vos.length + 1), contractId: c ? c.id : '', title: fd.get('title').trim(), contractor: c ? c.contractor : '', costImpact: Number(fd.get('costImpact')) || 0, timeImpact: Number(fd.get('timeImpact')) || 0, reason: fd.get('reason').trim(), status: 'Chờ duyệt' });
-          saveState(); closeModal(); renderAll(); showToast('Đã ghi nhận phát sinh');
+          const cIdx = Math.min(vendors.length - 1, Math.max(0, Number(fd.get('chosenVendorIdx')) || 0));
+          const chosenName = vendors[cIdx] || (c ? c.contractor : '');
+          const costVal = parseVnd(fd.get('costImpact'));
+          const payload = {
+            id: vo ? vo.id : ('vo' + Date.now()),
+            code: vo ? vo.code : ('VO-0' + (proj.vos.length + 1)),
+            contractId: c ? c.id : '',
+            title: fd.get('title').trim(),
+            contractor: c ? c.contractor : chosenName,
+            chosenContractor: chosenName,
+            chosenVendorIdx: cIdx,
+            costImpact: costVal,
+            timeImpact: Number(fd.get('timeImpact')) || 0,
+            reason: fd.get('content').trim(),
+            companyName: fd.get('companyName').trim(),
+            companyAddress: fd.get('companyAddress').trim(),
+            proposalNo: fd.get('proposalNo').trim(),
+            sendTo: fd.get('sendTo').trim(),
+            proposer: fd.get('proposer').trim(),
+            department: fd.get('department').trim(),
+            goal: fd.get('goal').trim(),
+            content: fd.get('content').trim(),
+            vatNote: fd.get('vatNote').trim(),
+            vendors,
+            priceRows,
+            priceImage,
+            status: vo ? vo.status : 'Chờ duyệt'
+          };
+          if (vo) {
+            const wasApproved = vo.status === 'Đã duyệt';
+            Object.assign(vo, payload);
+            if (wasApproved) {
+              vo.approvedCost = payload.costImpact;
+              syncContractFromVo(proj, vo, payload.contractId, payload.costImpact);
+            }
+          } else {
+            proj.vos.unshift(payload);
+          }
+          saveState(); closeModal(); renderAll(); showToast(vo ? 'Đã cập nhật đề xuất & phát sinh' : 'Đã lưu Đề xuất & ghi nhận phát sinh');
         });
+
+        setTimeout(() => {
+          const titleEl = document.getElementById('vo-title-inp');
+          const goalEl = document.getElementById('vo-goal-inp');
+          const contentEl = document.getElementById('vo-content-inp');
+          const costEl = document.getElementById('vo-cost-inp');
+          const chosenSel = document.getElementById('vo-chosen-vendor-sel');
+          const wrapEl = document.getElementById('vo-price-table-wrap');
+          if (!wrapEl) return;
+          const mBox = wrapEl.closest('.max-w-lg, .max-w-xl, .max-w-2xl, .max-w-4xl');
+          if (mBox) { mBox.classList.remove('max-w-lg', 'max-w-xl', 'max-w-2xl'); mBox.classList.add('max-w-4xl'); }
+
+          let goalTouched = Boolean(defGoal);
+          let contentTouched = Boolean(defContent);
+          if (goalEl) goalEl.addEventListener('input', () => { goalTouched = true; });
+          if (contentEl) contentEl.addEventListener('input', () => { contentTouched = true; });
+          if (titleEl) titleEl.addEventListener('input', () => {
+            const tv = titleEl.value.trim();
+            if (!goalTouched && goalEl && tv) goalEl.value = `${tv} dự án ${proj.code} (${proj.name}).`;
+            if (!contentTouched && contentEl && tv) contentEl.value = `Hiện trạng phát sinh cần thực hiện: ${tv} tại ${proj.location || proj.name} để đảm bảo chất lượng và tiến độ vận hành.`;
+          });
+
+          function syncChosenDropdownAndCost(recalcCost) {
+            if (chosenSel) {
+              chosenSel.innerHTML = vendors.map((vn, idx) => `<option value="${idx}" ${idx === chosenVendorIdx ? 'selected' : ''}>${esc(vn)}</option>`).join('');
+            }
+            if (recalcCost && costEl && priceRows.length) {
+              const tot = priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[chosenVendorIdx]) || 0)), 0);
+              if (tot > 0) costEl.value = fmtVndInput(Math.round(tot));
+            }
+          }
+
+          function renderPriceTableEditor() {
+            const vTotals = vendors.map((_, vi) => priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[vi]) || 0)), 0));
+            wrapEl.innerHTML = `
+              <table class="w-full min-w-[820px] text-left border-collapse text-xs">
+                <thead class="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th class="p-1.5 border-b border-r border-slate-200 text-center w-9">STT</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 min-w-[180px]">HẠNG MỤC</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 w-16 text-center">ĐVT</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 w-24 text-right">Khối lượng</th>
+                    ${vendors.map((vn, vi) => `
+                      <th class="p-1.5 border-b border-r border-slate-200 min-w-[200px]" colspan="2">
+                        <div class="flex items-center gap-1">
+                          <input type="text" data-vname="${vi}" value="${esc(vn)}" class="w-full text-xs font-bold bg-white border border-slate-300 rounded px-2 py-1" />
+                          ${vendors.length > 1 ? `<button type="button" data-del-col="${vi}" class="text-rose-600 font-bold px-1.5 py-0.5 hover:bg-rose-50 rounded" title="Xóa cột">✕</button>` : ''}
+                        </div>
+                        <div class="grid grid-cols-2 text-[10px] text-slate-500 mt-1 text-center"><span>Đơn giá</span><span>Thành tiền</span></div>
+                      </th>`).join('')}
+                    <th class="p-1.5 border-b border-r border-slate-200 min-w-[140px]">Các bước thực hiện</th>
+                    <th class="p-1.5 border-b border-slate-200 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${priceRows.map((r, ri) => {
+                    const q = Number(r.qty) || 0;
+                    return `<tr class="hover:bg-slate-50">
+                      <td class="p-1.5 border-b border-r border-slate-200 text-center text-slate-500">${ri + 1}</td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="name" value="${esc(r.name || '')}" placeholder="Tên hạng mục..." class="w-full min-w-[160px] text-xs border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="unit" value="${esc(r.unit || '')}" class="w-16 text-xs text-center border border-slate-300 rounded px-1.5 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" inputmode="decimal" data-r="${ri}" data-f="qty" value="${r.qty !== undefined && r.qty !== '' ? esc(String(r.qty)) : ''}" placeholder="0" class="w-20 text-xs text-right font-semibold border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      ${vendors.map((_, vi) => {
+                        const pr = Number((r.prices || [])[vi]) || 0;
+                        const amt = Math.round(q * pr);
+                        return `
+                          <td class="p-1 border-b border-r border-slate-200"><input type="text" inputmode="numeric" data-r="${ri}" data-vi="${vi}" value="${pr ? pr.toLocaleString('en-US') : ''}" placeholder="0" class="w-24 text-xs text-right font-semibold border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                          <td class="p-1.5 border-b border-r border-slate-200 text-right font-semibold text-slate-700 whitespace-nowrap min-w-[90px]" data-amt="${ri}-${vi}">${amt ? amt.toLocaleString('en-US') : '0'}</td>`;
+                      }).join('')}
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="steps" value="${esc(r.steps || '')}" class="w-full min-w-[130px] text-xs border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-slate-200 text-center"><button type="button" data-del-row="${ri}" class="text-rose-600 font-bold hover:bg-rose-50 px-1.5 py-0.5 rounded">✕</button></td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+                <tfoot class="bg-slate-50 font-bold text-slate-800">
+                  <tr>
+                    <td colspan="4" class="p-2 border-r border-slate-200 text-center">TỔNG CỘNG (CHƯA VAT)</td>
+                    ${vTotals.map((tot, vi) => `<td class="p-2 border-r border-slate-200"></td><td class="p-2 border-r border-slate-200 text-right text-indigo-700 whitespace-nowrap" data-vtot="${vi}">${Math.round(tot).toLocaleString('en-US')}</td>`).join('')}
+                    <td colspan="2" class="p-2"></td>
+                  </tr>
+                </tfoot>
+              </table>`;
+            syncChosenDropdownAndCost(true);
+          }
+
+          wrapEl.addEventListener('input', e => {
+            const el = e.target;
+            if (el.dataset.vname !== undefined) {
+              vendors[Number(el.dataset.vname)] = el.value;
+              syncChosenDropdownAndCost(false);
+              return;
+            }
+            if (el.dataset.r !== undefined) {
+              const ri = Number(el.dataset.r);
+              const row = priceRows[ri];
+              if (!row) return;
+              if (el.dataset.vi !== undefined) {
+                if (!Array.isArray(row.prices)) row.prices = [];
+                const rawDigits = String(el.value || '').replace(/[^\d]/g, '');
+                row.prices[Number(el.dataset.vi)] = rawDigits ? Number(rawDigits) : 0;
+              } else if (el.dataset.f === 'qty') {
+                const normQty = String(el.value || '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+                row.qty = normQty ? (Number(normQty) || 0) : 0;
+              } else if (el.dataset.f) {
+                row[el.dataset.f] = el.value;
+              }
+              // Update amounts & totals in-place without losing input focus
+              const q = Number(row.qty) || 0;
+              vendors.forEach((_, vi) => {
+                const amtEl = wrapEl.querySelector(`[data-amt="${ri}-${vi}"]`);
+                const pr = Number((row.prices || [])[vi]) || 0;
+                if (amtEl) amtEl.textContent = Math.round(q * pr).toLocaleString('en-US');
+                const totEl = wrapEl.querySelector(`[data-vtot="${vi}"]`);
+                if (totEl) {
+                  const tot = priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[vi]) || 0)), 0);
+                  totEl.textContent = Math.round(tot).toLocaleString('en-US');
+                }
+              });
+              syncChosenDropdownAndCost(true);
+            }
+          });
+
+          wrapEl.addEventListener('click', e => {
+            const dr = e.target.closest('[data-del-row]');
+            if (dr) {
+              const idx = Number(dr.dataset.delRow);
+              if (priceRows.length > 1) priceRows.splice(idx, 1);
+              else priceRows = [{ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' }];
+              renderPriceTableEditor();
+              return;
+            }
+            const dc = e.target.closest('[data-del-col]');
+            if (dc && vendors.length > 1) {
+              const ci = Number(dc.dataset.delCol);
+              vendors.splice(ci, 1);
+              priceRows.forEach(r => { if (Array.isArray(r.prices)) r.prices.splice(ci, 1); });
+              if (chosenVendorIdx >= vendors.length) chosenVendorIdx = 0;
+              renderPriceTableEditor();
+            }
+          });
+
+          document.getElementById('vo-add-row').addEventListener('click', () => {
+            priceRows.push({ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' });
+            renderPriceTableEditor();
+          });
+          document.getElementById('vo-add-col').addEventListener('click', () => {
+            vendors.push('Nhà thầu ' + (vendors.length + 1));
+            priceRows.forEach(r => { if (!Array.isArray(r.prices)) r.prices = []; r.prices.push(0); });
+            renderPriceTableEditor();
+          });
+          if (chosenSel) chosenSel.addEventListener('change', () => {
+            chosenVendorIdx = Number(chosenSel.value) || 0;
+            syncChosenDropdownAndCost(true);
+          });
+
+          // Import Excel into price table
+          const xlsxInp = document.getElementById('vo-xlsx-inp');
+          if (xlsxInp) xlsxInp.addEventListener('change', async e => {
+            const file = e.target.files && e.target.files[0];
+            if (!file || typeof XLSX === 'undefined') return;
+            try {
+              const buf = await file.arrayBuffer();
+              const wb = XLSX.read(buf, { type: 'array' });
+              const ws = wb.Sheets[wb.SheetNames[0]];
+              const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).filter(r => r.some(c => String(c).trim() !== ''));
+              if (!aoa.length) { showToast('File Excel trống', 'error'); return; }
+              const dataRows = aoa.filter(r => !/tổng cộng|stt|hạng mục/i.test(String(r[0] || '') + ' ' + String(r[1] || '')));
+              const parsed = (dataRows.length ? dataRows : aoa).map(r => {
+                const startIdx = /^\d+$/.test(String(r[0]).trim()) ? 1 : 0;
+                const name = String(r[startIdx] || '').trim();
+                const unit = String(r[startIdx + 1] || 'm2').trim();
+                const qty = Number(String(r[startIdx + 2] || '1').replace(/,/g, '')) || 1;
+                const prices = vendors.map((_, vi) => parseVnd(String(r[startIdx + 3 + vi * 2] || r[startIdx + 3 + vi] || 0)));
+                const steps = String(r[startIdx + 3 + vendors.length * 2] || r[r.length - 1] || '').trim();
+                return { name, unit, qty, prices, steps: /^\d+$/.test(steps.replace(/[,.\s]/g, '')) ? '' : steps };
+              }).filter(r => r.name);
+              if (parsed.length) {
+                priceRows = parsed;
+                renderPriceTableEditor();
+                showToast(`Đã nhập ${parsed.length} dòng từ Excel`);
+              } else showToast('Không nhận diện được dòng hạng mục trong Excel', 'error');
+            } catch (err) {
+              showToast('Lỗi đọc Excel: ' + err.message, 'error');
+            }
+            xlsxInp.value = '';
+          });
+
+          // Paste from Excel
+          const pasteBox = document.getElementById('vo-paste-box');
+          document.getElementById('vo-paste-btn').addEventListener('click', () => pasteBox.classList.toggle('hidden'));
+          document.getElementById('vo-paste-cancel').addEventListener('click', () => pasteBox.classList.add('hidden'));
+          document.getElementById('vo-paste-apply').addEventListener('click', () => {
+            const raw = (document.getElementById('vo-paste-area').value || '').trim();
+            if (!raw) return;
+            const lines = raw.split(/\r?\n/).map(l => l.split('\t')).filter(c => c.some(x => x.trim()));
+            const parsed = lines.filter(r => !/^(stt|hạng mục|tổng cộng)/i.test((r[0] || '') + ' ' + (r[1] || ''))).map(r => {
+              const startIdx = /^\d+$/.test(String(r[0]).trim()) ? 1 : 0;
+              const name = String(r[startIdx] || '').trim();
+              const unit = String(r[startIdx + 1] || 'm2').trim();
+              const qty = Number(String(r[startIdx + 2] || '1').replace(/,/g, '')) || 1;
+              const prices = vendors.map((_, vi) => parseVnd(String(r[startIdx + 3 + vi] || 0)));
+              const steps = String(r[startIdx + 3 + vendors.length] || '').trim();
+              return { name, unit, qty, prices, steps };
+            }).filter(r => r.name);
+            if (parsed.length) {
+              priceRows = parsed;
+              renderPriceTableEditor();
+              pasteBox.classList.add('hidden');
+              document.getElementById('vo-paste-area').value = '';
+              showToast(`Đã dán ${parsed.length} dòng từ Excel`);
+            }
+          });
+
+          // Insert Image of price table
+          const imgInp = document.getElementById('vo-img-inp');
+          if (imgInp) imgInp.addEventListener('change', e => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+              priceImage = ev.target.result;
+              document.getElementById('vo-img-preview').src = priceImage;
+              document.getElementById('vo-img-preview-wrap').classList.remove('hidden');
+              showToast('Đã chèn ảnh bảng giá');
+            };
+            reader.readAsDataURL(file);
+          });
+          document.getElementById('vo-img-clear').addEventListener('click', () => {
+            priceImage = '';
+            document.getElementById('vo-img-preview').src = '';
+            document.getElementById('vo-img-preview-wrap').classList.add('hidden');
+          });
+
+          // Preview button inside modal
+          document.getElementById('vo-preview-btn').addEventListener('click', () => {
+            const form = document.getElementById('modal-form');
+            const fd = new FormData(form);
+            const c = proj.contracts.find(x => x.id === fd.get('contractId'));
+            const cIdx = Math.min(vendors.length - 1, Math.max(0, Number(fd.get('chosenVendorIdx')) || 0));
+            previewVoProposalForm(proj, {
+              code: vo ? vo.code : ('VO-0' + (proj.vos.length + 1)),
+              title: fd.get('title') || '',
+              contractor: c ? c.contractor : (vendors[cIdx] || ''),
+              chosenContractor: vendors[cIdx] || '',
+              chosenVendorIdx: cIdx,
+              costImpact: parseVnd(fd.get('costImpact')),
+              timeImpact: Number(fd.get('timeImpact')) || 0,
+              companyName: fd.get('companyName') || '',
+              companyAddress: fd.get('companyAddress') || '',
+              proposalNo: fd.get('proposalNo') || '',
+              sendTo: fd.get('sendTo') || '',
+              proposer: fd.get('proposer') || '',
+              department: fd.get('department') || '',
+              goal: fd.get('goal') || '',
+              content: fd.get('content') || '',
+              vatNote: fd.get('vatNote') || 'chưa vat',
+              vendors, priceRows, priceImage
+            });
+          });
+
+          renderPriceTableEditor();
+        }, 30);
       }
-      document.getElementById('btn-add-vo').addEventListener('click', openVoModal);
-      document.getElementById('btn-quick-vo').addEventListener('click', openVoModal);
+      document.getElementById('btn-add-vo').addEventListener('click', () => openVoModal());
+      document.getElementById('btn-quick-vo').addEventListener('click', () => openVoModal());
 
 
       document.getElementById('btn-add-legal').addEventListener('click', () => {
