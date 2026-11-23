@@ -245,10 +245,7 @@
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
           <span>Thư viện Hồ sơ</span>
         </button>
-        <button type="button" data-tab="bim3d" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          <span>Mô phỏng 3D (BIM)</span>
-        </button>
+
       </nav>
 
       <!-- Footer Actions -->
@@ -329,14 +326,24 @@
       <section id="tab-projects" class="tab-panel hidden space-y-6">
         <div id="portfolio-kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="font-semibold text-slate-900 text-base">Danh mục Dự án Đầu tư Xây dựng</h3>
-              <p class="text-xs text-slate-500">Thêm mới, chỉnh sửa thông tin, chuyển đổi theo dõi hoặc xóa dự án linh động</p>
+              <h3 class="font-semibold text-slate-900 text-base">Danh mục Toàn bộ Dự án Đầu tư Xây dựng</h3>
+              <p class="text-xs text-slate-500">Hiển thị đồng thời tất cả dự án, so sánh ngân sách, giải ngân, công nợ &amp; tiến độ tổng hợp</p>
             </div>
-            <button id="btn-new-project-2" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition self-start sm:self-auto">
-              + Thêm dự án mới
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <input id="proj-dir-search" type="text" placeholder="Tìm mã, tên dự án, CĐT..." class="text-xs border border-slate-300 rounded-xl px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <select id="proj-dir-status" class="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="Đang triển khai">Đang triển khai</option>
+                <option value="Khởi tạo">Khởi tạo</option>
+                <option value="Tạm dừng">Tạm dừng</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+              </select>
+              <button id="btn-new-project-2" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white transition">
+                + Thêm dự án mới
+              </button>
+            </div>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-sm">
@@ -344,14 +351,15 @@
                 <tr class="border-b border-slate-200 text-xs text-slate-500 uppercase bg-slate-50/70">
                   <th class="py-3 px-3 font-semibold">Mã &amp; Tên dự án</th>
                   <th class="py-3 px-3 font-semibold">Chủ đầu tư &amp; Địa điểm</th>
-                  <th class="py-3 px-3 font-semibold text-right">TMĐT (VNĐ)</th>
-                  <th class="py-3 px-3 font-semibold text-right">Đã giải ngân</th>
-                  <th class="py-3 px-3 font-semibold text-center">Tiến độ TT</th>
+                  <th class="py-3 px-3 font-semibold text-right">TMĐT / Giá trị HĐ</th>
+                  <th class="py-3 px-3 font-semibold text-right">Đã giải ngân / Công nợ</th>
+                  <th class="py-3 px-3 font-semibold text-center">Tiến độ KH / TT &amp; SPI</th>
                   <th class="py-3 px-3 font-semibold">Trạng thái</th>
                   <th class="py-3 px-3 font-semibold text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody id="project-directory-body" class="divide-y divide-slate-100"></tbody>
+              <tfoot id="project-directory-foot" class="bg-slate-50 border-t-2 border-slate-200 font-semibold text-xs text-slate-800"></tfoot>
             </table>
           </div>
         </div>
@@ -359,7 +367,7 @@
 
       <!-- TAB 1: OVERVIEW -->
       <section id="tab-overview" class="tab-panel space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div data-submod="ov_kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-brand-600">
             <div class="text-xs font-medium text-slate-500">Tổng ngân sách (TMĐT)</div>
             <div id="kpi-tmdt" class="text-xl font-bold text-slate-900 mt-1">0 VNĐ</div>
@@ -397,7 +405,7 @@
         </div>
 
         <!-- EVM (Earned Value Management) Strip from ProjectFlow -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+        <div data-submod="ov_kpis" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Chỉ số Quản trị Giá trị Đạt được (EVM)</span>
             <span id="evm-status-pill" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">Đang đánh giá</span>
@@ -405,9 +413,9 @@
           <div id="evm-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs"></div>
         </div>
 
-        <div id="overview-alerts" class="space-y-2"></div>
+        <div id="overview-alerts" data-submod="ov_alerts" class="space-y-2"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div data-submod="ov_charts" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div class="mb-3">
               <h3 class="font-semibold text-slate-900 text-sm sm:text-base">So sánh Ngân sách &amp; Thực tế theo Hạng mục Chi phí (VNĐ)</h3>
@@ -428,7 +436,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div data-submod="ov_charts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div class="mb-3">
               <h3 class="font-semibold text-slate-900 text-sm sm:text-base">Đường cong S-Curve Tiến độ (Kế hoạch PV vs Thực tế EV)</h3>
@@ -449,7 +457,7 @@
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="ov_approvals" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Hồ sơ cần Chủ đầu tư phê duyệt ngay</h3>
@@ -590,9 +598,14 @@
                 <h3 class="font-semibold text-slate-900 text-base">1. Khai báo Mục tổng &amp; Thời gian thực hiện của Chủ đầu tư</h3>
                 <p class="text-xs text-slate-500">CĐT khai báo các hạng mục tổng và khung thời gian mục tiêu để làm chuẩn đối chiếu với tiến độ nhà thầu</p>
               </div>
-              <button id="btn-add-owner-master" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition shrink-0">
-                + Khai báo mục tổng CĐT
-              </button>
+              <div class="flex items-center gap-2 shrink-0">
+                <button id="btn-clear-owner-master" type="button" class="px-3 py-2 text-xs font-semibold rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition">
+                  🗑 Xóa hết mốc CĐT
+                </button>
+                <button id="btn-add-owner-master" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition">
+                  + Khai báo mục tổng CĐT
+                </button>
+              </div>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full min-w-[1100px] text-left border-collapse text-xs">
@@ -936,7 +949,7 @@
             </div>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div data-submod="fin_rounds" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <h3 class="font-semibold text-slate-900 text-base mb-1">Combine toàn bộ tiến độ (Nhiều file nhà thầu .xlsx / .xml → Master)</h3>
             <p class="text-xs text-slate-500 mb-3">Chọn nhiều file tiến độ từ các nhà thầu cùng lúc; hệ thống tự gộp vào Master WBS và kiểm tra xung đột đường găng</p>
             <div class="flex flex-wrap items-center gap-2">
@@ -1009,7 +1022,7 @@
         </div>
 
         <!-- Detailed Budget Breakdown -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="fin_budget" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Bảng phân bổ Ngân sách theo Hạng mục Chi phí</h3>
@@ -1037,20 +1050,23 @@
                 <tr class="border-b border-slate-200 text-xs text-slate-500 uppercase bg-slate-50/70">
                   <th class="py-3 px-3 font-semibold">Tên mục chi phí</th>
                   <th class="py-3 px-3 font-semibold">Danh mục</th>
-                  <th class="py-3 px-3 font-semibold text-right">Ngân sách (VNĐ)</th>
-                  <th class="py-3 px-3 font-semibold text-right">Thực tế (VNĐ)</th>
-                  <th class="py-3 px-3 font-semibold text-right">Chênh lệch (VNĐ)</th>
+                  <th class="py-3 px-3 font-semibold text-right">NS chưa VAT (VNĐ)</th>
+                  <th class="py-3 px-3 font-semibold text-center">VAT (%)</th>
+                  <th class="py-3 px-3 font-semibold text-right">NS có VAT (VNĐ)</th>
+                  <th class="py-3 px-3 font-semibold text-right">Thực tế / HĐ (có VAT)</th>
+                  <th class="py-3 px-3 font-semibold text-right">Chênh lệch (có VAT)</th>
                   <th class="py-3 px-3 font-semibold">Trạng thái</th>
                   <th class="py-3 px-3 font-semibold text-right">Sửa</th>
                 </tr>
               </thead>
               <tbody id="budget-table-body" class="divide-y divide-slate-100"></tbody>
+              <tfoot id="budget-table-foot" class="bg-slate-50 border-t-2 border-slate-200 font-semibold text-xs text-slate-800"></tfoot>
             </table>
           </div>
         </div>
 
         <!-- Contracts Table -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="fin_contracts" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Danh sách Gói thầu &amp; Hợp đồng</h3>
@@ -1118,7 +1134,7 @@
 
         <!-- Summary Tables: Payment Delay Stats & Submitted Debt -->
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div data-submod="fin_rounds" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div class="mb-3">
               <h3 class="font-semibold text-slate-900 text-base">📊 Thống kê Thanh toán Nhanh / Trễ hạn theo Hợp đồng</h3>
               <p class="text-xs text-slate-500">So sánh số ngày thanh toán thực tế (từ Ngày xuất HĐ → Ngày TT) với Hạn TT quy định trong Hợp đồng</p>
@@ -1164,7 +1180,7 @@
         </div>
 
         <!-- Pending Payment Requests -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="fin_approvals" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Hồ sơ Đề nghị Thanh toán chờ Chủ đầu tư duyệt chi</h3>
@@ -1197,7 +1213,7 @@
 
       <!-- TAB 5: RISKS & LEGAL -->
       <section id="tab-risks" class="tab-panel hidden space-y-6">
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="risk_legal" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Hồ sơ Pháp lý Chủ đầu tư</h3>
@@ -1210,7 +1226,7 @@
           <div id="legal-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="risk_issues" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Sổ đăng ký Rủi ro &amp; Vấn đề tồn đọng</h3>
@@ -1226,7 +1242,7 @@
 
       <!-- TAB 6: WEEKLY REPORT & SITE PHOTOS -->
       <section id="tab-weekly" class="tab-panel hidden space-y-6">
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="wk_info" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Thông tin Bìa &amp; Nhận xét Báo cáo Tuần</h3>
@@ -1253,7 +1269,7 @@
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="wk_tasks" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Công việc Trong tuần &amp; Kế hoạch Tuần tới</h3>
@@ -1289,7 +1305,7 @@
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="wk_photos" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">Hình ảnh Hiện trường Công trình (Lưới 2×2)</h3>
@@ -1302,7 +1318,7 @@
           <div id="site-photos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div data-submod="wk_archive" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-semibold text-slate-900 text-base">📚 Kho lưu trữ Báo cáo tuần theo từng tuần</h3>
@@ -1502,8 +1518,8 @@
           <div id="mytask-admin-summary" class="hidden space-y-2 pt-1"></div>
           <div class="flex flex-wrap items-center gap-2 pt-1">
             <select id="mytask-filter-project" class="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white">
-              <option value="active">Dự án đang chọn</option>
-              <option value="all">Tất cả dự án</option>
+              <option value="all" selected>Tất cả dự án (Hiển thị chung)</option>
+              <option value="active">Chỉ dự án đang chọn</option>
             </select>
             <select id="mytask-filter-status" class="text-xs border border-slate-300 rounded-xl px-3 py-2 bg-white">
               <option value="all">Tất cả trạng thái</option>
@@ -1623,7 +1639,7 @@
         <button id="btn-rpt-select-active" type="button" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-[11px] font-medium">Chỉ DA hiện tại</button>
       </div>
       <div class="h-4 w-px bg-slate-600 hidden sm:block"></div>
-      <label class="inline-flex items-center gap-1.5 cursor-pointer text-emerald-300 font-semibold whitespace-nowrap">
+      <label class="hidden inline-flex items-center gap-1.5 cursor-pointer text-emerald-300 font-semibold whitespace-nowrap">
         <input id="chk-rpt-include-bim" type="checkbox" class="accent-emerald-400 w-3.5 h-3.5" />
         <span>Kèm mô hình 3D theo tiến độ</span>
       </label>
@@ -2232,7 +2248,6 @@
         weekly: 'Báo cáo tuần & Ảnh',
         mytasks: 'Công việc cá nhân',
         docs: 'Thư viện Hồ sơ',
-        bim3d: 'Mô phỏng 3D (BIM)'
       };
       function pushAdminNotif(detail, actionType, locationStr) {
         if (!Array.isArray(state.adminNotifications)) state.adminNotifications = [];
@@ -2383,25 +2398,35 @@
         (state.projects || []).forEach(normalizeProject);
         let p = state.projects.find(x => x.id === state.activeProjectId);
         if (!p) { p = state.projects[0]; state.activeProjectId = p.id; }
+        const isDemoSeedProj = ['p1', 'p2'].includes(p.id) && p.projectType !== 'maintenance';
         if (!Array.isArray(p.scheduleVersions)) {
-          p.scheduleVersions = [
+          p.scheduleVersions = isDemoSeedProj ? [
             { id: 'v1', ver: 1, label: 'Ver 1 — Baseline khởi công', date: '2026-10-17', planPct: 0, actualPct: 0, spi: 1, note: 'Mốc kế hoạch ban đầu được phê duyệt', snapshot: [] },
             { id: 'v2', ver: 2, label: 'Ver 2 — Cập nhật Tuần 23', date: state.reportDate || '2026-11-18', planPct: 12.1, actualPct: 8.5, spi: 0.70, note: 'Hoàn tất pháp lý 1.1, đang ép cọc 1.2 (35%)', snapshot: p.tasks.map(t => ({ id: t.id, c: t.c, name: t.name, contractor: t.contractor, progress: t.progress })) }
-          ];
+          ] : [];
         }
         p.contracts.forEach(c => { if (!Array.isArray(c.rounds)) c.rounds = []; });
+        // Clean accidentally auto-seeded demo CĐT items from maintenance projects
+        if (p.projectType === 'maintenance' && Array.isArray(p.ownerMasterItems) && p.ownerMasterItems.length === 5
+            && p.ownerMasterItems.every(x => ['om_1', 'om_2', 'om_3', 'om_4', 'om_5'].includes(x.id) && ['PL-01', 'XD-01', 'ME-01', 'PCCC-01', 'HC-01'].includes(x.code))) {
+          p.ownerMasterItems = [];
+        }
         if (!Array.isArray(p.ownerMasterItems)) {
-          const allKs = [...new Set((p.tasks || []).map(t => t.contractor).filter(Boolean))];
-          const kXD = allKs.find(k => /xd|xây|kct|coteccons|bsv/i.test(k)) || allKs[0] || '';
-          const kME = allKs.find(k => /me|mep|điện|apt/i.test(k)) || allKs[1] || '';
-          const kPCCC = allKs.find(k => /pccc|cháy/i.test(k)) || kME || '';
-          p.ownerMasterItems = [
-            { id: 'om_1', phase: 'Pháp lý bắt đầu', category: 'Pháp lý', code: 'PL-01', name: 'Hoàn tất Pháp lý, GPXD, PCCC & Bàn giao Mặt bằng', start: '2026-02-01', duration: 30, end: '2026-03-02', actualStart: '2026-02-01', actualEnd: '2026-03-05', progress: 100, linkedContractor: 'Chủ đầu tư', note: 'Mốc điều kiện khởi công' },
-            { id: 'om_2', phase: 'Triển khai thi công', category: 'XD', code: 'XD-01', name: 'Gói Xây dựng & Kết cấu thép (XD)', start: '2026-03-01', duration: 150, end: '2026-07-28', actualStart: '2026-03-05', actualEnd: '', progress: 65, linkedContractor: kXD, note: 'Mốc chính gói Xây dựng' },
-            { id: 'om_3', phase: 'Triển khai thi công', category: 'ME', code: 'ME-01', name: 'Gói Cơ điện (ME)', start: '2026-05-01', duration: 120, end: '2026-08-28', actualStart: '2026-05-05', actualEnd: '', progress: 45, linkedContractor: kME, note: 'Mốc chính gói Cơ điện' },
-            { id: 'om_4', phase: 'Triển khai thi công', category: 'PCCC', code: 'PCCC-01', name: 'Gói Phòng cháy chữa cháy (PCCC)', start: '2026-06-01', duration: 90, end: '2026-08-29', actualStart: '', actualEnd: '', progress: 20, linkedContractor: kPCCC, note: 'Mốc chính gói PCCC' },
-            { id: 'om_5', phase: 'Hoàn công ra sổ', category: 'Hoàn công', code: 'HC-01', name: 'Nghiệm thu PCCC, Hoàn công công trình & Ra sổ tài sản', start: '2026-11-01', duration: 60, end: '2026-12-30', actualStart: '', actualEnd: '', progress: 0, linkedContractor: 'Chủ đầu tư', note: 'Mốc đóng dự án & bàn giao vận hành' }
-          ];
+          if (isDemoSeedProj) {
+            const allKs = [...new Set((p.tasks || []).map(t => t.contractor).filter(Boolean))];
+            const kXD = allKs.find(k => /xd|xây|kct|coteccons|bsv/i.test(k)) || allKs[0] || '';
+            const kME = allKs.find(k => /me|mep|điện|apt/i.test(k)) || allKs[1] || '';
+            const kPCCC = allKs.find(k => /pccc|cháy/i.test(k)) || kME || '';
+            p.ownerMasterItems = [
+              { id: 'om_1', phase: 'Pháp lý bắt đầu', category: 'Pháp lý', code: 'PL-01', name: 'Hoàn tất Pháp lý, GPXD, PCCC & Bàn giao Mặt bằng', start: '2026-02-01', duration: 30, end: '2026-03-02', actualStart: '2026-02-01', actualEnd: '2026-03-05', progress: 100, linkedContractor: 'Chủ đầu tư', note: 'Mốc điều kiện khởi công' },
+              { id: 'om_2', phase: 'Triển khai thi công', category: 'XD', code: 'XD-01', name: 'Gói Xây dựng & Kết cấu thép (XD)', start: '2026-03-01', duration: 150, end: '2026-07-28', actualStart: '2026-03-05', actualEnd: '', progress: 65, linkedContractor: kXD, note: 'Mốc chính gói Xây dựng' },
+              { id: 'om_3', phase: 'Triển khai thi công', category: 'ME', code: 'ME-01', name: 'Gói Cơ điện (ME)', start: '2026-05-01', duration: 120, end: '2026-08-28', actualStart: '2026-05-05', actualEnd: '', progress: 45, linkedContractor: kME, note: 'Mốc chính gói Cơ điện' },
+              { id: 'om_4', phase: 'Triển khai thi công', category: 'PCCC', code: 'PCCC-01', name: 'Gói Phòng cháy chữa cháy (PCCC)', start: '2026-06-01', duration: 90, end: '2026-08-29', actualStart: '', actualEnd: '', progress: 20, linkedContractor: kPCCC, note: 'Mốc chính gói PCCC' },
+              { id: 'om_5', phase: 'Hoàn công ra sổ', category: 'Hoàn công', code: 'HC-01', name: 'Nghiệm thu PCCC, Hoàn công công trình & Ra sổ tài sản', start: '2026-11-01', duration: 60, end: '2026-12-30', actualStart: '', actualEnd: '', progress: 0, linkedContractor: 'Chủ đầu tư', note: 'Mốc đóng dự án & bàn giao vận hành' }
+            ];
+          } else {
+            p.ownerMasterItems = [];
+          }
         } else {
           p.ownerMasterItems = p.ownerMasterItems.map((om, idx) => ({
             ...om,
@@ -2414,7 +2439,7 @@
         }
         if (!p.contractorRevisions || typeof p.contractorRevisions !== 'object') p.contractorRevisions = {};
         if (!Array.isArray(p.documents)) {
-          p.documents = [
+          p.documents = !isDemoSeedProj ? [] : [
             { id: 'doc_1', code: 'QĐ-01/KTĐN', title: 'Quyết định phê duyệt Dự án Đầu tư & TMĐT', category: 'Pháp lý & Đầu tư', issueDate: '2026-01-15', issuer: 'HĐQT Tập đoàn Kim Tín', uploader: 'admin', fileName: 'QD_Phe_Duyet_Du_An.pdf', fileUrl: '', note: 'Hồ sơ gốc lưu trữ tại Ban QLDA', updatedAt: '2026-01-15' },
             { id: 'doc_2', code: 'GPXD-18/SXD', title: 'Giấy phép Xây dựng & Thẩm duyệt PCCC', category: 'Pháp lý & Đầu tư', issueDate: '2026-02-10', issuer: 'Sở Xây dựng / Cảnh sát PCCC', uploader: 'admin', fileName: 'GPXD_PCCC.pdf', fileUrl: '', note: '', updatedAt: '2026-02-10' },
             { id: 'doc_3', code: 'TMB-KTDG-01', title: 'Bản vẽ Tổng mặt bằng & Kết cấu thép Nhà xưởng', category: 'Thiết kế & Bản vẽ', issueDate: '2026-02-20', issuer: 'Tư vấn Thiết kế', uploader: 'admin', fileName: 'TMB_NhaXuong_Rev02.dwg', fileUrl: '', note: 'Bản phát hành thi công', updatedAt: '2026-02-20' }
@@ -2593,6 +2618,11 @@
       function getLinkedContractsForBudget(proj, budgetId) {
         return (proj.contracts || []).filter(c => c.budgetItemId === budgetId && c.status !== 'Chưa ký');
       }
+      function getBudgetWithVat(b) {
+        const pre = Number(b && b.budget) || 0;
+        const vat = (b && b.vatRate !== undefined && b.vatRate !== '') ? Number(b.vatRate) : 10;
+        return Math.round(pre * (1 + vat / 100));
+      }
       function getBudgetActual(proj, b) {
         const linked = getLinkedContractsForBudget(proj, b.id);
         if (linked.length > 0) {
@@ -2709,7 +2739,6 @@
         });
         toggleSidebar(false);
         if (tabId === 'overview') renderCharts();
-        if (tabId === 'bim3d') initOrUpdateBim3D();
         setTimeout(attachTopScrollbars, 40);
       }
       document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -2750,15 +2779,146 @@
         return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${cls}">${esc(status)}</span>`;
       }
 
+      const PROJECT_OPTIONAL_MODULES = [
+        {
+          key: 'overview', label: 'Tổng quan điều hành',
+          children: [
+            { key: 'ov_kpis', label: 'Thẻ KPI & Chỉ số EVM' },
+            { key: 'ov_alerts', label: 'Cảnh báo vượt NS / Trễ hạn' },
+            { key: 'ov_charts', label: 'Biểu đồ Ngân sách & S-Curve' },
+            { key: 'ov_approvals', label: 'Hồ sơ chờ phê duyệt' }
+          ]
+        },
+        {
+          key: 'schedule', label: 'Tiến độ Nhà thầu & Tổng',
+          children: [
+            { key: 'sch_owner', label: '1. Tiến độ CĐT (Mục tổng)' },
+            { key: 'sch_plan', label: '2. Tiến độ theo Kế hoạch' },
+            { key: 'sch_contractors', label: '3. Tiến độ từng Nhà thầu' },
+            { key: 'sch_tracking', label: '4. Tracking Tiến độ' },
+            { key: 'sch_cpm', label: '5. Đường găng (CPM)' },
+            { key: 'sch_ai', label: '6. Phân tích & Kiến nghị' }
+          ]
+        },
+        {
+          key: 'finance', label: 'Ngân sách & Đợt TT',
+          children: [
+            { key: 'fin_budget', label: 'Bảng phân bổ Ngân sách' },
+            { key: 'fin_contracts', label: 'Danh sách Gói thầu & HĐ' },
+            { key: 'fin_rounds', label: 'Đợt Thanh toán & Công nợ' },
+            { key: 'fin_approvals', label: 'Đề nghị Thanh toán chờ duyệt' }
+          ]
+        },
+        { key: 'approvals', label: 'Thay đổi & Phát sinh (VO)', children: [] },
+        {
+          key: 'risks', label: 'Rủi ro & Pháp lý',
+          children: [
+            { key: 'risk_legal', label: 'Hồ sơ Pháp lý CĐT' },
+            { key: 'risk_issues', label: 'Sổ đăng ký Rủi ro' }
+          ]
+        },
+        {
+          key: 'weekly', label: 'Báo cáo tuần & Ảnh',
+          children: [
+            { key: 'wk_info', label: 'Thông tin Bìa & Nhận xét' },
+            { key: 'wk_tasks', label: 'Công việc Tuần & Tuần tới' },
+            { key: 'wk_photos', label: 'Hình ảnh Hiện trường' },
+            { key: 'wk_archive', label: 'Kho lưu trữ Báo cáo tuần' }
+          ]
+        },
+        { key: 'mytasks', label: 'Công việc cá nhân', children: [] },
+        { key: 'docs', label: 'Thư viện Hồ sơ', children: [] }
+      ];
+      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'weekly', 'mytasks', 'docs'];
+      const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_owner', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
+
+      function isModuleEnabledForProject(proj, modKey) {
+        if (state.viewAllProjects || modKey === 'projects' || !proj) return true;
+        if (proj.projectType !== 'maintenance') return true;
+        const vis = Array.isArray(proj.visibleModules) && proj.visibleModules.length ? proj.visibleModules : DEFAULT_MAINTENANCE_MODULES;
+        return vis.includes(modKey);
+      }
+
+      function isSubModuleEnabledForProject(proj, subKey) {
+        if (state.viewAllProjects || !proj || proj.projectType !== 'maintenance') return true;
+        if (!Array.isArray(proj.visibleSubModules)) return true;
+        return proj.visibleSubModules.includes(subKey);
+      }
+
+      function projTagHtml(item) {
+        if (!item || !item._projCode) return '';
+        return `<span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 mr-1">[${esc(item._projCode)}] ${esc(item._projName || '')}</span>`;
+      }
+
+      function getCombinedAllProject() {
+        const allowed = getAllowedProjects();
+        const tag = (arr, p) => (arr || []).map(x => ({ ...x, _projId: p.id, _projCode: p.code, _projName: p.name }));
+        const allTasks = [];
+        allowed.forEach(p => {
+          (p.tasks || []).forEach(t => {
+            allTasks.push({
+              ...t,
+              _projId: p.id,
+              _projCode: p.code,
+              _projName: p.name,
+              c: `${p.code} · ${t.c}`,
+              pre: t.pre ? t.pre.split(',').map(s => s.trim()).filter(Boolean).map(s => `${p.code} · ${s}`).join(', ') : ''
+            });
+          });
+        });
+        const allContracts = [];
+        allowed.forEach(p => {
+          (p.contracts || []).forEach(c => {
+            allContracts.push({ ...c, _projId: p.id, _projCode: p.code, _projName: p.name });
+          });
+        });
+        return {
+          id: '__ALL__',
+          code: 'ALL',
+          name: `Tổng hợp Toàn bộ Dự án (${allowed.length} dự án)`,
+          status: 'Đang xem tất cả',
+          weekLabel: 'Tổng hợp danh mục',
+          owner: 'KIMTIN GROUP',
+          location: allowed.map(p => p.code).join(', '),
+          timeline: `${allowed.length} dự án`,
+          tmdt: allowed.reduce((s, p) => s + ((p.budgetItems || []).reduce((a, b) => a + (Number(b.budget) || 0), 0) || (Number(p.tmdt) || 0)), 0),
+          budgetItems: allowed.flatMap(p => tag(p.budgetItems, p)),
+          tasks: allTasks,
+          ownerMasterItems: allowed.flatMap(p => tag(p.ownerMasterItems, p)),
+          contracts: allContracts,
+          payments: allowed.flatMap(p => tag(p.payments, p)),
+          vos: allowed.flatMap(p => tag(p.vos, p)),
+          legalDocs: allowed.flatMap(p => tag(p.legalDocs, p)),
+          risks: allowed.flatMap(p => tag(p.risks, p)),
+          weeklyTasks: allowed.flatMap(p => tag(p.weeklyTasks, p)),
+          sitePhotos: allowed.flatMap(p => tag(p.sitePhotos, p)),
+          holidays: allowed.flatMap(p => p.holidays || []),
+          scheduleVersions: [],
+          progressLogs: allowed.flatMap(p => tag(p.progressLogs, p)),
+          snaps: []
+        };
+      }
+
+      function getViewProject() {
+        return state.viewAllProjects ? getCombinedAllProject() : getActiveProject();
+      }
+
       // Main Render
       function renderAll() {
-        const proj = getActiveProject();
+        const activeProj = getActiveProject();
+        const proj = getViewProject();
         const atMs = getReportMs();
         document.getElementById('report-date').value = state.reportDate || '2026-11-18';
 
-        document.getElementById('project-select').innerHTML = state.projects.map(p => `<option value="${esc(p.id)}" ${p.id === proj.id ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('');
+        const _allowedP = getAllowedProjects();
+        const _pSelEl = document.getElementById('project-select');
+        if (_pSelEl) {
+          _pSelEl.innerHTML = (_allowedP.length ? `<option value="__ALL__" ${state.viewAllProjects ? 'selected' : ''}>🌐 Tất cả dự án (${_allowedP.length} dự án)</option>` : '')
+            + _allowedP.map(p => `<option value="${esc(p.id)}" ${(!state.viewAllProjects && p.id === activeProj.id) ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('');
+          _pSelEl.value = state.viewAllProjects ? '__ALL__' : activeProj.id;
+        }
         document.getElementById('hdr-code').textContent = proj.code;
-        document.getElementById('hdr-status').textContent = proj.status;
+        document.getElementById('hdr-status').textContent = state.viewAllProjects ? 'Tổng hợp tất cả DA' : (proj.projectType === 'maintenance' ? '🔧 Bảo trì • ' + proj.status : proj.status);
         document.getElementById('hdr-week').textContent = proj.weekLabel || 'Báo cáo tuần';
         document.getElementById('hdr-name').textContent = proj.name;
         document.getElementById('hdr-meta').textContent = `${proj.owner} • ${proj.location} • ${proj.timeline}`;
@@ -2777,7 +2937,7 @@
         const pendingVos = proj.vos.filter(v => v.status === 'Chờ duyệt');
         const openRisks = proj.risks.filter(r => r.status === 'Đang xử lý');
 
-        const linkedTmdt = proj.budgetItems.reduce((acc, b) => acc + (Number(b.budget) || 0), 0) || (Number(proj.tmdt) || 0);
+        const linkedTmdt = proj.budgetItems.reduce((acc, b) => acc + getBudgetWithVat(b), 0) || (Number(proj.tmdt) || 0);
         proj.tmdt = linkedTmdt;
         document.getElementById('kpi-tmdt').textContent = fmtTy(linkedTmdt);
         document.getElementById('kpi-tmdt-sub').textContent = `${proj.budgetItems.length} mục NS • ${proj.contracts.length} gói thầu`;
@@ -2886,33 +3046,71 @@
       window.addEventListener('resize', () => setTimeout(attachTopScrollbars, 80));
 
       function renderProjectsTab(atMs) {
-        const totalProjects = state.projects.length;
-        let sumTmdt = 0, sumPaid = 0, sumProg = 0;
-        const rowsHtml = getAllowedProjects().map(p => {
-          const cm = p.contracts.map(calcContract);
+        const allowed = getAllowedProjects();
+        const totalProjects = allowed.length;
+        const q = (document.getElementById('proj-dir-search')?.value || '').trim().toLowerCase();
+        const stFilter = document.getElementById('proj-dir-status')?.value || 'all';
+
+        let sumTmdt = 0, sumContracted = 0, sumPaid = 0, sumSubDebt = 0, sumPlanProg = 0, sumActProg = 0;
+        let visCount = 0, visTmdt = 0, visContracted = 0, visPaid = 0, visSubDebt = 0, visPlanProg = 0, visActProg = 0;
+
+        const rowsHtml = allowed.map(p => {
+          const cm = (p.contracts || []).map(calcContract);
+          const contracted = cm.reduce((s, c) => s + c.base, 0);
           const paid = cm.reduce((s, c) => s + c.paid, 0);
-          const leaves = getLeafTasks(p.tasks);
+          const subDebt = typeof calcProjectSubmittedDebt === 'function' ? calcProjectSubmittedDebt(p) : 0;
+          const leaves = getLeafTasks(p.tasks || []);
           const ag = aggTasks(leaves, atMs);
-          const pTmdt = (p.budgetItems || []).reduce((acc, b) => acc + (Number(b.budget) || 0), 0) || (Number(p.tmdt) || 0); sumTmdt += pTmdt;
-          sumPaid += paid;
-          sumProg += ag.a;
-          const isActive = p.id === state.activeProjectId;
+          const delayedCnt = leaves.filter(t => getTaskStatus({ p: calcPlannedPct(t, atMs), a: Number(t.progress) || 0, ps: iso(t.ps) }, atMs) === 'Trễ').length;
+          const pTmdt = (p.budgetItems || []).reduce((acc, b) => acc + (Number(b.budget) || 0), 0) || (Number(p.tmdt) || 0);
+
+          sumTmdt += pTmdt; sumContracted += contracted; sumPaid += paid; sumSubDebt += subDebt;
+          sumPlanProg += ag.p; sumActProg += ag.a;
+
+          const matchQ = !q || [p.code, p.name, p.owner, p.location].some(v => (v || '').toLowerCase().includes(q));
+          const matchSt = stFilter === 'all' || p.status === stFilter;
+          if (!matchQ || !matchSt) return '';
+
+          visCount++;
+          visTmdt += pTmdt; visContracted += contracted; visPaid += paid; visSubDebt += subDebt;
+          visPlanProg += ag.p; visActProg += ag.a;
+
+          const paidPct = contracted > 0 ? Math.round((paid / contracted) * 100) : 0;
+          const spi = ag.p > 0 ? (ag.a / ag.p) : (ag.a > 0 ? 1 : 0);
+          const spiCls = spi >= 0.98 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : (spi >= 0.85 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-rose-700 bg-rose-50 border-rose-200');
+          const isActive = !state.viewAllProjects && p.id === state.activeProjectId;
+
           return `
             <tr class="hover:bg-slate-50/80 ${isActive ? 'bg-brand-50/40' : ''}">
               <td class="py-3 px-3">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center flex-wrap gap-1.5">
                   <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(p.code)}</span>
                   <span class="font-semibold text-slate-900">${esc(p.name)}</span>
+                  ${p.projectType === 'maintenance' ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">🔧 Bảo trì (${(p.visibleModules || DEFAULT_MAINTENANCE_MODULES).length} mục)</span>` : `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">🏗️ Triển khai mới</span>`}
                   ${isActive ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-600 text-white">Đang chọn</span>' : ''}
                 </div>
-                <div class="text-xs text-slate-400 mt-0.5">${esc(p.timeline)} • ${esc(p.weekLabel || '')}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${esc(p.timeline || 'Chưa cấu hình')} ${p.weekLabel ? '• ' + esc(p.weekLabel) : ''}</div>
               </td>
               <td class="py-3 px-3 text-xs text-slate-600"><div class="font-medium text-slate-800">${esc(p.owner)}</div><div>${esc(p.location)}</div></td>
-              <td class="py-3 px-3 text-right font-semibold text-slate-900">${fmtTy(pTmdt)}</td>
-              <td class="py-3 px-3 text-right font-medium text-emerald-600">${fmtTy(paid)}</td>
+              <td class="py-3 px-3 text-right">
+                <div class="font-semibold text-slate-900">${fmtTy(pTmdt)}</div>
+                <div class="text-[11px] text-indigo-600">HĐ: ${fmtTy(contracted)}</div>
+              </td>
+              <td class="py-3 px-3 text-right">
+                <div class="font-semibold text-emerald-600">${fmtTy(paid)} <span class="text-[11px] text-slate-400">(${paidPct}%)</span></div>
+                ${subDebt > 0 ? `<div class="text-[11px] text-amber-600">Đang trình: ${fmtTy(subDebt)}</div>` : '<div class="text-[11px] text-slate-400">Không có nợ trình</div>'}
+              </td>
               <td class="py-3 px-3 text-center">
-                <span class="text-xs font-bold text-brand-700">${ag.a.toFixed(1)}%</span>
-                <div class="w-16 mx-auto bg-slate-100 rounded-full h-1.5 mt-1"><div class="bg-brand-500 h-1.5 rounded-full" style="width:${Math.min(100, ag.a)}%"></div></div>
+                <div class="flex items-center justify-center gap-1.5 text-xs">
+                  <span class="text-slate-500">KH ${ag.p.toFixed(1)}%</span>
+                  <span class="text-slate-300">|</span>
+                  <span class="font-bold text-brand-700">TT ${ag.a.toFixed(1)}%</span>
+                </div>
+                <div class="w-24 mx-auto bg-slate-100 rounded-full h-1.5 mt-1"><div class="bg-brand-500 h-1.5 rounded-full" style="width:${Math.min(100, ag.a)}%"></div></div>
+                <div class="flex items-center justify-center gap-1 mt-1">
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border ${spiCls}">SPI ${spi.toFixed(2)}</span>
+                  ${delayedCnt > 0 ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">${delayedCnt} trễ</span>` : ''}
+                </div>
               </td>
               <td class="py-3 px-3 whitespace-nowrap">${statusBadge(p.status)}</td>
               <td class="py-3 px-3 text-right whitespace-nowrap space-x-1">
@@ -2923,13 +3121,50 @@
             </tr>`;
         }).join('');
 
+        const avgPlan = totalProjects ? (sumPlanProg / totalProjects) : 0;
+        const avgAct = totalProjects ? (sumActProg / totalProjects) : 0;
+        const avgSpi = avgPlan > 0 ? (avgAct / avgPlan) : 0;
+
         document.getElementById('portfolio-kpis').innerHTML = `
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-brand-600"><div class="text-xs text-slate-500">Tổng số dự án</div><div class="text-xl font-bold text-slate-900 mt-1">${totalProjects} dự án</div></div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-indigo-500"><div class="text-xs text-slate-500">Tổng TMĐT toàn danh mục</div><div class="text-xl font-bold text-indigo-700 mt-1">${fmtTy(sumTmdt)}</div></div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-emerald-500"><div class="text-xs text-slate-500">Tổng đã giải ngân</div><div class="text-xl font-bold text-emerald-600 mt-1">${fmtTy(sumPaid)}</div></div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-sky-500"><div class="text-xs text-slate-500">Tiến độ bình quân</div><div class="text-xl font-bold text-sky-700 mt-1">${totalProjects ? (sumProg / totalProjects).toFixed(1) : 0}%</div></div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-brand-600">
+            <div class="text-xs text-slate-500">Tổng số dự án</div>
+            <div class="text-xl font-bold text-slate-900 mt-1">${totalProjects} dự án</div>
+            <div class="text-[11px] text-slate-500 mt-1">Đang triển khai: ${allowed.filter(p => p.status === 'Đang triển khai').length}</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-indigo-500">
+            <div class="text-xs text-slate-500">Tổng TMĐT toàn danh mục</div>
+            <div class="text-xl font-bold text-indigo-700 mt-1">${fmtTy(sumTmdt)}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Tổng giá trị HĐ: ${fmtTy(sumContracted)}</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-emerald-500">
+            <div class="text-xs text-slate-500">Tổng đã giải ngân</div>
+            <div class="text-xl font-bold text-emerald-600 mt-1">${fmtTy(sumPaid)}</div>
+            <div class="text-[11px] text-amber-600 mt-1">Đang trình duyệt: ${fmtTy(sumSubDebt)}</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-sky-500">
+            <div class="text-xs text-slate-500">Tiến độ bình quân toàn danh mục</div>
+            <div class="text-xl font-bold text-sky-700 mt-1">TT ${avgAct.toFixed(1)}% <span class="text-xs font-normal text-slate-500">/ KH ${avgPlan.toFixed(1)}%</span></div>
+            <div class="text-[11px] text-slate-500 mt-1">SPI bình quân: ${avgSpi.toFixed(2)}</div>
+          </div>
         `;
-        document.getElementById('project-directory-body').innerHTML = rowsHtml;
+        document.getElementById('project-directory-body').innerHTML = rowsHtml || `<tr><td colspan="7" class="py-8 text-center text-sm text-slate-400">Không tìm thấy dự án phù hợp bộ lọc.</td></tr>`;
+        const footEl = document.getElementById('project-directory-foot');
+        if (footEl) {
+          footEl.innerHTML = visCount ? `
+            <tr>
+              <td class="py-3 px-3" colspan="2">TỔNG CỘNG (${visCount} dự án đang hiển thị)</td>
+              <td class="py-3 px-3 text-right">
+                <div class="text-slate-900">${fmtTy(visTmdt)}</div>
+                <div class="text-[11px] text-indigo-600 font-normal">HĐ: ${fmtTy(visContracted)}</div>
+              </td>
+              <td class="py-3 px-3 text-right">
+                <div class="text-emerald-700">${fmtTy(visPaid)}</div>
+                <div class="text-[11px] text-amber-600 font-normal">Trình: ${fmtTy(visSubDebt)}</div>
+              </td>
+              <td class="py-3 px-3 text-center">TB: KH ${(visPlanProg / visCount).toFixed(1)}% | TT ${(visActProg / visCount).toFixed(1)}%</td>
+              <td class="py-3 px-3" colspan="2"></td>
+            </tr>` : '';
+        }
       }
 
       function renderAlerts(proj, totalContracted, leaves, atMs) {
@@ -2942,13 +3177,13 @@
           if (m.rem < 0) alerts.push(`<div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">⚠️ <b>${esc(c.code)}:</b> Đã thanh toán vượt giá trị hợp đồng ${fmtTy(-m.rem)}.</div>`);
           (c.rounds || []).forEach(r => {
             if (r.invDate && !r.payDate) {
-              alerts.push(`<div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">🕒 <b>${esc(c.code)} (${esc(r.label)}):</b> Đã xuất hóa đơn ngày ${fmtDateVN(r.invDate)} nhưng chưa thanh toán — <b>${fmtTy(r.amount)}</b>.</div>`);
+              alerts.push(`<div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">${projTagHtml(c)}🕒 <b>${esc(c.code)} (${esc(r.label)}):</b> Đã xuất hóa đơn ngày ${fmtDateVN(r.invDate)} nhưng chưa thanh toán — <b>${fmtTy(r.amount)}</b>.</div>`);
             }
           });
         });
         leaves.forEach(t => {
           const st = getTaskStatus({ p: calcPlannedPct(t, atMs), a: Number(t.progress) || 0, ps: iso(t.ps) }, atMs);
-          if (st === 'Trễ') alerts.push(`<div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">🚨 <b>Trễ tiến độ [${esc(t.c)}]:</b> ${esc(t.name)} (${esc(t.contractor)}) — KH ${calcPlannedPct(t, atMs).toFixed(0)}% / TT ${t.progress}%.</div>`);
+          if (st === 'Trễ') alerts.push(`<div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">${projTagHtml(t)}🚨 <b>Trễ tiến độ [${esc(t.c)}]:</b> ${esc(t.name)} (${esc(t.contractor)}) — KH ${calcPlannedPct(t, atMs).toFixed(0)}% / TT ${t.progress}%.</div>`);
         });
         document.getElementById('overview-alerts').innerHTML = alerts.length ? alerts.slice(0, 5).join('') : `<div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm">✅ Không có cảnh báo vượt ngân sách, hóa đơn quá hạn hoặc chậm tiến độ.</div>`;
       }
@@ -2966,7 +3201,7 @@
         container.innerHTML = items.map(({ kind, item }) => kind === 'pay' ? `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
             <div>
-              <div class="flex items-center gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">GIẢI NGÂN</span><span class="font-semibold text-sm text-slate-900">${esc(item.title)}</span></div>
+              <div class="flex flex-wrap items-center gap-2">${projTagHtml(item)}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">GIẢI NGÂN</span><span class="font-semibold text-sm text-slate-900">${esc(item.title)}</span></div>
               <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(item.contractor)}</strong> • Số tiền: <strong class="text-brand-600">${fmtTy(item.amount)}</strong> • Ngày HĐ: ${fmtDateVN(item.invDate)}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -2976,7 +3211,7 @@
           </div>` : `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50/40">
             <div>
-              <div class="flex items-center gap-2"><span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">PHÁT SINH (${esc(item.code)})</span><span class="font-semibold text-sm text-slate-900">${esc(item.title)}</span></div>
+              <div class="flex flex-wrap items-center gap-2">${projTagHtml(item)}<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">PHÁT SINH (${esc(item.code)})</span><span class="font-semibold text-sm text-slate-900">${esc(item.title)}</span></div>
               <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(item.contractor)}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(item.costImpact)}</strong> • Tiến độ: <strong>+${item.timeImpact} ngày</strong></p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -3641,10 +3876,12 @@
       }
 
       function renderFinanceTab(proj, totalContracted, totalRem) {
-        const totalBudgetItems = proj.budgetItems.reduce((s, b) => s + Number(b.budget || 0), 0);
-        document.getElementById('fin-budget-total').textContent = fmtTy(totalBudgetItems || proj.tmdt);
+        const totalBudgetPreVat = proj.budgetItems.reduce((s, b) => s + Number(b.budget || 0), 0);
+        const totalBudgetWithVat = proj.budgetItems.reduce((s, b) => s + getBudgetWithVat(b), 0);
+        const effBudgetWithVat = totalBudgetWithVat || proj.tmdt;
+        document.getElementById('fin-budget-total').textContent = fmtTy(effBudgetWithVat);
         document.getElementById('fin-contracted').textContent = fmtTy(totalContracted);
-        document.getElementById('fin-contingency').textContent = fmtTy((totalBudgetItems || proj.tmdt) - totalContracted);
+        document.getElementById('fin-contingency').textContent = fmtTy(effBudgetWithVat - totalContracted);
         document.getElementById('fin-pending-pay').textContent = fmtTy(totalRem);
         const subDebt = calcProjectSubmittedDebt(proj);
         document.getElementById('fin-submitted-debt').textContent = fmtTy(subDebt.total);
@@ -3655,7 +3892,7 @@
           const m = calcContract(c);
           return `<tr class="hover:bg-slate-50/80">
             <td class="py-3 px-3">
-              <div class="font-medium text-slate-900">${esc(c.name)}</div>
+              <div class="font-medium text-slate-900">${projTagHtml(c)}${esc(c.name)}</div>
               <div class="text-xs text-slate-400">${esc(c.code)} • Hạn TT: <strong class="text-slate-600">${Number(c.payTermDays) || 15} ngày</strong>${c.advDate ? ` • Mốc Tạm ứng: <strong class="text-brand-600">${fmtDateVN(c.advDate)}</strong> (${Math.max(0, Math.round(countContractWorkDays(iso(c.advDate), getReportMs(), proj)))} ngày TC)` : ''}</div>
               <div class="mt-1 flex items-center gap-1.5">
                 <span class="text-[10px] text-slate-500">🔗 Ngân sách:</span>
@@ -3690,7 +3927,7 @@
           const advSt = getRoundStatus({ invDate: c.advInvDate, payDate: c.advDate });
           roundRows.push(`
             <tr class="bg-blue-50/30 hover:bg-blue-50/50">
-              <td class="py-2.5 px-3"><div class="font-semibold text-slate-900 text-xs">${esc(c.code)} — ${esc(c.contractor)}</div></td>
+              <td class="py-2.5 px-3"><div class="font-semibold text-slate-900 text-xs">${projTagHtml(c)}${esc(c.code)} — ${esc(c.contractor)}</div></td>
               <td class="py-2.5 px-3 font-semibold text-brand-800 text-xs">Tạm ứng hợp đồng</td>
               <td class="py-2.5 px-3 text-right"><input type="text" inputmode="numeric" value="${fmtVndInput(c.adv || 0)}" data-adv-field="adv" data-adv-cid="${esc(c.id)}" class="w-28 text-right text-xs font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
               <td class="py-2.5 px-3"><input type="date" value="${esc(c.advInvDate || '')}" data-adv-field="advInvDate" data-adv-cid="${esc(c.id)}" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white" /></td>
@@ -3770,18 +4007,30 @@
             : `<tr><td colspan="4" class="py-5 text-center text-slate-400">Không có công nợ đang trình chưa thanh toán.</td></tr>`;
         }
 
-        // Budget Items Table (inline editable + linked from signed contracts)
+        // Budget Items Table (inline editable + VAT conversion + linked from signed contracts)
+        let sumBPre = 0, sumBVat = 0, sumBAct = 0;
         document.getElementById('budget-table-body').innerHTML = proj.budgetItems.map(b => {
           const linked = getLinkedContractsForBudget(proj, b.id);
           const actVal = getBudgetActual(proj, b);
-          const diff = Number(b.budget) - actVal;
+          const vatRate = (b.vatRate !== undefined && b.vatRate !== '') ? Number(b.vatRate) : 10;
+          const budgetVat = getBudgetWithVat(b);
+          const diff = budgetVat - actVal;
+          sumBPre += Number(b.budget) || 0;
+          sumBVat += budgetVat;
+          sumBAct += actVal;
           const linkBadge = linked.length
             ? `<div class="text-[11px] text-brand-700 mt-0.5 font-medium">🔗 Từ ${linked.length} HĐ: ${linked.map(c => esc(c.code)).join(', ')}</div>`
             : `<div class="text-[10px] text-slate-400 mt-0.5">Chưa liên kết HĐ (nhập tay)</div>`;
           return `<tr class="hover:bg-slate-50/80">
-            <td class="py-2.5 px-3 font-medium text-slate-900">${esc(b.name)}${linkBadge}</td>
+            <td class="py-2.5 px-3 font-medium text-slate-900">${projTagHtml(b)}${esc(b.name)}${linkBadge}</td>
             <td class="py-2.5 px-3 text-xs text-slate-500">${esc(b.category)}</td>
             <td class="py-2.5 px-3 text-right"><input type="text" inputmode="numeric" value="${fmtVndInput(b.budget)}" data-budget-id="${esc(b.id)}" data-budget-field="budget" class="w-28 text-right text-xs sm:text-sm font-semibold text-slate-900 border border-slate-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" /></td>
+            <td class="py-2.5 px-2 text-center">
+              <select data-budget-id="${esc(b.id)}" data-budget-field="vatRate" class="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-1.5 py-1 bg-white">
+                ${[10, 8, 5, 0].map(v => `<option value="${v}" ${vatRate === v ? 'selected' : ''}>${v}%</option>`).join('')}
+              </select>
+            </td>
+            <td class="py-2.5 px-3 text-right font-bold text-indigo-700 whitespace-nowrap">${fmtTy(budgetVat)}</td>
             <td class="py-2.5 px-3 text-right text-brand-600 font-semibold">${linked.length ? fmtTy(actVal) : `<input type="text" inputmode="numeric" value="${fmtVndInput(b.actual)}" data-budget-id="${esc(b.id)}" data-budget-field="actual" class="w-28 text-right text-xs sm:text-sm font-semibold text-brand-700 border border-slate-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />`}</td>
             <td class="py-2.5 px-3 text-right font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${diff >= 0 ? '+' : ''}${fmtTy(diff)}</td>
             <td class="py-2.5 px-3">${statusBadge(diff >= 0 ? 'Trong hạn mức' : 'Vượt ngân sách')}</td>
@@ -3791,13 +4040,26 @@
             </td>
           </tr>`;
         }).join('');
+        const bFoot = document.getElementById('budget-table-foot');
+        if (bFoot) {
+          const sumDiff = sumBVat - sumBAct;
+          bFoot.innerHTML = proj.budgetItems.length ? `<tr>
+            <td class="py-2.5 px-3" colspan="2">TỔNG NGÂN SÁCH (${proj.budgetItems.length} hạng mục)</td>
+            <td class="py-2.5 px-3 text-right text-slate-900">${fmtTy(sumBPre)}</td>
+            <td class="py-2.5 px-2 text-center text-slate-500">—</td>
+            <td class="py-2.5 px-3 text-right text-indigo-700 font-bold">${fmtTy(sumBVat)}</td>
+            <td class="py-2.5 px-3 text-right text-brand-700">${fmtTy(sumBAct)}</td>
+            <td class="py-2.5 px-3 text-right ${sumDiff >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${sumDiff >= 0 ? '+' : ''}${fmtTy(sumDiff)}</td>
+            <td class="py-2.5 px-3" colspan="2"></td>
+          </tr>` : '';
+        }
 
         // Pending Payment Requests
         document.getElementById('payment-list').innerHTML = proj.payments.length ? proj.payments.map(p => `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">${p.formType === 'BMKT_02' ? 'BMKT_02 • Tạm ứng' : 'BMKT_03 • Thanh toán'}</span>
+                ${projTagHtml(p)}<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">${p.formType === 'BMKT_02' ? 'BMKT_02 • Tạm ứng' : 'BMKT_03 • Thanh toán'}</span>
                 <span class="font-semibold text-sm text-slate-900">${esc(p.title)}</span>${statusBadge(p.status)}
               </div>
               <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(p.contractor)}</strong> • Ngày đề nghị/XHĐ: ${fmtDateVN(p.invDate)} • Ngày TT: ${fmtDateVN(p.payDate)} • Giá trị: <strong class="text-brand-600">${fmtTy(p.amount)}</strong></p>
@@ -3818,7 +4080,7 @@
         document.getElementById('vo-list').innerHTML = proj.vos.length ? proj.vos.map(v => `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(v.code)}</span><span class="font-semibold text-sm text-slate-900">${esc(v.title)}</span>${statusBadge(v.status)}</div>
+              <div class="flex flex-wrap items-center gap-2">${projTagHtml(v)}<span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${esc(v.code)}</span><span class="font-semibold text-sm text-slate-900">${esc(v.title)}</span>${statusBadge(v.status)}</div>
               <p class="text-xs text-slate-500 mt-1">Nhà thầu: <strong>${esc(v.contractor || '—')}</strong> • Chi phí: <strong class="text-rose-600">+${fmtTy(v.costImpact || 0)}</strong> • Tiến độ: <strong>+${Number(v.timeImpact) || 0} ngày</strong></p>
               <p class="text-xs text-slate-500 mt-0.5">Lý do: ${esc(v.reason || '—')}</p>
             </div>
@@ -3834,14 +4096,14 @@
       function renderRisksTab(proj) {
         document.getElementById('legal-grid').innerHTML = proj.legalDocs.map(doc => `
           <div class="border border-slate-200 rounded-xl p-3.5 flex items-center justify-between gap-3">
-            <div><div class="font-medium text-sm text-slate-900">${esc(doc.name)}</div><div class="text-xs text-slate-500 mt-0.5">Cơ quan cấp: ${esc(doc.authority)}</div></div>
+            <div><div class="font-medium text-sm text-slate-900">${projTagHtml(doc)}${esc(doc.name)}</div><div class="text-xs text-slate-500 mt-0.5">Cơ quan cấp: ${esc(doc.authority)}</div></div>
             <button type="button" data-action="toggle-legal" data-id="${esc(doc.id)}" class="shrink-0">${statusBadge(doc.status)}</button>
           </div>`).join('');
 
         document.getElementById('risk-list').innerHTML = proj.risks.length ? proj.risks.map(r => `
           <div class="border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div class="flex flex-wrap items-center gap-2">${statusBadge(r.severity)}<span class="font-semibold text-sm text-slate-900">${esc(r.title)}</span>${statusBadge(r.status)}</div>
+              <div class="flex flex-wrap items-center gap-2">${projTagHtml(r)}${statusBadge(r.severity)}<span class="font-semibold text-sm text-slate-900">${esc(r.title)}</span>${statusBadge(r.status)}</div>
               <p class="text-xs text-slate-500 mt-1">Nhóm: ${esc(r.category)} • Đầu mối: <strong>${esc(r.owner)}</strong></p>
               <p class="text-xs text-slate-600 mt-0.5">Biện pháp: ${esc(r.mitigation)}</p>
             </div>
@@ -3861,7 +4123,7 @@
         document.getElementById('weekly-task-body').innerHTML = proj.weeklyTasks.length ? proj.weeklyTasks.map(w => `
           <tr class="hover:bg-slate-50/80">
             <td class="py-3 px-3">
-              <div class="font-medium text-slate-900">${esc(w.title)}</div>
+              <div class="font-medium text-slate-900">${projTagHtml(w)}${esc(w.title)}</div>
               <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
                 <span class="text-xs text-slate-400">NT: ${esc(w.contractor)}</span>
                 <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${w.source === 'auto' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}">${w.source === 'auto' ? '⚡ Tự động' : '✍ Thủ công'}</span>
@@ -3910,13 +4172,87 @@
       }
 
       // Charts
+      function fmtChartShort(v) {
+        const n = Number(v) || 0;
+        if (n === 0) return '0';
+        if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2).replace(/\.?0+$/, '') + ' Tỷ';
+        if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(0) + ' Tr';
+        if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(0) + ' K';
+        return String(Math.round(n));
+      }
+      const chartValueLabelsPlugin = {
+        id: 'chartValueLabels',
+        afterDatasetsDraw(chart) {
+          const { ctx, config } = chart;
+          const t = config.type;
+          const opts = (config.options && config.options.valueLabels) || {};
+          if (opts.enabled === false) return;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          if (t === 'bar') {
+            ctx.font = 'bold 10px Inter, sans-serif';
+            chart.data.datasets.forEach((ds, dsIdx) => {
+              const meta = chart.getDatasetMeta(dsIdx);
+              if (meta.hidden) return;
+              meta.data.forEach((bar, i) => {
+                const val = ds.data[i];
+                if (val === null || val === undefined || val === 0) return;
+                ctx.fillStyle = dsIdx === 0 ? '#475569' : '#1e40af';
+                ctx.fillText(fmtChartShort(val), bar.x, Math.max(10, bar.y - 7));
+              });
+            });
+          } else if (t === 'line') {
+            ctx.font = 'bold 10px Inter, sans-serif';
+            chart.data.datasets.forEach((ds, dsIdx) => {
+              const meta = chart.getDatasetMeta(dsIdx);
+              if (meta.hidden) return;
+              meta.data.forEach((pt, i) => {
+                const val = ds.data[i];
+                if (val === null || val === undefined) return;
+                ctx.fillStyle = dsIdx === 0 ? '#475569' : '#1d4ed8';
+                ctx.fillText(val + '%', pt.x, dsIdx === 0 ? Math.max(10, pt.y - 9) : Math.min(chart.chartArea.bottom - 8, pt.y + 11));
+              });
+            });
+          } else if (t === 'doughnut' || t === 'pie') {
+            const ds = chart.data.datasets[0];
+            const meta = chart.getDatasetMeta(0);
+            const total = (ds.data || []).reduce((a, b) => a + (Number(b) || 0), 0);
+            if (total > 0) {
+              ctx.font = 'bold 10.5px Inter, sans-serif';
+              meta.data.forEach((arc, i) => {
+                const val = Number(ds.data[i]) || 0;
+                const pct = (val / total) * 100;
+                if (pct < 6) return;
+                const pos = arc.tooltipPosition();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(pct.toFixed(0) + '%', pos.x, pos.y);
+              });
+              if (opts.centerText) {
+                const area = chart.chartArea;
+                const cx = (area.left + area.right) / 2, cy = (area.top + area.bottom) / 2;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 15px Inter, sans-serif';
+                ctx.fillText(opts.centerText, cx, cy - 6);
+                if (opts.centerSub) {
+                  ctx.fillStyle = '#64748b';
+                  ctx.font = '10px Inter, sans-serif';
+                  ctx.fillText(opts.centerSub, cx, cy + 10);
+                }
+              }
+            }
+          }
+          ctx.restore();
+        }
+      };
       function makeChart(id, cfg) {
         if (typeof Chart === 'undefined') return;
         if (charts[id]) charts[id].destroy();
-        charts[id] = new Chart(document.getElementById(id).getContext('2d'), cfg);
+        const plugins = Array.isArray(cfg.plugins) ? [...cfg.plugins, chartValueLabelsPlugin] : [chartValueLabelsPlugin];
+        charts[id] = new Chart(document.getElementById(id).getContext('2d'), { ...cfg, plugins });
       }
       function renderCharts() {
-        const proj = getActiveProject();
+        const proj = getViewProject();
         const atMs = getReportMs();
         const leaves = getLeafTasks(proj.tasks);
 
@@ -3925,19 +4261,39 @@
           data: {
             labels: proj.budgetItems.map(b => b.name.slice(0, 22) + (b.name.length > 22 ? '..' : '')),
             datasets: [
-              { label: 'Ngân sách (VNĐ)', data: proj.budgetItems.map(b => b.budget), backgroundColor: '#94a3b8', borderRadius: 4 },
+              { label: 'Ngân sách có VAT (VNĐ)', data: proj.budgetItems.map(b => getBudgetWithVat(b)), backgroundColor: '#94a3b8', borderRadius: 4 },
               { label: 'Thực tế / Cam kết (VNĐ)', data: proj.budgetItems.map(b => getBudgetActual(proj, b)), backgroundColor: '#1d6feb', borderRadius: 4 }
             ]
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { top: 18 } },
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmtTy(c.raw)}` } }
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => fmtChartShort(v) } } }
+          }
         });
 
         const totalBase = proj.contracts.reduce((s, c) => s + calcContract(c).base, 0);
         const totalPaid = proj.contracts.reduce((s, c) => s + calcContract(c).paid, 0);
+        const totalRem = Math.max(0, totalBase - totalPaid);
+        const paidPct = totalBase > 0 ? Math.round((totalPaid / totalBase) * 100) : 0;
         makeChart('chart-payment-donut', {
           type: 'doughnut',
-          data: { labels: ['Đã thanh toán', 'Còn lại phải TT'], datasets: [{ data: [totalPaid, Math.max(0, totalBase - totalPaid)], backgroundColor: ['#10b981', '#cbd5e1'], borderWidth: 0 }] },
-          options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+          data: {
+            labels: [`Đã thanh toán (${fmtTy(totalPaid)})`, `Còn lại phải TT (${fmtTy(totalRem)})`],
+            datasets: [{ data: [totalPaid, totalRem], backgroundColor: ['#10b981', '#cbd5e1'], borderWidth: 0 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false, cutout: '62%',
+            valueLabels: { centerText: `${paidPct}%`, centerSub: `${fmtTy(totalPaid)}` },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+              tooltip: { callbacks: { label: c => `${c.label}` } }
+            }
+          }
         });
 
         if (leaves.length) {
@@ -3952,15 +4308,28 @@
           makeChart('chart-scurve', {
             type: 'line',
             data: { labels, datasets: [{ label: 'Kế hoạch (PV %)', data: pvData, borderColor: '#64748b', borderDash: [5, 5], tension: 0.3, fill: false }, { label: 'Thực tế đạt (EV %)', data: evData, borderColor: '#1d6feb', backgroundColor: 'rgba(29,111,235,0.1)', tension: 0.3, fill: true }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 0, max: 100 } } }
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              layout: { padding: { top: 16, right: 10 } },
+              plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw}%` } } },
+              scales: { y: { min: 0, max: 105, ticks: { callback: v => v + '%' } } }
+            }
           });
         }
 
         const palette = ['#1d6feb', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
+        const sumContracts = proj.contracts.reduce((s, c) => s + (Number(c.value) || 0), 0);
         makeChart('chart-contracts-pie', {
           type: 'doughnut',
           data: { labels: proj.contracts.map(c => c.code + ' (' + fmtTy(c.value) + ')'), datasets: [{ data: proj.contracts.map(c => c.value), backgroundColor: proj.contracts.map((_, i) => palette[i % palette.length]), borderWidth: 2, borderColor: '#fff' }] },
-          options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }
+          options: {
+            responsive: true, maintainAspectRatio: false, cutout: '55%',
+            valueLabels: { centerText: fmtChartShort(sumContracts), centerSub: `${proj.contracts.length} gói thầu` },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+              tooltip: { callbacks: { label: c => `${c.label}` } }
+            }
+          }
         });
       }
 
@@ -3974,8 +4343,10 @@
         box.appendChild(cv);
         document.body.appendChild(box);
         try {
+          const plugins = Array.isArray(cfg.plugins) ? [...cfg.plugins, chartValueLabelsPlugin] : [chartValueLabelsPlugin];
           const c = new Chart(cv.getContext('2d'), {
             ...cfg,
+            plugins,
             options: { ...(cfg.options || {}), responsive: false, maintainAspectRatio: false, animation: false }
           });
           await new Promise(r => setTimeout(r, 80));
@@ -4008,7 +4379,7 @@
         const cMetrics = proj.contracts.map(calcContract);
         const totalContracted = cMetrics.reduce((s, c) => s + c.base, 0), totalPaid = cMetrics.reduce((s, c) => s + c.paid, 0), totalRem = totalContracted - totalPaid;
         const paidPct = totalContracted > 0 ? Math.round((totalPaid / totalContracted) * 100) : 0;
-        const totalBudget = proj.budgetItems.reduce((s, b) => s + Number(b.budget || 0), 0) || proj.tmdt;
+        const totalBudget = proj.budgetItems.reduce((s, b) => s + getBudgetWithVat(b), 0) || proj.tmdt;
         const totalBudgetAct = proj.budgetItems.reduce((s, b) => s + getBudgetActual(proj, b), 0);
 
         const imgBudget = await chartToImg({
@@ -4016,20 +4387,28 @@
           data: {
             labels: proj.budgetItems.map(b => b.name.slice(0, 18) + (b.name.length > 18 ? '..' : '')),
             datasets: [
-              { label: 'Ngân sách (VNĐ)', data: proj.budgetItems.map(b => b.budget), backgroundColor: '#94a3b8' },
+              { label: 'Ngân sách có VAT (VNĐ)', data: proj.budgetItems.map(b => getBudgetWithVat(b)), backgroundColor: '#94a3b8' },
               { label: 'Thực tế (VNĐ)', data: proj.budgetItems.map(b => getBudgetActual(proj, b)), backgroundColor: '#1d6feb' }
             ]
           },
-          options: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+          options: {
+            layout: { padding: { top: 18 } },
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => fmtChartShort(v) } } }
+          }
         }, 520, 260);
 
         const imgPay = await chartToImg({
           type: 'doughnut',
           data: {
-            labels: ['Đã thanh toán', 'Còn lại phải TT'],
+            labels: [`Đã thanh toán (${fmtTy(totalPaid)})`, `Còn lại phải TT (${fmtTy(Math.max(0, totalRem))})`],
             datasets: [{ data: [totalPaid, Math.max(0, totalRem)], backgroundColor: ['#10b981', '#cbd5e1'], borderWidth: 0 }]
           },
-          options: { cutout: '60%', plugins: { legend: { position: 'bottom' } } }
+          options: {
+            cutout: '60%',
+            valueLabels: { centerText: `${paidPct}%`, centerSub: `${fmtTy(totalPaid)}` },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+          }
         }, 420, 260);
 
         let scurveCfg = { type: 'line', data: { labels: ['N/A'], datasets: [{ label: 'PV', data: [0] }] } };
@@ -4045,16 +4424,25 @@
           scurveCfg = {
             type: 'line',
             data: { labels, datasets: [{ label: 'Kế hoạch (PV %)', data: pvData, borderColor: '#64748b', borderDash: [5, 5], tension: 0.3 }, { label: 'Thực tế (EV %)', data: evData, borderColor: '#1d6feb', backgroundColor: 'rgba(29,111,235,0.1)', fill: true, tension: 0.3 }] },
-            options: { plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 0, max: 100 } } }
+            options: {
+              layout: { padding: { top: 16, right: 10 } },
+              plugins: { legend: { position: 'bottom' } },
+              scales: { y: { min: 0, max: 105, ticks: { callback: v => v + '%' } } }
+            }
           };
         }
         const imgScurve = await chartToImg(scurveCfg, 520, 260);
 
         const palette = ['#1d6feb', '#10b981', '#f59e0b', '#6366f1', '#ec4899'];
+        const sumRptContracts = proj.contracts.reduce((s, c) => s + (Number(c.value) || 0), 0);
         const imgContracts = await chartToImg({
           type: 'doughnut',
           data: { labels: proj.contracts.map(c => c.code + ' (' + fmtTy(c.value) + ')'), datasets: [{ data: proj.contracts.map(c => c.value), backgroundColor: proj.contracts.map((_, i) => palette[i % palette.length]), borderWidth: 1 }] },
-          options: { cutout: '55%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+          options: {
+            cutout: '55%',
+            valueLabels: { centerText: fmtChartShort(sumRptContracts), centerSub: `${proj.contracts.length} gói thầu` },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+          }
         }, 420, 260);
 
         return { proj, leaves, schAgg, totalContracted, totalPaid, totalRem, paidPct, totalBudget, totalBudgetAct, imgBudget, imgPay, imgScurve, imgContracts };
@@ -5346,7 +5734,7 @@
         document.getElementById('sched-panel-tracking').classList.toggle('hidden', mode !== 'tracking');
         document.getElementById('sched-panel-cpm').classList.toggle('hidden', mode !== 'cpm');
         document.getElementById('sched-panel-ai').classList.toggle('hidden', mode !== 'ai');
-        renderScheduleTab(getActiveProject(), getReportMs());
+        renderScheduleTab(getViewProject(), getReportMs());
         applyUserPermissions();
       }
       ['owner', 'plan', 'contractors', 'tracking', 'cpm', 'ai'].forEach(m => {
@@ -5363,13 +5751,34 @@
           }, 80);
         });
       }
-      document.getElementById('filter-contract-rounds').addEventListener('change', () => { const p = getActiveProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); });
+      document.getElementById('filter-contract-rounds').addEventListener('change', () => { const p = getActiveProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(getViewProject(), cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); });
 
-      document.getElementById('project-select').addEventListener('change', e => { state.activeProjectId = e.target.value; selectedContractor = ''; saveState(); renderAll(); showToast('Đã chuyển dự án: ' + getActiveProject().name, 'info'); });
+      document.getElementById('project-select').addEventListener('change', e => {
+        const val = e.target.value;
+        if (val === '__ALL__') {
+          state.viewAllProjects = true;
+          selectedContractor = '';
+          saveState();
+          renderAll();
+          switchTab('projects');
+          showToast('Đang hiển thị danh sách tất cả dự án', 'info');
+          return;
+        }
+        state.viewAllProjects = false;
+        state.activeProjectId = val;
+        selectedContractor = '';
+        saveState();
+        renderAll();
+        showToast('Đã chuyển dự án: ' + getActiveProject().name, 'info');
+      });
+      ['proj-dir-search', 'proj-dir-status'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(id === 'proj-dir-search' ? 'input' : 'change', () => { renderProjectsTab(getReportMs()); applyUserPermissions(); });
+      });
       document.getElementById('report-date').addEventListener('change', e => { state.reportDate = e.target.value; const p = getActiveProject(); if (p.weeklyAutoSync) generateWeeklyTasksFromSchedule(p, getReportMs()); saveState(); renderAll(); });
-      document.getElementById('task-search').addEventListener('input', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
-      document.getElementById('task-filter-status').addEventListener('change', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
-      document.getElementById('gantt-crit-only').addEventListener('change', () => { renderScheduleTab(getActiveProject(), getReportMs()); applyUserPermissions(); });
+      document.getElementById('task-search').addEventListener('input', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
+      document.getElementById('task-filter-status').addEventListener('change', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
+      document.getElementById('gantt-crit-only').addEventListener('change', () => { renderScheduleTab(getViewProject(), getReportMs()); applyUserPermissions(); });
 
       ['cfg-owner', 'cfg-week', 'cfg-pm', 'cfg-approver', 'cfg-nextplan'].forEach(id => {
         document.getElementById(id).addEventListener('input', e => {
@@ -5440,11 +5849,16 @@
         } else if (el.dataset.budgetId && el.dataset.budgetField) {
           const b = proj.budgetItems.find(x => x.id === el.dataset.budgetId);
           if (b) {
-            b[el.dataset.budgetField] = parseVnd(el.value);
+            if (el.dataset.budgetField === 'vatRate') {
+              b.vatRate = Number(el.value);
+            } else {
+              b[el.dataset.budgetField] = parseVnd(el.value);
+            }
             saveState();
             if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → ${b.name}`;
             renderAll();
-            showToast(`Đã cập nhật ${el.dataset.budgetField === 'budget' ? 'Ngân sách' : 'Thực tế'} cho "${b.name}"`);
+            const lbl = el.dataset.budgetField === 'vatRate' ? 'Thuế VAT (%)' : (el.dataset.budgetField === 'budget' ? 'Ngân sách chưa VAT' : 'Thực tế');
+            showToast(`Đã cập nhật ${lbl} cho "${b.name}"`);
           }
         } else if (el.dataset.contractBudgetCid) {
           const c = proj.contracts.find(x => String(x.id) === String(el.dataset.contractBudgetCid));
@@ -5577,7 +5991,7 @@
           if (card) {
           const k = card.dataset.selectContractor;
           selectedContractor = selectedContractor === k ? '' : k;
-          renderScheduleTab(getActiveProject(), getReportMs());
+          renderScheduleTab(getViewProject(), getReportMs());
           applyUserPermissions();
           return;
           }
@@ -5587,7 +6001,7 @@
         const action = btn.dataset.action, id = btn.dataset.id, proj = getActiveProject();
 
         if (action === 'select-project') {
-          state.activeProjectId = id; selectedContractor = ''; saveState(); renderAll(); switchTab('overview'); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
+          state.viewAllProjects = false; state.activeProjectId = id; selectedContractor = ''; saveState(); renderAll(); switchTab('overview'); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
         } else if (action === 'edit-project') {
           const p = state.projects.find(x => x.id === id); if (!p) return;
           openModal('Sửa thông tin dự án', `
@@ -5601,10 +6015,18 @@
               <div><label class="block text-xs font-semibold text-slate-600 mb-1">TMĐT (VNĐ)</label><input name="tmdt" type="number" step="0.1" value="${p.tmdt}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             </div>
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Trạng thái</label><select name="status" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">${['Khởi tạo','Đang triển khai','Tạm dừng','Hoàn thành'].map(st => `<option ${p.status===st?'selected':''}>${st}</option>`).join('')}</select></div>
+            ${buildProjectTypeFieldsHtml(p.projectType || 'new', p.visibleModules, p.visibleSubModules)}
           `, fd => {
             p.code = fd.get('code').trim(); p.name = fd.get('name').trim(); p.owner = fd.get('owner').trim(); p.location = fd.get('location').trim(); p.tmdt = Number(fd.get('tmdt')) || 0; p.status = fd.get('status');
+            p.projectType = fd.get('projectType') === 'maintenance' ? 'maintenance' : 'new';
+            const selMods = fd.getAll('visibleModules');
+            const selSubs = fd.getAll('visibleSubModules');
+            const allSubKeys = PROJECT_OPTIONAL_MODULES.flatMap(m => (m.children || []).map(c => c.key));
+            p.visibleModules = p.projectType === 'maintenance' ? (selMods.length ? selMods : ['overview']) : PROJECT_OPTIONAL_MODULES.map(m => m.key);
+            p.visibleSubModules = p.projectType === 'maintenance' ? selSubs : allSubKeys;
             saveState(); closeModal(); renderAll(); showToast('Đã cập nhật thông tin dự án');
           });
+          bindProjectTypeModalEvents();
         } else if (action === 'delete-project') {
           if (state.projects.length <= 1) { showToast('Cần giữ lại ít nhất 1 dự án trong danh mục', 'error'); return; }
           const p = state.projects.find(x => x.id === id); if (!p) return;
@@ -6149,11 +6571,12 @@
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên mục</label><input name="name" value="${esc(b.name)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Danh mục</label><input name="category" value="${esc(b.category)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân sách (VNĐ)</label><input name="budget" type="text" inputmode="numeric" value="${fmtVndInput(b.budget)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thực tế (VNĐ)${linked.length ? ' (Tự động từ HĐ)' : ''}</label><input name="actual" type="text" inputmode="numeric" value="${fmtVndInput(actVal)}" ${linked.length ? 'readonly class="w-full text-sm border border-slate-200 bg-slate-100 text-slate-600 rounded-xl px-3 py-2"' : 'required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2"'} /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân sách chưa VAT (VNĐ)</label><input name="budget" type="text" inputmode="numeric" value="${fmtVndInput(b.budget)}" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thuế VAT (%)</label><select name="vatRate" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">${[10, 8, 5, 0].map(v => `<option value="${v}" ${((b.vatRate !== undefined && b.vatRate !== '') ? Number(b.vatRate) : 10) === v ? 'selected' : ''}>${v}%</option>`).join('')}</select></div>
             </div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thực tế có VAT (VNĐ)${linked.length ? ' (Tự động từ HĐ)' : ''}</label><input name="actual" type="text" inputmode="numeric" value="${fmtVndInput(actVal)}" ${linked.length ? 'readonly class="w-full text-sm border border-slate-200 bg-slate-100 text-slate-600 rounded-xl px-3 py-2"' : 'required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2"'} /></div>
             ${linked.length ? `<div class="text-xs text-brand-700 bg-brand-50 border border-brand-200 rounded-xl p-2.5">🔗 Đang tự động cộng từ ${linked.length} hợp đồng: <strong>${linked.map(c => esc(c.code)).join(', ')}</strong></div>` : ''}
-          `, fd => { b.name = fd.get('name').trim(); b.category = fd.get('category').trim(); b.budget = parseVnd(fd.get('budget')); if (!linked.length) b.actual = parseVnd(fd.get('actual')); saveState(); if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → ${b.name}`; closeModal(); renderAll(); showToast('Đã cập nhật ngân sách'); });
+          `, fd => { b.name = fd.get('name').trim(); b.category = fd.get('category').trim(); b.budget = parseVnd(fd.get('budget')); b.vatRate = Number(fd.get('vatRate')); if (!linked.length) b.actual = parseVnd(fd.get('actual')); saveState(); if (latestNotifRef) latestNotifRef.location = `Ngân sách & Đợt TT → ${b.name}`; closeModal(); renderAll(); showToast('Đã cập nhật ngân sách'); });
         } else if (action === 'combine-view-contractor') {
           selectedContractor = btn.dataset.k || '';
           setScheduleMode('contractors');
@@ -6267,8 +6690,85 @@
       });
 
       // Add Modals
+      function buildProjectTypeFieldsHtml(projType, visMods, visSubMods) {
+        const isMaint = projType === 'maintenance';
+        const checkedSet = new Set(Array.isArray(visMods) && visMods.length ? visMods : DEFAULT_MAINTENANCE_MODULES);
+        const subSet = new Set(Array.isArray(visSubMods) ? visSubMods : DEFAULT_MAINTENANCE_SUBMODULES);
+        return `
+          <div class="pt-1 border-t border-slate-200">
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Loại hình dự án</label>
+            <select id="modal-proj-type" name="projectType" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+              <option value="new" ${!isMaint ? 'selected' : ''}>🏗️ Dự án Triển khai mới (Full chức năng)</option>
+              <option value="maintenance" ${isMaint ? 'selected' : ''}>🔧 Dự án Bảo trì / Sửa chữa (Chọn mục hiển thị)</option>
+            </select>
+          </div>
+          <div id="modal-proj-modules-wrap" class="${isMaint ? '' : 'hidden'} bg-amber-50/70 border border-amber-200 rounded-xl p-3 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-amber-900">Chọn các tab chính &amp; mục con hiển thị cho dự án bảo trì:</span>
+              <div class="flex gap-1.5 shrink-0">
+                <button type="button" id="btn-mod-default-maint" class="text-[11px] font-medium px-2 py-0.5 rounded bg-white border border-amber-300 text-amber-800 hover:bg-amber-100">Mặc định</button>
+                <button type="button" id="btn-mod-all" class="text-[11px] font-medium px-2 py-0.5 rounded bg-white border border-amber-300 text-amber-800 hover:bg-amber-100">Chọn hết</button>
+              </div>
+            </div>
+            <div class="max-h-[40vh] overflow-y-auto pr-1 space-y-2">
+              ${PROJECT_OPTIONAL_MODULES.map(m => {
+                const mChecked = checkedSet.has(m.key);
+                const kids = m.children || [];
+                return `
+                  <div class="bg-white border border-amber-200/80 rounded-lg p-2.5">
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer">
+                      <input type="checkbox" name="visibleModules" value="${esc(m.key)}" ${mChecked ? 'checked' : ''} class="rounded text-brand-600 focus:ring-brand-500" />
+                      <span>${esc(m.label)}</span>
+                    </label>
+                    ${kids.length ? `
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-2 pl-5 pt-1.5 border-t border-slate-100">
+                        ${kids.map(ch => `
+                          <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer hover:text-slate-900">
+                            <input type="checkbox" name="visibleSubModules" value="${esc(ch.key)}" data-parent-mod="${esc(m.key)}" ${subSet.has(ch.key) ? 'checked' : ''} class="rounded text-brand-600 focus:ring-brand-500" />
+                            <span>${esc(ch.label)}</span>
+                          </label>`).join('')}
+                      </div>` : ''}
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>`;
+      }
+      function bindProjectTypeModalEvents() {
+        const sel = document.getElementById('modal-proj-type');
+        const wrap = document.getElementById('modal-proj-modules-wrap');
+        if (sel && wrap) sel.addEventListener('change', () => wrap.classList.toggle('hidden', sel.value !== 'maintenance'));
+        if (wrap) {
+          wrap.querySelectorAll('input[name="visibleModules"]').forEach(parentCb => {
+            parentCb.addEventListener('change', () => {
+              const kids = wrap.querySelectorAll(`input[name="visibleSubModules"][data-parent-mod="${parentCb.value}"]`);
+              if (!parentCb.checked) {
+                kids.forEach(k => { k.checked = false; });
+              } else if (kids.length && ![...kids].some(k => k.checked)) {
+                kids.forEach(k => { k.checked = true; });
+              }
+            });
+          });
+          wrap.querySelectorAll('input[name="visibleSubModules"]').forEach(childCb => {
+            childCb.addEventListener('change', () => {
+              if (childCb.checked) {
+                const parentCb = wrap.querySelector(`input[name="visibleModules"][value="${childCb.dataset.parentMod}"]`);
+                if (parentCb) parentCb.checked = true;
+              }
+            });
+          });
+        }
+        const btnDef = document.getElementById('btn-mod-default-maint');
+        if (btnDef && wrap) btnDef.addEventListener('click', () => {
+          wrap.querySelectorAll('input[name="visibleModules"]').forEach(cb => { cb.checked = DEFAULT_MAINTENANCE_MODULES.includes(cb.value); });
+          wrap.querySelectorAll('input[name="visibleSubModules"]').forEach(cb => { cb.checked = DEFAULT_MAINTENANCE_SUBMODULES.includes(cb.value); });
+        });
+        const btnAll = document.getElementById('btn-mod-all');
+        if (btnAll && wrap) btnAll.addEventListener('click', () => {
+          wrap.querySelectorAll('input[name="visibleModules"], input[name="visibleSubModules"]').forEach(cb => { cb.checked = true; });
+        });
+      }
       function openNewProjectModal() {
-        openModal('Tạo dự án đầu tư mới', `
+        openModal('Tạo dự án mới', `
           <div class="grid grid-cols-3 gap-3">
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Mã DA</label><input name="code" placeholder="DA-03" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
             <div class="col-span-2"><label class="block text-xs font-semibold text-slate-600 mb-1">Tên dự án</label><input name="name" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
@@ -6276,19 +6776,32 @@
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Chủ đầu tư</label><input name="owner" value="CÔNG TY CỔ PHẦN KIM TÍN ĐỒNG NAI" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Địa điểm</label><input name="location" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">TMĐT (VNĐ)</label><input name="tmdt" type="number" step="0.1" value="150" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">TMĐT (VNĐ)</label><input name="tmdt" type="text" inputmode="numeric" value="0" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           </div>
+          ${buildProjectTypeFieldsHtml('new', DEFAULT_MAINTENANCE_MODULES, DEFAULT_MAINTENANCE_SUBMODULES)}
         `, fd => {
           const newId = 'p' + Date.now();
+          const pType = fd.get('projectType') === 'maintenance' ? 'maintenance' : 'new';
+          const selMods = fd.getAll('visibleModules');
+          const selSubs = fd.getAll('visibleSubModules');
+          const allSubKeys = PROJECT_OPTIONAL_MODULES.flatMap(m => (m.children || []).map(c => c.key));
+          const visMods = pType === 'maintenance' ? (selMods.length ? selMods : ['overview']) : PROJECT_OPTIONAL_MODULES.map(m => m.key);
+          const visSubs = pType === 'maintenance' ? selSubs : allSubKeys;
           state.projects.push({
             id: newId, code: fd.get('code').trim(), name: fd.get('name').trim(), owner: fd.get('owner').trim(),
-            pmBoard: 'Ban QLDA & Điều hành Kỹ thuật', pmName: 'Quản lý dự án', approver: 'Ban TGĐ', weekLabel: 'BÁO CÁO TUẦN 01',
-            location: fd.get('location').trim(), timeline: '2026 – 2028', status: 'Khởi tạo', tmdt: Number(fd.get('tmdt')) || 100, contingency: 10, nextWeekPlan: '',
-            budgetItems: [{ id: 'b' + Date.now(), name: '1. Chi phí xây dựng', category: 'Gia công & Thầu phụ', budget: Number(fd.get('tmdt')) || 100, actual: 0 }],
-            tasks: [], progressLogs: [], contracts: [], payments: [], vos: [], inspections: [], legalDocs: [], risks: [], weeklyTasks: [], sitePhotos: []
+            projectType: pType, visibleModules: visMods, visibleSubModules: visSubs,
+            pmBoard: 'Ban QLDA & Điều hành Kỹ thuật', pmName: '', approver: '', weekLabel: 'BÁO CÁO TUẦN 01',
+            location: fd.get('location').trim(), timeline: '', status: 'Khởi tạo', tmdt: parseVnd(fd.get('tmdt')), contingency: 0, nextWeekPlan: '',
+            budgetItems: [], tasks: [], ownerMasterItems: [], scheduleVersions: [], contractorRevisions: {},
+            progressLogs: [], snaps: [], contracts: [], payments: [], vos: [], inspections: [],
+            legalDocs: [], risks: [], weeklyTasks: [], sitePhotos: [], holidays: [], weeklyArchive: [], documents: []
           });
-          state.activeProjectId = newId; saveState(); closeModal(); renderAll(); showToast('Đã tạo dự án mới');
+          selectedContractor = '';
+          state.viewAllProjects = false;
+          state.activeProjectId = newId; saveState(); closeModal(); renderAll();
+          showToast(pType === 'maintenance' ? 'Đã tạo dự án Bảo trì mới' : 'Đã tạo dự án Triển khai mới (Full chức năng)');
         });
+        bindProjectTypeModalEvents();
       }
       document.getElementById('btn-new-project').addEventListener('click', openNewProjectModal);
       document.getElementById('btn-new-project-2').addEventListener('click', openNewProjectModal);
@@ -6536,11 +7049,12 @@
       document.getElementById('btn-add-budget-item').addEventListener('click', () => {
         openModal('Thêm hạng mục ngân sách', `
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên mục chi phí</label><input name="name" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-3 gap-3">
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Danh mục</label><input name="category" value="Gia công & Thầu phụ" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân sách (VNĐ)</label><input name="budget" type="text" inputmode="numeric" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân sách chưa VAT</label><input name="budget" type="text" inputmode="numeric" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">VAT (%)</label><select name="vatRate" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"><option value="10" selected>10%</option><option value="8">8%</option><option value="5">5%</option><option value="0">0%</option></select></div>
           </div>
-        `, fd => { getActiveProject().budgetItems.push({ id: 'b' + Date.now(), name: fd.get('name').trim(), category: fd.get('category').trim(), budget: parseVnd(fd.get('budget')), actual: 0 }); saveState(); closeModal(); renderAll(); });
+        `, fd => { getActiveProject().budgetItems.push({ id: 'b' + Date.now(), name: fd.get('name').trim(), category: fd.get('category').trim(), budget: parseVnd(fd.get('budget')), vatRate: Number(fd.get('vatRate')), actual: 0 }); saveState(); closeModal(); renderAll(); });
       });
 
       document.getElementById('btn-add-contract').addEventListener('click', () => {
@@ -7371,9 +7885,25 @@ function doPost(e) {
         return false;
       }
 
+      let cloudPullCompleted = false;
       async function pushToCloud(silent) {
         const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
+        // Safeguard: never silently overwrite Cloud with default demo-only state if Cloud has user projects
+        const isOnlyDefaultDemo = Array.isArray(state.projects) && state.projects.length <= 2 && state.projects.every(p => ['p1', 'p2'].includes(p.id));
+        if (silent && isFirebaseUrl(url) && isOnlyDefaultDemo && !cloudPullCompleted) {
+          try {
+            const chkRes = await fetch(url.replace(/\/+$/, '') + '/ownerpm_state.json?_=' + Date.now(), { cache: 'no-store' });
+            if (chkRes.ok) {
+              const chkData = await chkRes.json();
+              if (chkData && Array.isArray(chkData.projects) && chkData.projects.some(p => !['p1', 'p2'].includes(p.id))) {
+                applyCloudState(chkData, url, true);
+                cloudPullCompleted = true;
+                return;
+              }
+            }
+          } catch (e) {}
+        }
         if (!state.syncId) state.syncId = genSyncId();
         const msgEl = document.getElementById('cloud-status-msg');
         if (!silent && msgEl) msgEl.textContent = '⏳ Đang lưu toàn bộ dữ liệu lên Cloud...';
@@ -7405,9 +7935,10 @@ function doPost(e) {
         }
       }
 
-      async function pullFromCloud(silent) {
-        if (silent && autoPushTimer) return;
-        if (silent && ((document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) || !document.getElementById('modal-backdrop').classList.contains('hidden'))) return;
+      async function pullFromCloud(silent, forcePull) {
+        const authOpen = document.getElementById('auth-overlay') && !document.getElementById('auth-overlay').classList.contains('hidden');
+        if (silent && !forcePull && autoPushTimer) return;
+        if (silent && !forcePull && !authOpen && ((document.activeElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) || !document.getElementById('modal-backdrop').classList.contains('hidden'))) return;
         const url = (state.cloudUrl || DEFAULT_FIREBASE_URL).trim();
         if (!url) return;
         const msgEl = document.getElementById('cloud-status-msg');
@@ -7417,6 +7948,7 @@ function doPost(e) {
           const sep = base.includes('?') ? '&' : '?';
           const res = await fetch(base + sep + '_=' + Date.now(), { cache: 'no-store' });
           if (!res.ok) throw new Error('HTTP ' + res.status);
+          cloudPullCompleted = true;
           const data = await res.json();
           if (data && Array.isArray(data.projects) && data.projects.length > 0) {
             const changed = applyCloudState(data, url, silent);
@@ -7525,7 +8057,7 @@ function doPost(e) {
       // Auto-Pull on startup, Realtime SSE stream, & 10s polling backup
       if (state.autoSync && state.cloudUrl) {
         updateSyncBadge('☁ Auto-Sync đang bật', 'ok');
-        pullFromCloud(true);
+        pullFromCloud(true, true);
         startRealtimeCloudStream();
       }
       setInterval(() => {
@@ -7549,7 +8081,6 @@ function doPost(e) {
         { key: 'weekly', label: 'Báo cáo tuần, Kho lưu tuần & Ảnh hiện trường' },
         { key: 'mytasks', label: 'Công việc cá nhân theo tài khoản' },
         { key: 'docs', label: 'Thư viện Hồ sơ Tổng thể' },
-        { key: 'bim3d', label: 'Mô phỏng 3D (BIM)' }
       ];
       function isAdminAccount(u) {
         if (!u) return false;
@@ -7562,7 +8093,7 @@ function doPost(e) {
         const mods = {};
         PERM_MODULES.forEach(m => {
           if (r === 'admin') mods[m.key] = { view: true, edit: true };
-          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'approvals', 'weekly', 'mytasks', 'docs', 'bim3d'].includes(m.key) };
+          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
           else mods[m.key] = { view: true, edit: false };
         });
         return {
@@ -7618,12 +8149,12 @@ function doPost(e) {
         const sw = document.getElementById('project-select');
         if (sw) {
           sw.innerHTML = allowed.length
-            ? allowed.map(p => `<option value="${esc(p.id)}">${esc(p.code)} — ${esc(p.name)}</option>`).join('')
+            ? (`<option value="__ALL__">🌐 Tất cả dự án (${allowed.length} dự án)</option>` + allowed.map(p => `<option value="${esc(p.id)}">${esc(p.code)} — ${esc(p.name)}</option>`).join(''))
             : `<option value="">(Chưa được cấp dự án)</option>`;
           if (allowed.length && !allowed.some(p => p.id === state.activeProjectId)) {
             state.activeProjectId = allowed[0].id;
           }
-          sw.value = state.activeProjectId || '';
+          sw.value = (allowed.length && state.viewAllProjects) ? '__ALL__' : (state.activeProjectId || '');
         }
 
         // Sidebar global admin buttons
@@ -7641,21 +8172,62 @@ function doPost(e) {
           if (cntEl) cntEl.textContent = String(unread);
         }
 
+        const activeProjObj = getActiveProject();
         // Header quick action buttons
         const btnDisb = document.getElementById('btn-quick-payment');
-        if (btnDisb) btnDisb.classList.toggle('hidden', !canEditModule('finance'));
+        if (btnDisb) btnDisb.classList.toggle('hidden', state.viewAllProjects || !canEditModule('finance') || !isModuleEnabledForProject(activeProjObj, 'finance'));
         const btnVo = document.getElementById('btn-quick-vo');
-        if (btnVo) btnVo.classList.toggle('hidden', !canEditModule('approvals'));
+        if (btnVo) btnVo.classList.toggle('hidden', state.viewAllProjects || !canEditModule('approvals') || !isModuleEnabledForProject(activeProjObj, 'approvals'));
 
-        // Sidebar nav tabs visibility based on View permission
+        // Sidebar nav tabs visibility based on View permission & Project Type (new vs maintenance)
         document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
           const t = btn.dataset.tab;
-          btn.classList.toggle('hidden', !canViewModule(t));
+          const visible = canViewModule(t) && isModuleEnabledForProject(activeProjObj, t);
+          btn.classList.toggle('hidden', !visible);
         });
-        if (!canViewModule(activeTab)) {
-          const firstAllowed = PERM_MODULES.find(m => canViewModule(m.key));
+        if (!canViewModule(activeTab) || !isModuleEnabledForProject(activeProjObj, activeTab)) {
+          const firstAllowed = PERM_MODULES.find(m => canViewModule(m.key) && isModuleEnabledForProject(activeProjObj, m.key));
           if (firstAllowed) switchTab(firstAllowed.key);
         }
+
+        // Sub-module visibility for Maintenance projects
+        document.querySelectorAll('[data-submod]').forEach(el => {
+          el.classList.toggle('hidden', !isSubModuleEnabledForProject(activeProjObj, el.dataset.submod));
+        });
+        const schedSubMap = [
+          { mode: 'owner', sub: 'sch_owner', btn: 'btn-mode-owner' },
+          { mode: 'plan', sub: 'sch_plan', btn: 'btn-mode-plan' },
+          { mode: 'contractors', sub: 'sch_contractors', btn: 'btn-mode-contractors' },
+          { mode: 'tracking', sub: 'sch_tracking', btn: 'btn-mode-tracking' },
+          { mode: 'cpm', sub: 'sch_cpm', btn: 'btn-mode-cpm' },
+          { mode: 'ai', sub: 'sch_ai', btn: 'btn-mode-ai' }
+        ];
+        schedSubMap.forEach(s => {
+          const b = document.getElementById(s.btn);
+          if (b) b.classList.toggle('hidden', !isSubModuleEnabledForProject(activeProjObj, s.sub));
+        });
+        const curSchedEntry = schedSubMap.find(s => s.mode === scheduleViewMode);
+        if (curSchedEntry && !isSubModuleEnabledForProject(activeProjObj, curSchedEntry.sub)) {
+          const firstSched = schedSubMap.find(s => isSubModuleEnabledForProject(activeProjObj, s.sub));
+          if (firstSched && typeof setScheduleViewMode === 'function') setScheduleViewMode(firstSched.mode);
+        }
+
+        // All-projects combined mode banner on single-project detail tabs
+        ['overview', 'schedule', 'finance', 'approvals', 'risks', 'weekly'].forEach(tKey => {
+          const sec = document.getElementById('tab-' + tKey);
+          if (!sec) return;
+          let allBanner = sec.querySelector('.all-proj-banner');
+          if (state.viewAllProjects) {
+            if (!allBanner) {
+              allBanner = document.createElement('div');
+              allBanner.className = 'all-proj-banner bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-medium px-4 py-2.5 rounded-xl flex items-center justify-between gap-2';
+              allBanner.innerHTML = '<span>🌐 <strong>Chế độ Xem Tổng Hợp Toàn Dự Án:</strong> Đang hiển thị dữ liệu gộp của tất cả dự án (mỗi mục có gắn nhãn <span class="font-bold">[Mã DA] Tên dự án</span>). Chọn một dự án cụ thể bên trái để thêm hoặc chỉnh sửa.</span>';
+              sec.prepend(allBanner);
+            }
+          } else if (allBanner) {
+            allBanner.remove();
+          }
+        });
 
         // Module Edit vs Read-Only enforcement inside each #tab-<key>
         PERM_MODULES.forEach(m => {
@@ -7815,18 +8387,31 @@ function doPost(e) {
           </tr>`).join('') : `<tr><td colspan="4" class="py-4 text-center text-slate-400">Chưa có lịch sử đăng nhập.</td></tr>`;
       }
 
-      document.getElementById('auth-login-form').addEventListener('submit', e => {
+      function matchUserPw(u, pw) {
+        if (!u) return false;
+        const h1 = hashPw(pw);
+        const h2 = hashPw(pw.trim());
+        return u.pwHash === h1 || u.pwHash === h2 || (pw && u.pwHash === pw);
+      }
+      document.getElementById('auth-login-form').addEventListener('submit', async e => {
         e.preventDefault();
         ensureAuthDefaults();
         const uname = document.getElementById('login-username').value.trim();
         const pw = document.getElementById('login-password').value;
         const errEl = document.getElementById('login-error-msg');
-        const u = state.users.find(x => x.username.toLowerCase() === uname.toLowerCase());
-        if (!u || (u.pwHash !== hashPw(pw) && u.pwHash !== hashPw(pw.trim()))) {
+        let u = state.users.find(x => String(x.username || '').trim().toLowerCase() === uname.toLowerCase());
+        if (!matchUserPw(u, pw) && (state.cloudUrl || DEFAULT_FIREBASE_URL)) {
+          errEl.textContent = '⏳ Đang kiểm tra đồng bộ tài khoản từ Cloud...';
+          errEl.classList.remove('hidden');
+          try { await pullFromCloud(true, true); } catch (err) {}
+          ensureAuthDefaults();
+          u = state.users.find(x => String(x.username || '').trim().toLowerCase() === uname.toLowerCase());
+        }
+        if (!matchUserPw(u, pw)) {
           errEl.textContent = 'Sai tên đăng nhập hoặc mật khẩu. (Nếu đã đổi mật khẩu trên Cloud hoặc quên mật khẩu, bấm "Quên mật khẩu?" bên dưới để đặt lại bằng email Admin).';
           errEl.classList.remove('hidden');
           recordAuthLog(uname, u ? u.fullName : 'Không xác định', u ? u.role : '—', 'Sai mật khẩu');
-          saveState();
+          saveState(true);
           return;
         }
         if (!u.active) {
@@ -7841,8 +8426,9 @@ function doPost(e) {
         setSessionUsername(u.username);
         state.role = isAdminAccount(u) ? 'admin' : (u.role || 'viewer');
         u.lastLogin = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+        if (!cloudPullCompleted && (state.cloudUrl || DEFAULT_FIREBASE_URL)) { try { await pullFromCloud(true, true); } catch (err) {} }
         recordAuthLog(u.username, u.fullName, u.role, 'Thành công');
-        saveState();
+        saveState(true);
         checkAuthSession();
         renderAll();
         showToast(`Chào mừng ${u.fullName} đăng nhập!`);
@@ -9048,7 +9634,7 @@ function doPost(e) {
           }
         }
 
-        const fProj = document.getElementById('mytask-filter-project')?.value || 'active';
+        const fProj = document.getElementById('mytask-filter-project')?.value || 'all';
         const fStat = document.getElementById('mytask-filter-status')?.value || 'all';
         const fUser = isAdm ? (userSel?.value || 'all') : 'mine';
         const activeP = getActiveProject();
@@ -9123,7 +9709,7 @@ function doPost(e) {
           const assignedNote = (t.createdBy && String(t.createdBy).toLowerCase() !== String(t.assignee || '').toLowerCase()) ? `<div class="text-[10px] text-indigo-600 font-medium">Giao bởi: @${esc(t.createdBy)}</div>` : '';
           return `<tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3"><div class="font-semibold text-slate-900">${esc(t.title)}</div>${t.wbsCode ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold">WBS: ${esc(t.wbsCode)}</span>` : ''}${assignedNote}</td>
-            <td class="py-2.5 px-2.5 text-slate-600">${pObj ? esc(pObj.code) : 'Chung'}</td>
+            <td class="py-2.5 px-2.5"><span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 font-semibold text-[11px]">${pObj ? esc(pObj.code) : 'Chung'}</span>${pObj ? `<div class="text-[10px] text-slate-500 truncate max-w-[140px]" title="${esc(pObj.name)}">${esc(pObj.name)}</div>` : '<div class="text-[10px] text-slate-400">Toàn hệ thống</div>'}</td>
             <td class="py-2.5 px-2.5"><div class="font-medium text-slate-800">${esc(t.assigneeName || t.assignee)}</div><div class="text-[10px] text-slate-400">@${esc(t.assignee)}</div></td>
             <td class="py-2.5 px-2.5 text-center"><span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${priCls}">${esc(t.priority || 'Trung bình')}</span></td>
             <td class="py-2.5 px-2.5 text-center ${isOver ? 'text-rose-600 font-bold' : 'text-slate-600'}">${fmtDateVN(t.dueDate)}${isOver ? ' ⚠️' : ''}</td>
@@ -9426,7 +10012,7 @@ function doPost(e) {
               const catTag = om.category ? `<span class="inline-block px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold mr-1">${esc(om.category)}</span>` : '';
               const kPkgLine = (lk || pkgLabel) ? `<div class="text-[10px] text-brand-700 font-medium mt-0.5">${lk ? `Nhà thầu: <strong>${esc(lk)}</strong>` : ''}${pkgLabel ? `${lk ? ' • ' : ''}Gói: <strong>${esc(pkgLabel)}</strong>` : ''}</div>` : '';
               html += `<tr class="hover:bg-slate-50">
-                <td class="py-2.5 px-3 min-w-[260px]">${catTag}<span class="font-bold text-brand-700">${esc(om.code)}</span> — <span class="font-semibold text-slate-900">${esc(om.name)}</span>${kPkgLine}${om.note ? `<div class="text-[10px] text-slate-400 mt-0.5">${esc(om.note)}</div>` : ''}</td>
+                <td class="py-2.5 px-3 min-w-[260px]">${projTagHtml(om)}${catTag}<span class="font-bold text-brand-700">${esc(om.code)}</span> — <span class="font-semibold text-slate-900">${esc(om.name)}</span>${kPkgLine}${om.note ? `<div class="text-[10px] text-slate-400 mt-0.5">${esc(om.note)}</div>` : ''}</td>
                 <td class="py-2.5 px-2 text-center whitespace-nowrap"><input type="date" value="${esc(om.start || '')}" data-om-id="${esc(om.id)}" data-om-field="start" ${canEditSched ? '' : 'disabled'} class="w-[116px] text-[11px] border border-slate-200 rounded px-1.5 py-1 bg-white" /></td>
                 <td class="py-2.5 px-2 text-center whitespace-nowrap"><input type="date" value="${esc(om.end || '')}" data-om-id="${esc(om.id)}" data-om-field="end" ${canEditSched ? '' : 'disabled'} class="w-[116px] text-[11px] font-semibold text-indigo-700 border border-slate-200 rounded px-1.5 py-1 bg-white" /></td>
                 <td class="py-2.5 px-2 text-center whitespace-nowrap"><div class="inline-flex items-center gap-0.5"><input type="number" min="1" value="${planDays}" data-om-id="${esc(om.id)}" data-om-field="duration" ${canEditSched ? '' : 'disabled'} class="w-12 text-center text-xs font-semibold border border-slate-200 rounded px-1 py-1 bg-white" /><span class="text-slate-500">n</span></div></td>
@@ -9499,7 +10085,8 @@ function doPost(e) {
           if (!byK[k]) byK[k] = [];
           byK[k].push(t);
         });
-        const owners = proj.ownerMasterItems || [];
+        const skipOwnerCmp = proj.projectType === 'maintenance' && !isSubModuleEnabledForProject(proj, 'sch_owner');
+        const owners = skipOwnerCmp ? [] : (proj.ownerMasterItems || []);
         const rows = Object.entries(byK).map(([k, kLeaves]) => {
           const cObj = (proj.contracts || []).find(c => (c.contractor || '').toLowerCase() === k.toLowerCase());
           const advDate = cObj && cObj.advDate ? cObj.advDate : '';
@@ -9507,7 +10094,7 @@ function doPost(e) {
           const maxPe = Math.max(...kLeaves.map(t => iso(t.pe)).filter(Boolean));
           const agg = aggTasks(kLeaves, atMs);
           const matchedOm = owners.find(om => om.linkedContractor && om.linkedContractor.toLowerCase() === k.toLowerCase()) || owners[0] || null;
-          let cmpHtml = '<span class="text-slate-400">Chưa có mốc CĐT</span>';
+          let cmpHtml = skipOwnerCmp ? '<span class="text-slate-400">Không áp dụng (Đã tắt CĐT)</span>' : '<span class="text-slate-400">Chưa có mốc CĐT</span>';
           if (matchedOm && matchedOm.end && isFinite(maxPe)) {
             const diffDays = Math.round((maxPe - iso(matchedOm.end)) / DAY);
             cmpHtml = diffDays <= 0
@@ -9598,6 +10185,15 @@ function doPost(e) {
           </tr>`).join('') : `<tr><td colspan="7" class="py-5 text-center text-slate-400">Không có công việc phù hợp bộ lọc.</td></tr>`;
       }
 
+      const _btnClearOm = document.getElementById('btn-clear-owner-master');
+      if (_btnClearOm) _btnClearOm.addEventListener('click', () => {
+        const proj = getActiveProject();
+        if (!proj.ownerMasterItems || !proj.ownerMasterItems.length) { showToast('Danh sách mốc CĐT đang trống', 'info'); return; }
+        openModal('Xác nhận xóa toàn bộ mốc CĐT', `<p class="text-sm text-slate-700">Bạn có chắc muốn xóa toàn bộ <strong>${proj.ownerMasterItems.length}</strong> mốc tiến độ CĐT của dự án <strong>${esc(proj.code)}</strong>?</p>`, () => {
+          proj.ownerMasterItems = [];
+          saveState(); closeModal(); renderAll(); showToast('Đã xóa sạch toàn bộ mốc CĐT của dự án');
+        });
+      });
       const btnAddOwnerMaster = document.getElementById('btn-add-owner-master');
       if (btnAddOwnerMaster) {
         btnAddOwnerMaster.addEventListener('click', () => {
