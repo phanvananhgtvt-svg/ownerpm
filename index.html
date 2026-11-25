@@ -3017,7 +3017,7 @@
       const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_plan', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
 
       function isModuleEnabledForProject(proj, modKey) {
-        if (state.viewAllProjects || modKey === 'projects' || !proj) return true;
+        if (state.viewAllProjects || modKey === 'projects' || modKey === 'tmdt' || !proj) return true;
         if (proj.projectType !== 'maintenance') return true;
         const vis = Array.isArray(proj.visibleModules) && proj.visibleModules.length ? proj.visibleModules : DEFAULT_MAINTENANCE_MODULES;
         return vis.includes(modKey);
@@ -9983,7 +9983,7 @@ function doPost(e) {
         return state.projects.filter(pr => p.projectIds.includes(pr.id));
       }
       function canViewModule(modKey) {
-        if (modKey === 'projects') return true;
+        if (modKey === 'projects' || modKey === 'tmdt') return true;
         const cur = getCurrentUser();
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return true;
         const p = ensureUserPerms(cur);
