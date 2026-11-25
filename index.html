@@ -262,6 +262,20 @@
           </span>
           <span class="text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30 px-1.5 py-0.5 rounded-full">B-N</span>
         </button>
+        <button type="button" data-tab="shared_proposals" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Tạo Đề xuất (BM07)</span>
+          </span>
+          <span id="badge-shared-proposals" class="text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-1.5 py-0.5 rounded-full">ĐX</span>
+        </button>
+        <button type="button" data-tab="shared_payments" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span>Đề nghị TT &amp; Tạm ứng</span>
+          </span>
+          <span id="badge-shared-payments" class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.5 rounded-full">BMKT</span>
+        </button>
 
       </nav>
 
@@ -1755,11 +1769,80 @@
         <iframe id="dongia-studio-frame" data-src="./dongia.html" src="about:blank" class="w-full flex-1 border-0 bg-slate-50" title="Thư viện Đơn giá 2 Miền"></iframe>
       </section>
 
+      <!-- TAB: CÔNG CỤ DÙNG CHUNG — TẠO ĐỀ XUẤT (BM07) -->
+      <section id="tab-shared_proposals" class="tab-panel hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Công cụ dùng chung</span>
+                <h2 class="text-lg font-bold text-slate-900">Tạo &amp; Quản lý Đề xuất (Mẫu BM07)</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Tạo và lưu trữ Đề xuất độc lập (xuất Word / In A4 chuẩn mẫu KIMTIN), hoặc tùy chọn tích hợp vào mục VO của dự án để liên kết Hợp đồng &amp; Thanh toán.</p>
+            </div>
+            <button id="btn-new-shared-proposal" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">
+              + Tạo Đề xuất mới (BM07)
+            </button>
+          </div>
+          <div id="shared-proposals-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"></div>
+          <div class="flex flex-wrap items-center gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+            <input id="sp-search" type="text" placeholder="Tìm số ĐX, nội dung, nhà thầu, công ty..." class="flex-1 min-w-[200px] text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <select id="sp-mode-filter" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+              <option value="ALL">Tất cả chế độ lưu</option>
+              <option value="standalone">📄 Lưu độc lập</option>
+              <option value="linked">🔗 Đã tích hợp VO</option>
+            </select>
+            <select id="sp-proj-filter" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+              <option value="ALL">Tất cả dự án</option>
+            </select>
+          </div>
+          <div id="shared-proposals-list" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- TAB: CÔNG CỤ DÙNG CHUNG — ĐỀ NGHỊ THANH TOÁN & TẠM ỨNG (BMKT_02 / BMKT_03) -->
+      <section id="tab-shared_payments" class="tab-panel hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Công cụ dùng chung</span>
+                <h2 class="text-lg font-bold text-slate-900">Biểu mẫu Đề nghị Thanh toán &amp; Tạm ứng (BMKT_02 / BMKT_03)</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Tạo &amp; lưu độc lập phiếu Đề nghị Tạm ứng (BMKT_02) và Đề nghị Thanh toán (BMKT_03), xem trước / xuất Word chuẩn A4, hoặc tích hợp tùy chỉnh vào Hợp đồng &amp; Đợt thanh toán của dự án.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-new-shared-adv" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition">
+                + Tạo Đề nghị Tạm ứng (BMKT_02)
+              </button>
+              <button id="btn-new-shared-pay" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition">
+                + Tạo Đề nghị Thanh toán (BMKT_03)
+              </button>
+            </div>
+          </div>
+          <div id="shared-payments-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"></div>
+          <div class="flex flex-wrap items-center gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+            <input id="spay-search" type="text" placeholder="Tìm nội dung, nhà thầu, số TK, công ty..." class="flex-1 min-w-[200px] text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <select id="spay-type-filter" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+              <option value="ALL">Tất cả mẫu biểu</option>
+              <option value="BMKT_02">BMKT_02 — Tạm ứng</option>
+              <option value="BMKT_03">BMKT_03 — Thanh toán</option>
+            </select>
+            <select id="spay-mode-filter" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 bg-white">
+              <option value="ALL">Tất cả chế độ lưu</option>
+              <option value="standalone">📄 Lưu độc lập</option>
+              <option value="linked">🔗 Đã tích hợp HĐ / TT</option>
+            </select>
+          </div>
+          <div id="shared-payments-list" class="space-y-3"></div>
+        </div>
+      </section>
+
     </main>
   </div>
 
   <!-- Weekly Report PDF Preview Modal -->
-  <div id="rpt-preview" class="fixed inset-0 bg-slate-700 z-50 hidden flex flex-col">
+  <div id="rpt-preview" class="fixed inset-0 bg-slate-700 z-[90] hidden flex flex-col" style="z-index: 90;">
     <div id="rpt-toolbar" class="bg-slate-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-700">
       <div>
         <div class="font-bold text-sm">Xem trước Báo cáo Quản lý Dự án (Chuẩn A4)</div>
@@ -2404,6 +2487,8 @@
         mytasks: 'Công việc cá nhân',
         docs: 'Thư viện Hồ sơ',
         dongia: 'Tra cứu Đơn giá 2 Miền',
+        shared_proposals: 'Tạo Đề xuất dùng chung (BM07)',
+        shared_payments: 'Đề nghị TT & Tạm ứng dùng chung',
       };
       function pushAdminNotif(detail, actionType, locationStr) {
         if (!Array.isArray(state.adminNotifications)) state.adminNotifications = [];
@@ -2465,7 +2550,18 @@
               state.deletedBackups = state.deletedBackups.slice(0, 10);
             }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          } catch (e2) {}
+          } catch (e2) {
+            try {
+              const slim = {
+                ...state,
+                projects: (state.projects || []).map(pr => ({
+                  ...pr,
+                  sitePhotos: (pr.sitePhotos || []).map(ph => ({ ...ph, dataUrl: '' }))
+                }))
+              };
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+            } catch (e3) {}
+          }
         }
         if (!skipAutoPush && state.autoSync && state.cloudUrl) {
           updateSyncBadge('⏳ Đang lưu lên Web...', 'busy');
@@ -2475,6 +2571,8 @@
       }
 
       let state = loadState();
+      if (!Array.isArray(state.sharedProposals)) state.sharedProposals = [];
+      if (!Array.isArray(state.sharedPayments)) state.sharedPayments = [];
       let activeTab = 'overview';
       let scheduleViewMode = 'contractors'; // 'contractors' | 'master'
       let selectedContractor = '';
@@ -2562,8 +2660,14 @@
         }).filter(Boolean);
         p.scheduleVersions = p.scheduleVersions.filter(v => v && typeof v === 'object').map((v, i) => ({
           ...v,
+          id: String(v.id || ('v_' + (Number(v.ver) || (i + 1)) + '_' + i)),
           ver: Number(v.ver) || (i + 1),
-          label: String(v.label || ('Ver ' + (v.ver || (i + 1))))
+          label: String(v.label || ('Ver ' + (v.ver || (i + 1)))),
+          date: String(v.date || state.reportDate || ''),
+          planPct: Number(v.planPct) || 0,
+          actualPct: Number(v.actualPct) || 0,
+          spi: Number.isFinite(Number(v.spi)) ? Number(v.spi) : 1,
+          snapshot: Array.isArray(v.snapshot) ? v.snapshot : (v.snapshot && typeof v.snapshot === 'object' ? Object.values(v.snapshot) : [])
         }));
         return p;
       }
@@ -2918,7 +3022,7 @@
         modalSubmitHandler = onSubmit;
         document.getElementById('modal-backdrop').classList.remove('hidden');
       }
-      function closeModal() { const mb = document.getElementById('modal-backdrop'); mb.classList.add('hidden'); const box = mb.querySelector('.max-w-4xl'); if (box) { box.classList.remove('max-w-4xl'); box.classList.add('max-w-lg'); } modalSubmitHandler = null; }
+      function closeModal() { const mb = document.getElementById('modal-backdrop'); mb.classList.add('hidden'); const box = mb.querySelector('.max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-xl'); if (box) { box.classList.remove('max-w-4xl', 'max-w-3xl', 'max-w-2xl', 'max-w-xl'); box.classList.add('max-w-lg'); } modalSubmitHandler = null; }
       document.getElementById('modal-close').addEventListener('click', closeModal);
       document.getElementById('modal-cancel').addEventListener('click', closeModal);
       document.getElementById('modal-backdrop').addEventListener('click', e => { if (e.target.id === 'modal-backdrop') closeModal(); });
@@ -3042,11 +3146,11 @@
         { key: 'mytasks', label: 'Công việc cá nhân', children: [] },
         { key: 'docs', label: 'Thư viện Hồ sơ', children: [] }
       ];
-      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'tmdt', 'dongia', 'weekly', 'mytasks', 'docs'];
+      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'tmdt', 'dongia', 'shared_proposals', 'shared_payments', 'weekly', 'mytasks', 'docs'];
       const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_plan', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
 
       function isModuleEnabledForProject(proj, modKey) {
-        if (state.viewAllProjects || modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia' || !proj) return true;
+        if (state.viewAllProjects || modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia' || modKey === 'shared_proposals' || modKey === 'shared_payments' || !proj) return true;
         if (proj.projectType !== 'maintenance') return true;
         const vis = Array.isArray(proj.visibleModules) && proj.visibleModules.length ? proj.visibleModules : DEFAULT_MAINTENANCE_MODULES;
         return vis.includes(modKey);
@@ -3106,7 +3210,7 @@
           weeklyTasks: allowed.flatMap(p => tag(p.weeklyTasks, p)),
           sitePhotos: allowed.flatMap(p => tag(p.sitePhotos, p)),
           holidays: allowed.flatMap(p => p.holidays || []),
-          scheduleVersions: allowed.flatMap(p => tag(p.scheduleVersions, p)),
+          scheduleVersions: allowed.flatMap(p => tag(getScheduleVersionsForProject(p), p)),
           progressLogs: allowed.flatMap(p => tag(p.progressLogs, p)),
           snaps: []
         };
@@ -3231,6 +3335,8 @@
         try { renderWeeklyTab(proj); } catch (e) { console.error(e); }
         try { renderMyTasksTab(); } catch (e) { console.error(e); }
         try { renderDocsTab(proj); } catch (e) { console.error(e); }
+        try { if (typeof renderSharedProposalsTab === 'function') renderSharedProposalsTab(); } catch (e) { console.error(e); }
+        try { if (typeof renderSharedPaymentsTab === 'function') renderSharedPaymentsTab(); } catch (e) { console.error(e); }
         try { if (activeTab === 'overview') renderCharts(); } catch (e) { console.error(e); }
         applyUserPermissions();
         setTimeout(attachTopScrollbars, 40);
@@ -4027,25 +4133,99 @@
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
 
+      const SCHED_VERS_LOCAL_KEY = STORAGE_KEY + '_sched_vers_v1';
+      function toVersArray(val) {
+        if (Array.isArray(val)) return val.filter(v => v && typeof v === 'object');
+        if (val && typeof val === 'object') return Object.values(val).filter(v => v && typeof v === 'object');
+        return [];
+      }
+      function readLocalSchedVersStore() {
+        try {
+          const raw = localStorage.getItem(SCHED_VERS_LOCAL_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') return parsed;
+          }
+        } catch (e) {}
+        return { byProj: {}, deletedIds: {} };
+      }
+      function writeLocalSchedVersStore(store) {
+        try { localStorage.setItem(SCHED_VERS_LOCAL_KEY, JSON.stringify(store)); } catch (e) {}
+      }
+      function markScheduleVersionDeleted(projId, verId, isDeleted) {
+        if (!projId || !verId) return;
+        const ls = readLocalSchedVersStore();
+        if (!ls.deletedIds || typeof ls.deletedIds !== 'object') ls.deletedIds = {};
+        if (!Array.isArray(ls.deletedIds[projId])) ls.deletedIds[projId] = [];
+        const sid = String(verId);
+        if (isDeleted) {
+          if (!ls.deletedIds[projId].includes(sid)) ls.deletedIds[projId].push(sid);
+        } else {
+          ls.deletedIds[projId] = ls.deletedIds[projId].filter(x => x !== sid);
+        }
+        writeLocalSchedVersStore(ls);
+      }
+
       function getScheduleVersionsForProject(proj) {
         if (!proj) return [];
-        const arr = Array.isArray(proj.scheduleVersions) ? proj.scheduleVersions : [];
-        const store = (state.savedScheduleVersions && typeof state.savedScheduleVersions === 'object') ? state.savedScheduleVersions[proj.id] : null;
-        if (Array.isArray(store) && store.length) {
-          const byId = new Map();
-          arr.forEach(v => { if (v && typeof v === 'object') byId.set(String(v.id || v.ver), v); });
-          store.forEach(v => { if (v && typeof v === 'object' && !byId.has(String(v.id || v.ver))) byId.set(String(v.id || v.ver), v); });
-          const merged = [...byId.values()].sort((a, b) => (Number(a.ver) || 0) - (Number(b.ver) || 0));
-          proj.scheduleVersions = merged;
-          return merged;
-        }
-        return arr;
+        const arr = toVersArray(proj.scheduleVersions);
+        const stateStoreRaw = (state.savedScheduleVersions && typeof state.savedScheduleVersions === 'object') ? state.savedScheduleVersions[proj.id] : null;
+        const stateStore = toVersArray(stateStoreRaw);
+        const ls = readLocalSchedVersStore();
+        const localStore = toVersArray(ls.byProj && ls.byProj[proj.id]);
+        const delSet = new Set(Array.isArray(ls.deletedIds && ls.deletedIds[proj.id]) ? ls.deletedIds[proj.id].map(String) : []);
+
+        const byId = new Map();
+        const addVer = (v, preferExisting) => {
+          if (!v || typeof v !== 'object') return;
+          const key = String(v.id || ('ver_' + (Number(v.ver) || 0)));
+          if (delSet.has(key)) return;
+          const existing = byId.get(key);
+          if (!existing) {
+            byId.set(key, {
+              ...v,
+              id: String(v.id || key),
+              ver: Number(v.ver) || 1,
+              label: String(v.label || ('Ver ' + (Number(v.ver) || 1))),
+              date: String(v.date || state.reportDate || ''),
+              planPct: Number(v.planPct) || 0,
+              actualPct: Number(v.actualPct) || 0,
+              spi: Number.isFinite(Number(v.spi)) ? Number(v.spi) : 1,
+              snapshot: toVersArray(v.snapshot)
+            });
+          } else if (!preferExisting) {
+            const snap = toVersArray(existing.snapshot).length ? toVersArray(existing.snapshot) : toVersArray(v.snapshot);
+            byId.set(key, { ...v, ...existing, snapshot: snap });
+          }
+        };
+        arr.forEach(v => addVer(v, false));
+        stateStore.forEach(v => addVer(v, true));
+        localStore.forEach(v => addVer(v, true));
+
+        const merged = [...byId.values()].sort((a, b) => (Number(a.ver) || 0) - (Number(b.ver) || 0));
+        proj.scheduleVersions = merged;
+        return merged;
       }
 
       function persistScheduleVersionsForProject(proj) {
         if (!proj || !proj.id) return;
+        const list = toVersArray(proj.scheduleVersions);
         if (!state.savedScheduleVersions || typeof state.savedScheduleVersions !== 'object') state.savedScheduleVersions = {};
-        state.savedScheduleVersions[proj.id] = Array.isArray(proj.scheduleVersions) ? proj.scheduleVersions.map(v => ({ ...v })) : [];
+        // Keep lightweight metadata in state.savedScheduleVersions so state stays compact & Firebase-safe
+        state.savedScheduleVersions[proj.id] = list.map(v => ({
+          id: String(v.id || ('v_' + (Number(v.ver) || 1))),
+          ver: Number(v.ver) || 1,
+          label: String(v.label || ('Ver ' + (Number(v.ver) || 1))),
+          date: String(v.date || state.reportDate || ''),
+          planPct: Number(v.planPct) || 0,
+          actualPct: Number(v.actualPct) || 0,
+          spi: Number.isFinite(Number(v.spi)) ? Number(v.spi) : 1,
+          note: String(v.note || '')
+        }));
+        const ls = readLocalSchedVersStore();
+        if (!ls.byProj || typeof ls.byProj !== 'object') ls.byProj = {};
+        ls.byProj[proj.id] = list.map(v => ({ ...v, snapshot: toVersArray(v.snapshot) }));
+        writeLocalSchedVersStore(ls);
       }
 
       function getNextScheduleVersionNum(proj) {
@@ -7424,6 +7604,7 @@
               v.snapshot = proj.tasks.map(t => ({ id: t.id, c: t.c, name: t.name, contractor: t.contractor, ps: t.ps, pe: t.pe, as: t.as || '', ae: t.ae || '', progress: t.progress, planPct: Number(calcPlannedPct(t, atMsNow).toFixed(1)) }));
             }
             proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: 'Phiên bản', task: v.label, change: `Cập nhật Ver ${v.ver} (${v.actualPct}% TT)` });
+            persistScheduleVersionsForProject(proj);
             saveState(); closeModal(); renderAll(); showToast(`Đã cập nhật Ver ${v.ver}`);
           });
         } else if (action === 'restore-one-deleted-ver') {
@@ -7433,6 +7614,7 @@
             if (!b || !b.snapshot || !b.snapshot.version) { showToast('Không tìm thấy dữ liệu bản sao lưu', 'error'); return; }
             if (!Array.isArray(proj.scheduleVersions)) proj.scheduleVersions = [];
             const verObj = { ...b.snapshot.version };
+            markScheduleVersionDeleted(proj.id, verObj.id, false);
             if (!proj.scheduleVersions.some(x => x.id === verObj.id)) proj.scheduleVersions.push(verObj);
             b.restored = true;
             persistScheduleVersionsForProject(proj);
@@ -7486,11 +7668,13 @@
             let cnt = 0;
             delVers.forEach(b => {
               if (b.snapshot && b.snapshot.version && !proj.scheduleVersions.some(x => x.id === b.snapshot.version.id)) {
+                markScheduleVersionDeleted(proj.id, b.snapshot.version.id, false);
                 proj.scheduleVersions.push({ ...b.snapshot.version });
                 b.restored = true;
                 cnt++;
               }
             });
+            persistScheduleVersionsForProject(proj);
             renderScheduleVersionsTable(proj);
             saveState(true);
             if (state.autoSync && state.cloudUrl) { clearTimeout(autoPushTimer); autoPushTimer = null; pushToCloud(true); }
@@ -7503,6 +7687,7 @@
           if (!v) return;
           archiveBeforeDelete('Phiên bản tiến độ', `Ver ${v.ver} — ${v.label}`, { version: { id: v.id, ver: v.ver, label: v.label, date: v.date, planPct: v.planPct, actualPct: v.actualPct, spi: v.spi, note: v.note } }, proj);
           proj.lastVersionSeq = Math.max(Number(proj.lastVersionSeq) || 0, Number(v.ver) || 0);
+          markScheduleVersionDeleted(proj.id, v.id, true);
           proj.scheduleVersions = (proj.scheduleVersions || []).filter(x => x.id !== id);
           persistScheduleVersionsForProject(proj);
           proj.progressLogs.unshift({ ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }), contractor: 'Phiên bản', task: v.label || ('Ver ' + v.ver), change: `Xóa Ver ${v.ver}` });
@@ -8308,10 +8493,16 @@
       if (btnSaveVerInline) btnSaveVerInline.addEventListener('click', () => document.getElementById('btn-save-version').click());
       document.getElementById('btn-save-version').addEventListener('click', () => {
         const proj = getActiveProject();
+        const allowedProjs = getAllowedProjects();
         const atMs = getReportMs();
         const ag = aggTasks(getLeafTasks(proj.tasks || []), atMs);
+        getScheduleVersionsForProject(proj);
         const nextVer = getNextScheduleVersionNum(proj);
+        const projPickerHtml = state.viewAllProjects
+          ? `<div><label class="block text-xs font-semibold text-slate-600 mb-1">Lưu phiên bản cho dự án</label><select name="targetProjectId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">${allowedProjs.map(p => `<option value="${esc(p.id)}" ${p.id === proj.id ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('')}</select></div>`
+          : `<div class="text-xs font-semibold text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2">Dự án: ${esc(proj.code)} — ${esc(proj.name)}</div>`;
         openModal(`Lưu phiên bản cập nhật tiến độ (Ver ${nextVer})`, `
+          ${projPickerHtml}
           <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
             <div>% Kế hoạch: <b>${(Number.isFinite(ag.p) ? ag.p : 0).toFixed(1)}%</b></div>
             <div>% Thực tế: <b class="text-brand-700">${(Number.isFinite(ag.a) ? ag.a : 0).toFixed(1)}%</b> (SPI ${(Number.isFinite(ag.spi) ? ag.spi : 1).toFixed(2)})</div>
@@ -8320,13 +8511,15 @@
           <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú thay đổi</label><input name="note" placeholder="VD: Cập nhật khối lượng tuần mới..." class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
         `, fd => {
           try {
-            const liveProj = getActiveProject();
+            const chosenPid = fd.get('targetProjectId');
+            const liveProj = (chosenPid && (state.projects || []).find(p => String(p.id) === String(chosenPid))) || getActiveProject();
+            getScheduleVersionsForProject(liveProj);
             if (!Array.isArray(liveProj.scheduleVersions)) liveProj.scheduleVersions = [];
             const liveVer = getNextScheduleVersionNum(liveProj);
             liveProj.lastVersionSeq = liveVer;
             const liveAtMs = getReportMs();
             const liveAg = aggTasks(getLeafTasks(liveProj.tasks || []), liveAtMs);
-            liveProj.scheduleVersions.push({
+            const newVerObj = {
               id: 'v' + Date.now(),
               ver: liveVer,
               label: (fd.get('label') || '').trim() || `Ver ${liveVer} — Cập nhật ${fmtDateVN(state.reportDate)}`,
@@ -8340,6 +8533,7 @@
                 return {
                   id: String(t.id || ''),
                   c: String(t.c || ''),
+                  name: String(t.name || ''),
                   ps: String(t.ps || ''),
                   pe: String(t.pe || ''),
                   as: String(t.as || ''),
@@ -8348,6 +8542,15 @@
                   planPct: Number.isFinite(pVal) ? Number(pVal.toFixed(1)) : 0
                 };
               })
+            };
+            markScheduleVersionDeleted(liveProj.id, newVerObj.id, false);
+            liveProj.scheduleVersions.push(newVerObj);
+            if (!Array.isArray(liveProj.progressLogs)) liveProj.progressLogs = [];
+            liveProj.progressLogs.unshift({
+              ts: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }),
+              contractor: 'Phiên bản',
+              task: newVerObj.label,
+              change: `Lưu Ver ${liveVer} (${newVerObj.actualPct}% TT)`
             });
             persistScheduleVersionsForProject(liveProj);
             closeModal();
@@ -8518,7 +8721,7 @@
         const innerHtml = `
   <table class="no-border" style="width:100%;border-collapse:collapse;">
     <tr>
-      <td style="font-weight:bold;">${esc(proj.owner || 'CÔNG TY CỔ PHẦN KIM TÍN ĐỒNG NAI').toUpperCase()}</td>
+      <td style="font-weight:bold;">${esc(p.companyName || (proj && proj.owner) || 'CÔNG TY CỔ PHẦN KIM TÍN ĐỒNG NAI').toUpperCase()}</td>
       <td style="text-align:right;font-weight:bold;">${isAdv ? 'BMKT_02' : 'BMKT_03'}</td>
     </tr>
   </table>
@@ -9743,9 +9946,21 @@ function doPost(e) {
         const incomingId = data.syncId || String(incomingTs);
         const currentId = state.syncId || String(currentTs);
         if (!silent || incomingId !== currentId) {
+          const prevVersByProj = {};
+          (state.projects || []).forEach(pr => {
+            if (pr && pr.id) prevVersByProj[pr.id] = toVersArray(pr.scheduleVersions);
+          });
           state = { ...data, cloudUrl: url, autoSync: state.autoSync };
           if (!state.syncId) state.syncId = incomingId;
-          (state.projects || []).forEach(normalizeProject);
+          if (!Array.isArray(state.sharedProposals)) state.sharedProposals = [];
+          if (!Array.isArray(state.sharedPayments)) state.sharedPayments = [];
+          (state.projects || []).forEach(p => {
+            normalizeProject(p);
+            const merged = getScheduleVersionsForProject(p);
+            if (!merged.length && prevVersByProj[p.id] && prevVersByProj[p.id].length) {
+              p.scheduleVersions = prevVersByProj[p.id];
+            }
+          });
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(Number(data.lastUpdated) || 0));
@@ -9968,6 +10183,8 @@ function doPost(e) {
         { key: 'mytasks', label: 'Công việc cá nhân theo tài khoản' },
         { key: 'docs', label: 'Thư viện Hồ sơ Tổng thể' },
         { key: 'dongia', label: 'Tra cứu Đơn giá 2 Miền (Bắc - Nam)' },
+        { key: 'shared_proposals', label: 'Tạo Đề xuất dùng chung (BM07)' },
+        { key: 'shared_payments', label: 'Đề nghị Thanh toán & Tạm ứng dùng chung' },
       ];
       function isAdminAccount(u) {
         if (!u) return false;
@@ -9980,7 +10197,7 @@ function doPost(e) {
         const mods = {};
         PERM_MODULES.forEach(m => {
           if (r === 'admin') mods[m.key] = { view: true, edit: true };
-          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'tmdt', 'dongia', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
+          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'tmdt', 'dongia', 'shared_proposals', 'shared_payments', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
           else mods[m.key] = { view: true, edit: false };
         });
         return {
@@ -10013,7 +10230,7 @@ function doPost(e) {
         return state.projects.filter(pr => p.projectIds.includes(pr.id));
       }
       function canViewModule(modKey) {
-        if (modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia') return true;
+        if (modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia' || modKey === 'shared_proposals' || modKey === 'shared_payments') return true;
         const cur = getCurrentUser();
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return true;
         const p = ensureUserPerms(cur);
@@ -12344,6 +12561,1334 @@ function doPost(e) {
       if (revSel) revSel.addEventListener('change', () => renderContractorRevBar(getActiveProject()));
       const evalSel = document.getElementById('tracking-eval-filter');
       if (evalSel) evalSel.addEventListener('change', () => renderTrackingTaskEval(getActiveProject(), getReportMs()));
+
+      // =========================================================================
+      // CÔNG CỤ DÙNG CHUNG: TẠO ĐỀ XUẤT (BM07) & ĐỀ NGHỊ TT / TẠM ỨNG (BMKT_02/03)
+      // =========================================================================
+      function ensureSharedStores() {
+        if (!Array.isArray(state.sharedProposals)) state.sharedProposals = [];
+        if (!Array.isArray(state.sharedPayments)) state.sharedPayments = [];
+      }
+
+      function getSharedCtxProject(item) {
+        const linked = item && item.linkedProjectId
+          ? (state.projects || []).find(p => String(p.id) === String(item.linkedProjectId))
+          : null;
+        if (linked) {
+          return {
+            ...linked,
+            owner: (item && item.companyName) || linked.owner || 'CÔNG TY CỔ PHẦN KIM TÍN',
+            location: (item && item.companyAddress) || linked.location || ''
+          };
+        }
+        return {
+          code: 'DUNG-CHUNG',
+          name: (item && item.projectName) || '',
+          owner: (item && item.companyName) || 'CÔNG TY CỔ PHẦN KIM TÍN',
+          location: (item && item.companyAddress) || ''
+        };
+      }
+
+      // ---------- 1. SHARED PROPOSALS (BM07) ----------
+      function syncSharedProposalToVo(item, targetProjId, contractId, autoApprove) {
+        const targetProj = (state.projects || []).find(p => String(p.id) === String(targetProjId));
+        if (!targetProj) return null;
+        if (!Array.isArray(targetProj.vos)) targetProj.vos = [];
+        const c = (targetProj.contracts || []).find(x => String(x.id) === String(contractId));
+
+        // If previously linked to a DIFFERENT project, clean link metadata only (keep old VO unless unlinked explicitly)
+        let vo = (item.linkedProjectId === targetProj.id && item.linkedVoId)
+          ? targetProj.vos.find(v => String(v.id) === String(item.linkedVoId))
+          : null;
+
+        const voData = {
+          contractId: c ? c.id : '',
+          title: item.title || '',
+          contractor: c ? c.contractor : (item.chosenContractor || item.contractor || ''),
+          chosenContractor: item.chosenContractor || item.contractor || '',
+          chosenVendorIdx: Number(item.chosenVendorIdx) || 0,
+          costImpact: Number(item.costImpact) || 0,
+          timeImpact: Number(item.timeImpact) || 0,
+          reason: item.content || item.reason || '',
+          companyName: item.companyName || targetProj.owner || '',
+          companyAddress: item.companyAddress || targetProj.location || '',
+          proposalNo: item.proposalNo || '',
+          sendTo: item.sendTo || 'Ban Giám Đốc Công Ty',
+          proposer: item.proposer || '',
+          department: item.department || 'Phòng PTHT.',
+          goal: item.goal || '',
+          content: item.content || '',
+          vatNote: item.vatNote || 'chưa vat',
+          vendors: Array.isArray(item.vendors) ? JSON.parse(JSON.stringify(item.vendors)) : [],
+          priceRows: Array.isArray(item.priceRows) ? JSON.parse(JSON.stringify(item.priceRows)) : [],
+          priceImage: item.priceImage || '',
+          sharedProposalId: item.id
+        };
+
+        if (vo) {
+          Object.assign(vo, voData);
+        } else {
+          vo = {
+            id: 'vo' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+            code: 'VO-' + String(targetProj.vos.length + 1).padStart(2, '0'),
+            status: autoApprove ? 'Đã duyệt' : 'Chờ duyệt',
+            ...voData
+          };
+          targetProj.vos.unshift(vo);
+        }
+
+        if (autoApprove || vo.status === 'Đã duyệt') {
+          vo.status = 'Đã duyệt';
+          vo.approvedCost = vo.costImpact;
+          syncContractFromVo(targetProj, vo, vo.contractId, vo.costImpact);
+        }
+
+        item.mode = 'linked';
+        item.linkedProjectId = targetProj.id;
+        item.linkedProjectCode = targetProj.code;
+        item.linkedVoId = vo.id;
+        item.linkedVoCode = vo.code;
+        item.linkedContractId = c ? c.id : '';
+        item.linkedContractCode = c ? c.code : '';
+        return { targetProj, vo, contract: c };
+      }
+
+      function unlinkSharedProposal(item, removeFromProject) {
+        if (removeFromProject && item.linkedProjectId && item.linkedVoId) {
+          const targetProj = (state.projects || []).find(p => String(p.id) === String(item.linkedProjectId));
+          if (targetProj && Array.isArray(targetProj.vos)) {
+            const voObj = targetProj.vos.find(v => String(v.id) === String(item.linkedVoId));
+            if (voObj) {
+              syncContractFromVo(targetProj, voObj, '', 0);
+              targetProj.vos = targetProj.vos.filter(v => String(v.id) !== String(item.linkedVoId));
+            }
+          }
+        }
+        item.mode = 'standalone';
+        item.linkedProjectId = '';
+        item.linkedProjectCode = '';
+        item.linkedVoId = '';
+        item.linkedVoCode = '';
+        item.linkedContractId = '';
+        item.linkedContractCode = '';
+      }
+
+      function openSharedProposalModal(existingItem) {
+        ensureSharedStores();
+        const item = existingItem && existingItem.id ? existingItem : null;
+        const curUser = getCurrentUser();
+        const projects = getAllowedProjects();
+        const activeProj = getActiveProject();
+        const defProposer = (item && item.proposer) || (curUser ? curUser.fullName : 'Phan Văn Anh');
+        const nextNum = String(state.sharedProposals.length + 1).padStart(2, '0');
+        const defPropNo = (item && item.proposalNo) || `${nextNum}/${new Date().getFullYear()}/ĐX-CP`;
+        const defMode = (item && item.mode === 'linked' && item.linkedProjectId) ? 'linked' : 'standalone';
+        const defProjId = (item && item.linkedProjectId) || (activeProj ? activeProj.id : (projects[0] ? projects[0].id : ''));
+        const defContractId = (item && item.linkedContractId) || '';
+        const defCompany = (item && item.companyName) || (activeProj && activeProj.owner) || 'CÔNG TY CỔ PHẦN KIM TÍN';
+        const defAddr = (item && item.companyAddress) || (activeProj && activeProj.location) || '';
+
+        let vendors = item && Array.isArray(item.vendors) && item.vendors.length ? [...item.vendors] : [(item && (item.chosenContractor || item.contractor)) || 'Nhà thầu 1', 'Đơn giá tham khảo'];
+        let priceRows = item && Array.isArray(item.priceRows) && item.priceRows.length
+          ? JSON.parse(JSON.stringify(item.priceRows))
+          : [{ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' }];
+        let priceImage = (item && item.priceImage) || '';
+        let chosenVendorIdx = item ? (Number(item.chosenVendorIdx) || 0) : 0;
+
+        openModal(item ? `Cập nhật Đề xuất (${item.proposalNo || item.code || 'BM07'})` : 'Tạo Đề xuất dùng chung (Mẫu BM07)', `
+          <div class="max-h-[74vh] overflow-y-auto pr-1 space-y-3">
+            <!-- Mode & VO Integration Selector -->
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3 space-y-2.5">
+              <div class="text-[11px] font-bold uppercase text-indigo-900">Chế độ lưu &amp; Tùy chọn tích hợp VO</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-indigo-200 cursor-pointer text-xs">
+                  <input type="radio" name="saveMode" value="standalone" ${defMode === 'standalone' ? 'checked' : ''} class="mt-0.5 accent-indigo-600" />
+                  <span><strong class="text-slate-900 block">📄 Lưu độc lập (Công cụ dùng chung)</strong><span class="text-[11px] text-slate-500">Tạo &amp; lưu riêng, xuất Word/In A4, có thể tích hợp VO bất cứ lúc nào sau này.</span></span>
+                </label>
+                <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-indigo-200 cursor-pointer text-xs">
+                  <input type="radio" name="saveMode" value="linked" ${defMode === 'linked' ? 'checked' : ''} class="mt-0.5 accent-indigo-600" />
+                  <span><strong class="text-indigo-800 block">🔗 Lưu &amp; Tích hợp vào VO dự án</strong><span class="text-[11px] text-slate-500">Đẩy trực tiếp vào mục VO của dự án để link Hợp đồng &amp; Thanh toán.</span></span>
+                </label>
+              </div>
+              <div id="sp-standalone-helper" class="${defMode === 'standalone' ? '' : 'hidden'} flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-600 font-medium">Lấy nhanh mẫu Công ty/Địa chỉ từ dự án:</span>
+                <select id="sp-fill-proj-sel" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white">
+                  <option value="">-- Tự nhập thủ công --</option>
+                  ${projects.map(p => `<option value="${esc(p.id)}">${esc(p.code)} — ${esc(p.name)}</option>`).join('')}
+                </select>
+              </div>
+              <div id="sp-link-box" class="${defMode === 'linked' ? '' : 'hidden'} space-y-2 pt-1 border-t border-indigo-200/70">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-indigo-900 mb-0.5">Chọn Dự án tích hợp VO</label>
+                    <select id="sp-target-proj" name="targetProjectId" class="w-full text-xs border border-indigo-300 rounded-lg px-2.5 py-1.5 bg-white">
+                      ${projects.map(p => `<option value="${esc(p.id)}" ${String(p.id) === String(defProjId) ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-indigo-900 mb-0.5">Liên kết Gói thầu / Hợp đồng (tùy chọn)</label>
+                    <select id="sp-target-contract" name="targetContractId" class="w-full text-xs border border-indigo-300 rounded-lg px-2.5 py-1.5 bg-white"></select>
+                  </div>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-emerald-900 cursor-pointer">
+                  <input id="sp-auto-approve" name="autoApprove" type="checkbox" class="accent-emerald-600" />
+                  <span>Tự động đánh dấu <strong>Đã duyệt VO</strong> &amp; cập nhật giá trị phát sinh vào Hợp đồng đã chọn</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="text-[11px] font-bold uppercase text-slate-600">Thông tin Biểu mẫu Đề xuất (BM07)</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="sm:col-span-2"><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Công ty / Chủ đầu tư</label><input id="sp-company-inp" name="companyName" value="${esc(defCompany)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Số Đề xuất</label><input name="proposalNo" value="${esc(defPropNo)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold" /></div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="sm:col-span-2"><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Địa chỉ</label><input id="sp-addr-inp" name="companyAddress" value="${esc(defAddr)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Kính gửi</label><input name="sendTo" value="${esc((item && item.sendTo) || 'Ban Giám Đốc Công Ty')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Người đề xuất (Tôi)</label><input name="proposer" value="${esc(defProposer)}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Bộ phận</label><input name="department" value="${esc((item && item.department) || 'Phòng PTHT.')}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-0.5">Tiến độ (+Ngày)</label><input name="timeImpact" type="number" value="${item ? (Number(item.timeImpact) || 0) : 0}" class="w-full text-xs border border-slate-300 rounded-lg px-2.5 py-1.5" /></div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Về việc / Nội dung đề xuất (Vv:)</label>
+              <input id="sp-title-inp" name="title" value="${esc(item ? item.title : '')}" placeholder="VD: Đề xuất chi phí chống thấm nhà bảo vệ C2" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-1.5" />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">1. Mục tiêu đề xuất</label><textarea id="sp-goal-inp" name="goal" rows="2" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-1.5">${esc((item && item.goal) || '')}</textarea></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">2. Nội dung đề xuất / Lý do</label><textarea id="sp-content-inp" name="content" rows="2" required class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-1.5">${esc((item && (item.content || item.reason)) || '')}</textarea></div>
+            </div>
+
+            <!-- 3. Dynamic Price Table + Excel + Image -->
+            <div class="border border-slate-200 rounded-xl p-3 space-y-2 bg-white">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-slate-800">3. Ngân sách chi phí dự kiến (Thêm/xóa hàng cột, nhập Excel hoặc Ảnh)</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" id="sp-add-row" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200">+ Thêm hàng</button>
+                  <button type="button" id="sp-add-col" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">+ Thêm cột Nhà thầu</button>
+                  <label class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-pointer">
+                    ⬆ Nhập Excel <input id="sp-xlsx-inp" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
+                  </label>
+                  <button type="button" id="sp-paste-btn" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">📋 Dán từ Excel</button>
+                  <label class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 cursor-pointer">
+                    🖼 Chèn Ảnh bảng giá <input id="sp-img-inp" type="file" accept="image/*" class="hidden" />
+                  </label>
+                </div>
+              </div>
+              <div id="sp-paste-box" class="hidden bg-amber-50/70 border border-amber-200 rounded-lg p-2 space-y-1.5">
+                <div class="text-[11px] text-amber-900 font-medium">Copy vùng bảng từ Excel rồi dán (Ctrl+V) vào ô bên dưới (STT | Hạng mục | ĐVT | KL | Đơn giá... | Các bước):</div>
+                <textarea id="sp-paste-area" rows="3" placeholder="Dán dữ liệu bảng từ Excel vào đây..." class="w-full text-xs border border-amber-300 rounded-lg p-2 bg-white"></textarea>
+                <div class="flex justify-end gap-1.5">
+                  <button type="button" id="sp-paste-cancel" class="px-2 py-1 text-[11px] rounded bg-white border border-slate-300">Đóng</button>
+                  <button type="button" id="sp-paste-apply" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-600 text-white">Áp dụng vào bảng</button>
+                </div>
+              </div>
+              <div id="sp-price-table-wrap" class="overflow-x-auto max-h-52 border border-slate-200 rounded-lg"></div>
+              <div id="sp-img-preview-wrap" class="${priceImage ? '' : 'hidden'} flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-2">
+                <img id="sp-img-preview" src="${priceImage}" class="h-16 rounded border border-slate-300 object-contain" alt="Bảng giá" />
+                <div class="flex-1 text-xs text-slate-600">Đã đính kèm hình ảnh bảng giá (hiển thị trong mục 3 khi xem trước &amp; xuất Word)</div>
+                <button type="button" id="sp-img-clear" class="text-xs text-rose-600 hover:underline font-semibold">Xóa ảnh</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-emerald-50/70 border border-emerald-200 rounded-xl p-2.5">
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Chọn Nhà thầu đề xuất</label><select id="sp-chosen-vendor-sel" name="chosenVendorIdx" class="w-full text-xs border border-emerald-300 rounded-lg px-2 py-1.5 bg-white"></select></div>
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Giá trị đề xuất (VNĐ)</label><input id="sp-cost-inp" name="costImpact" type="text" inputmode="numeric" value="${fmtVndInput(item ? item.costImpact : 0)}" required class="w-full text-xs font-bold text-rose-700 border border-emerald-300 rounded-lg px-2.5 py-1.5 bg-white" /></div>
+              <div><label class="block text-[11px] font-semibold text-emerald-900 mb-0.5">Ghi chú VAT</label><input name="vatNote" value="${esc((item && item.vatNote) || 'chưa vat')}" class="w-full text-xs border border-emerald-300 rounded-lg px-2.5 py-1.5 bg-white" /></div>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="button" id="sp-preview-btn" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200">👁 Xem trước Đề xuất (BM07) trước khi lưu</button>
+            </div>
+          </div>
+        `, fd => {
+          const saveMode = fd.get('saveMode') || 'standalone';
+          const cIdx = Math.min(vendors.length - 1, Math.max(0, Number(fd.get('chosenVendorIdx')) || 0));
+          const chosenName = vendors[cIdx] || '';
+          const costVal = parseVnd(fd.get('costImpact'));
+          const rec = {
+            id: item ? item.id : ('sp_' + Date.now()),
+            code: item ? item.code : ('DX-' + String(state.sharedProposals.length + 1).padStart(2, '0')),
+            createdAt: item ? (item.createdAt || state.reportDate) : state.reportDate,
+            updatedAt: state.reportDate,
+            mode: saveMode,
+            linkedProjectId: item ? (item.linkedProjectId || '') : '',
+            linkedProjectCode: item ? (item.linkedProjectCode || '') : '',
+            linkedVoId: item ? (item.linkedVoId || '') : '',
+            linkedVoCode: item ? (item.linkedVoCode || '') : '',
+            linkedContractId: item ? (item.linkedContractId || '') : '',
+            linkedContractCode: item ? (item.linkedContractCode || '') : '',
+            title: (fd.get('title') || '').trim(),
+            contractor: chosenName,
+            chosenContractor: chosenName,
+            chosenVendorIdx: cIdx,
+            costImpact: costVal,
+            timeImpact: Number(fd.get('timeImpact')) || 0,
+            reason: (fd.get('content') || '').trim(),
+            companyName: (fd.get('companyName') || '').trim(),
+            companyAddress: (fd.get('companyAddress') || '').trim(),
+            proposalNo: (fd.get('proposalNo') || '').trim(),
+            sendTo: (fd.get('sendTo') || '').trim(),
+            proposer: (fd.get('proposer') || '').trim(),
+            department: (fd.get('department') || '').trim(),
+            goal: (fd.get('goal') || '').trim(),
+            content: (fd.get('content') || '').trim(),
+            vatNote: (fd.get('vatNote') || '').trim(),
+            vendors,
+            priceRows,
+            priceImage
+          };
+
+          const targetRec = item ? Object.assign(item, rec) : (state.sharedProposals.unshift(rec), rec);
+          if (saveMode === 'linked') {
+            const tpId = fd.get('targetProjectId');
+            const tcId = fd.get('targetContractId') || '';
+            const autoApp = fd.get('autoApprove') === 'on';
+            const synced = syncSharedProposalToVo(targetRec, tpId, tcId, autoApp);
+            saveState(); closeModal(); renderAll();
+            showToast(synced ? `Đã lưu Đề xuất & tích hợp vào ${synced.targetProj.code} (${synced.vo.code})` : 'Đã lưu Đề xuất');
+          } else {
+            if (item && item.linkedVoId) unlinkSharedProposal(targetRec, false);
+            saveState(); closeModal(); renderAll();
+            showToast(item ? 'Đã cập nhật Đề xuất độc lập' : 'Đã tạo & lưu Đề xuất độc lập (BM07)');
+          }
+        });
+
+        setTimeout(() => {
+          const wrapEl = document.getElementById('sp-price-table-wrap');
+          if (!wrapEl) return;
+          const mBox = wrapEl.closest('.max-w-lg, .max-w-xl, .max-w-2xl, .max-w-4xl');
+          if (mBox) { mBox.classList.remove('max-w-lg', 'max-w-xl', 'max-w-2xl'); mBox.classList.add('max-w-4xl'); }
+
+          const projSel = document.getElementById('sp-target-proj');
+          const contractSel = document.getElementById('sp-target-contract');
+          const compInp = document.getElementById('sp-company-inp');
+          const addrInp = document.getElementById('sp-addr-inp');
+          const linkBox = document.getElementById('sp-link-box');
+          const standHelper = document.getElementById('sp-standalone-helper');
+          const fillProjSel = document.getElementById('sp-fill-proj-sel');
+          const titleEl = document.getElementById('sp-title-inp');
+          const goalEl = document.getElementById('sp-goal-inp');
+          const contentEl = document.getElementById('sp-content-inp');
+          const costEl = document.getElementById('sp-cost-inp');
+          const chosenSel = document.getElementById('sp-chosen-vendor-sel');
+
+          function populateTargetContracts(pid, selectedCid) {
+            if (!contractSel) return;
+            const pObj = (state.projects || []).find(p => String(p.id) === String(pid));
+            const list = (pObj && Array.isArray(pObj.contracts)) ? pObj.contracts : [];
+            contractSel.innerHTML = `<option value="">-- VO độc lập trong dự án --</option>` +
+              list.map(c => `<option value="${esc(c.id)}" ${String(c.id) === String(selectedCid) ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)}</option>`).join('');
+          }
+
+          if (projSel) {
+            populateTargetContracts(projSel.value, defContractId);
+            projSel.addEventListener('change', () => {
+              const pObj = (state.projects || []).find(p => String(p.id) === String(projSel.value));
+              if (pObj) {
+                if (compInp && pObj.owner) compInp.value = pObj.owner;
+                if (addrInp && pObj.location) addrInp.value = pObj.location;
+              }
+              populateTargetContracts(projSel.value, '');
+            });
+          }
+          if (fillProjSel) {
+            fillProjSel.addEventListener('change', () => {
+              const pObj = (state.projects || []).find(p => String(p.id) === String(fillProjSel.value));
+              if (pObj) {
+                if (compInp && pObj.owner) compInp.value = pObj.owner;
+                if (addrInp && pObj.location) addrInp.value = pObj.location;
+              }
+            });
+          }
+          document.querySelectorAll('#modal-form input[name="saveMode"]').forEach(r => {
+            r.addEventListener('change', () => {
+              const isLink = r.value === 'linked' && r.checked;
+              if (linkBox) linkBox.classList.toggle('hidden', !isLink);
+              if (standHelper) standHelper.classList.toggle('hidden', isLink);
+            });
+          });
+
+          let goalTouched = Boolean(item && item.goal);
+          let contentTouched = Boolean(item && (item.content || item.reason));
+          if (goalEl) goalEl.addEventListener('input', () => { goalTouched = true; });
+          if (contentEl) contentEl.addEventListener('input', () => { contentTouched = true; });
+          if (titleEl) titleEl.addEventListener('input', () => {
+            const tv = titleEl.value.trim();
+            if (!goalTouched && goalEl && tv) goalEl.value = tv + '.';
+            if (!contentTouched && contentEl && tv) contentEl.value = `Đề xuất triển khai thực hiện: ${tv} để đảm bảo chất lượng và tiến độ công việc.`;
+          });
+
+          function syncChosenDropdownAndCost(recalcCost) {
+            if (chosenSel) {
+              chosenSel.innerHTML = vendors.map((vn, idx) => `<option value="${idx}" ${idx === chosenVendorIdx ? 'selected' : ''}>${esc(vn)}</option>`).join('');
+            }
+            if (recalcCost && costEl && priceRows.length) {
+              const tot = priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[chosenVendorIdx]) || 0)), 0);
+              if (tot > 0) costEl.value = fmtVndInput(Math.round(tot));
+            }
+          }
+
+          function renderPriceTableEditor() {
+            const vTotals = vendors.map((_, vi) => priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[vi]) || 0)), 0));
+            wrapEl.innerHTML = `
+              <table class="w-full min-w-[820px] text-left border-collapse text-xs">
+                <thead class="bg-slate-100 text-slate-700">
+                  <tr>
+                    <th class="p-1.5 border-b border-r border-slate-200 text-center w-9">STT</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 min-w-[180px]">HẠNG MỤC</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 w-16 text-center">ĐVT</th>
+                    <th class="p-1.5 border-b border-r border-slate-200 w-24 text-right">Khối lượng</th>
+                    ${vendors.map((vn, vi) => `
+                      <th class="p-1.5 border-b border-r border-slate-200 min-w-[200px]" colspan="2">
+                        <div class="flex items-center gap-1">
+                          <input type="text" data-vname="${vi}" value="${esc(vn)}" class="w-full text-xs font-bold bg-white border border-slate-300 rounded px-2 py-1" />
+                          ${vendors.length > 1 ? `<button type="button" data-del-col="${vi}" class="text-rose-600 font-bold px-1.5 py-0.5 hover:bg-rose-50 rounded" title="Xóa cột">✕</button>` : ''}
+                        </div>
+                        <div class="grid grid-cols-2 text-[10px] text-slate-500 mt-1 text-center"><span>Đơn giá</span><span>Thành tiền</span></div>
+                      </th>`).join('')}
+                    <th class="p-1.5 border-b border-r border-slate-200 min-w-[140px]">Các bước thực hiện</th>
+                    <th class="p-1.5 border-b border-slate-200 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${priceRows.map((r, ri) => {
+                    const q = Number(r.qty) || 0;
+                    return `<tr class="hover:bg-slate-50">
+                      <td class="p-1.5 border-b border-r border-slate-200 text-center text-slate-500">${ri + 1}</td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="name" value="${esc(r.name || '')}" placeholder="Tên hạng mục..." class="w-full min-w-[160px] text-xs border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="unit" value="${esc(r.unit || '')}" class="w-16 text-xs text-center border border-slate-300 rounded px-1.5 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" inputmode="decimal" data-r="${ri}" data-f="qty" value="${r.qty !== undefined && r.qty !== '' ? esc(String(r.qty)) : ''}" placeholder="0" class="w-20 text-xs text-right font-semibold border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      ${vendors.map((_, vi) => {
+                        const pr = Number((r.prices || [])[vi]) || 0;
+                        const amt = Math.round(q * pr);
+                        return `
+                          <td class="p-1 border-b border-r border-slate-200"><input type="text" inputmode="numeric" data-r="${ri}" data-vi="${vi}" value="${pr ? pr.toLocaleString('en-US') : ''}" placeholder="0" class="w-24 text-xs text-right font-semibold border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                          <td class="p-1.5 border-b border-r border-slate-200 text-right font-semibold text-slate-700 whitespace-nowrap min-w-[90px]" data-amt="${ri}-${vi}">${amt ? amt.toLocaleString('en-US') : '0'}</td>`;
+                      }).join('')}
+                      <td class="p-1 border-b border-r border-slate-200"><input type="text" data-r="${ri}" data-f="steps" value="${esc(r.steps || '')}" class="w-full min-w-[130px] text-xs border border-slate-300 rounded px-2 py-1 bg-white" /></td>
+                      <td class="p-1 border-b border-slate-200 text-center"><button type="button" data-del-row="${ri}" class="text-rose-600 font-bold hover:bg-rose-50 px-1.5 py-0.5 rounded">✕</button></td>
+                    </tr>`;
+                  }).join('')}
+                </tbody>
+                <tfoot class="bg-slate-50 font-bold text-slate-800">
+                  <tr>
+                    <td colspan="4" class="p-2 border-r border-slate-200 text-center">TỔNG CỘNG (CHƯA VAT)</td>
+                    ${vTotals.map((tot, vi) => `<td class="p-2 border-r border-slate-200"></td><td class="p-2 border-r border-slate-200 text-right text-indigo-700 whitespace-nowrap" data-vtot="${vi}">${Math.round(tot).toLocaleString('en-US')}</td>`).join('')}
+                    <td colspan="2" class="p-2"></td>
+                  </tr>
+                </tfoot>
+              </table>`;
+            syncChosenDropdownAndCost(true);
+          }
+
+          wrapEl.addEventListener('input', e => {
+            const el = e.target;
+            if (el.dataset.vname !== undefined) {
+              vendors[Number(el.dataset.vname)] = el.value;
+              syncChosenDropdownAndCost(false);
+              return;
+            }
+            if (el.dataset.r !== undefined) {
+              const ri = Number(el.dataset.r);
+              const row = priceRows[ri];
+              if (!row) return;
+              if (el.dataset.vi !== undefined) {
+                if (!Array.isArray(row.prices)) row.prices = [];
+                const rawDigits = String(el.value || '').replace(/[^\d]/g, '');
+                row.prices[Number(el.dataset.vi)] = rawDigits ? Number(rawDigits) : 0;
+              } else if (el.dataset.f === 'qty') {
+                const normQty = String(el.value || '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+                row.qty = normQty ? (Number(normQty) || 0) : 0;
+              } else if (el.dataset.f) {
+                row[el.dataset.f] = el.value;
+              }
+              const q = Number(row.qty) || 0;
+              vendors.forEach((_, vi) => {
+                const amtEl = wrapEl.querySelector(`[data-amt="${ri}-${vi}"]`);
+                const pr = Number((row.prices || [])[vi]) || 0;
+                if (amtEl) amtEl.textContent = Math.round(q * pr).toLocaleString('en-US');
+                const totEl = wrapEl.querySelector(`[data-vtot="${vi}"]`);
+                if (totEl) {
+                  const tot = priceRows.reduce((s, r) => s + ((Number(r.qty) || 0) * (Number((r.prices || [])[vi]) || 0)), 0);
+                  totEl.textContent = Math.round(tot).toLocaleString('en-US');
+                }
+              });
+              syncChosenDropdownAndCost(true);
+            }
+          });
+
+          wrapEl.addEventListener('click', e => {
+            const dr = e.target.closest('[data-del-row]');
+            if (dr) {
+              const idx = Number(dr.dataset.delRow);
+              if (priceRows.length > 1) priceRows.splice(idx, 1);
+              else priceRows = [{ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' }];
+              renderPriceTableEditor();
+              return;
+            }
+            const dc = e.target.closest('[data-del-col]');
+            if (dc && vendors.length > 1) {
+              const ci = Number(dc.dataset.delCol);
+              vendors.splice(ci, 1);
+              priceRows.forEach(r => { if (Array.isArray(r.prices)) r.prices.splice(ci, 1); });
+              if (chosenVendorIdx >= vendors.length) chosenVendorIdx = 0;
+              renderPriceTableEditor();
+            }
+          });
+
+          document.getElementById('sp-add-row').addEventListener('click', () => {
+            priceRows.push({ name: '', unit: 'm2', qty: 1, prices: vendors.map(() => 0), steps: '' });
+            renderPriceTableEditor();
+          });
+          document.getElementById('sp-add-col').addEventListener('click', () => {
+            vendors.push('Nhà thầu ' + (vendors.length + 1));
+            priceRows.forEach(r => { if (!Array.isArray(r.prices)) r.prices = []; r.prices.push(0); });
+            renderPriceTableEditor();
+          });
+          if (chosenSel) chosenSel.addEventListener('change', () => {
+            chosenVendorIdx = Number(chosenSel.value) || 0;
+            syncChosenDropdownAndCost(true);
+          });
+
+          const xlsxInp = document.getElementById('sp-xlsx-inp');
+          if (xlsxInp) xlsxInp.addEventListener('change', async e => {
+            const file = e.target.files && e.target.files[0];
+            if (!file || typeof XLSX === 'undefined') return;
+            try {
+              const buf = await file.arrayBuffer();
+              const wb = XLSX.read(buf, { type: 'array' });
+              const ws = wb.Sheets[wb.SheetNames[0]];
+              const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }).filter(r => r.some(c => String(c).trim() !== ''));
+              if (!aoa.length) { showToast('File Excel trống', 'error'); return; }
+              const dataRows = aoa.filter(r => !/tổng cộng|stt|hạng mục/i.test(String(r[0] || '') + ' ' + String(r[1] || '')));
+              const parsed = (dataRows.length ? dataRows : aoa).map(r => {
+                const startIdx = /^\d+$/.test(String(r[0]).trim()) ? 1 : 0;
+                const name = String(r[startIdx] || '').trim();
+                const unit = String(r[startIdx + 1] || 'm2').trim();
+                const qty = Number(String(r[startIdx + 2] || '1').replace(/,/g, '')) || 1;
+                const prices = vendors.map((_, vi) => parseVnd(String(r[startIdx + 3 + vi * 2] || r[startIdx + 3 + vi] || 0)));
+                const steps = String(r[startIdx + 3 + vendors.length * 2] || r[r.length - 1] || '').trim();
+                return { name, unit, qty, prices, steps: /^\d+$/.test(steps.replace(/[,.\s]/g, '')) ? '' : steps };
+              }).filter(r => r.name);
+              if (parsed.length) {
+                priceRows = parsed;
+                renderPriceTableEditor();
+                showToast(`Đã nhập ${parsed.length} dòng từ Excel`);
+              } else showToast('Không nhận diện được dòng hạng mục trong Excel', 'error');
+            } catch (err) {
+              showToast('Lỗi đọc Excel: ' + err.message, 'error');
+            }
+            xlsxInp.value = '';
+          });
+
+          const pasteBox = document.getElementById('sp-paste-box');
+          document.getElementById('sp-paste-btn').addEventListener('click', () => pasteBox.classList.toggle('hidden'));
+          document.getElementById('sp-paste-cancel').addEventListener('click', () => pasteBox.classList.add('hidden'));
+          document.getElementById('sp-paste-apply').addEventListener('click', () => {
+            const raw = (document.getElementById('sp-paste-area').value || '').trim();
+            if (!raw) return;
+            const lines = raw.split(/\r?\n/).map(l => l.split('\t')).filter(c => c.some(x => x.trim()));
+            const parsed = lines.filter(r => !/^(stt|hạng mục|tổng cộng)/i.test((r[0] || '') + ' ' + (r[1] || ''))).map(r => {
+              const startIdx = /^\d+$/.test(String(r[0]).trim()) ? 1 : 0;
+              const name = String(r[startIdx] || '').trim();
+              const unit = String(r[startIdx + 1] || 'm2').trim();
+              const qty = Number(String(r[startIdx + 2] || '1').replace(/,/g, '')) || 1;
+              const prices = vendors.map((_, vi) => parseVnd(String(r[startIdx + 3 + vi] || 0)));
+              const steps = String(r[startIdx + 3 + vendors.length] || '').trim();
+              return { name, unit, qty, prices, steps };
+            }).filter(r => r.name);
+            if (parsed.length) {
+              priceRows = parsed;
+              renderPriceTableEditor();
+              pasteBox.classList.add('hidden');
+              document.getElementById('sp-paste-area').value = '';
+              showToast(`Đã dán ${parsed.length} dòng từ Excel`);
+            }
+          });
+
+          const imgInp = document.getElementById('sp-img-inp');
+          if (imgInp) imgInp.addEventListener('change', e => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+              priceImage = ev.target.result;
+              document.getElementById('sp-img-preview').src = priceImage;
+              document.getElementById('sp-img-preview-wrap').classList.remove('hidden');
+              showToast('Đã chèn ảnh bảng giá');
+            };
+            reader.readAsDataURL(file);
+          });
+          document.getElementById('sp-img-clear').addEventListener('click', () => {
+            priceImage = '';
+            document.getElementById('sp-img-preview').src = '';
+            document.getElementById('sp-img-preview-wrap').classList.add('hidden');
+          });
+
+          document.getElementById('sp-preview-btn').addEventListener('click', () => {
+            const fd = new FormData(document.getElementById('modal-form'));
+            const cIdx = Math.min(vendors.length - 1, Math.max(0, Number(fd.get('chosenVendorIdx')) || 0));
+            const draft = {
+              code: item ? item.code : ('DX-' + String(state.sharedProposals.length + 1).padStart(2, '0')),
+              linkedProjectId: fd.get('saveMode') === 'linked' ? (fd.get('targetProjectId') || '') : '',
+              title: fd.get('title') || '',
+              contractor: vendors[cIdx] || '',
+              chosenContractor: vendors[cIdx] || '',
+              chosenVendorIdx: cIdx,
+              costImpact: parseVnd(fd.get('costImpact')),
+              timeImpact: Number(fd.get('timeImpact')) || 0,
+              companyName: fd.get('companyName') || '',
+              companyAddress: fd.get('companyAddress') || '',
+              proposalNo: fd.get('proposalNo') || '',
+              sendTo: fd.get('sendTo') || '',
+              proposer: fd.get('proposer') || '',
+              department: fd.get('department') || '',
+              goal: fd.get('goal') || '',
+              content: fd.get('content') || '',
+              vatNote: fd.get('vatNote') || 'chưa vat',
+              vendors, priceRows, priceImage
+            };
+            previewVoProposalForm(getSharedCtxProject(draft), draft);
+          });
+
+          renderPriceTableEditor();
+        }, 30);
+      }
+
+      function openIntegrateProposalModal(item) {
+        const projects = getAllowedProjects();
+        if (!projects.length) { showToast('Chưa có dự án nào để tích hợp', 'error'); return; }
+        const defPid = item.linkedProjectId || (getActiveProject() ? getActiveProject().id : projects[0].id);
+        openModal('Tích hợp Đề xuất vào mục VO Dự án', `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+            <div class="font-bold text-slate-900">${esc(item.proposalNo || item.code)} — ${esc(item.title)}</div>
+            <div class="text-slate-600">Nhà thầu: <strong>${esc(item.chosenContractor || item.contractor || '—')}</strong> • Giá trị: <strong class="text-rose-600">${fmtVndInput(item.costImpact || 0)} VNĐ</strong></div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Chọn Dự án đích</label>
+            <select id="ip-proj-sel" name="projectId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+              ${projects.map(p => `<option value="${esc(p.id)}" ${String(p.id) === String(defPid) ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Liên kết vào Hợp đồng (để tự cộng giá trị phát sinh &amp; theo dõi thanh toán)</label>
+            <select id="ip-contract-sel" name="contractId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"></select>
+          </div>
+          <label class="flex items-center gap-2 text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 cursor-pointer">
+            <input name="autoApprove" type="checkbox" class="accent-emerald-600" />
+            <span>Đánh dấu <strong>Đã duyệt VO</strong> ngay &amp; cộng giá trị vào Hợp đồng đã chọn</span>
+          </label>
+        `, fd => {
+          const res = syncSharedProposalToVo(item, fd.get('projectId'), fd.get('contractId') || '', fd.get('autoApprove') === 'on');
+          if (res) {
+            saveState(); closeModal(); renderAll();
+            showToast(`Đã tích hợp vào VO ${res.vo.code} của dự án ${res.targetProj.code}${res.contract ? ' (HĐ: ' + res.contract.code + ')' : ''}`);
+          }
+        });
+        setTimeout(() => {
+          const pSel = document.getElementById('ip-proj-sel');
+          const cSel = document.getElementById('ip-contract-sel');
+          function fillC() {
+            const pObj = (state.projects || []).find(p => String(p.id) === String(pSel.value));
+            const list = (pObj && Array.isArray(pObj.contracts)) ? pObj.contracts : [];
+            cSel.innerHTML = `<option value="">-- VO độc lập trong dự án --</option>` +
+              list.map(c => `<option value="${esc(c.id)}" ${String(c.id) === String(item.linkedContractId) ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)} (HĐ: ${fmtTy(c.value)})</option>`).join('');
+          }
+          if (pSel && cSel) { fillC(); pSel.addEventListener('change', fillC); }
+        }, 25);
+      }
+
+      function renderSharedProposalsTab() {
+        ensureSharedStores();
+        const listEl = document.getElementById('shared-proposals-list');
+        const kpiEl = document.getElementById('shared-proposals-kpis');
+        if (!listEl || !kpiEl) return;
+
+        const all = state.sharedProposals;
+        const badge = document.getElementById('badge-shared-proposals');
+        if (badge) badge.textContent = all.length ? String(all.length) : 'ĐX';
+
+        const linkedCnt = all.filter(x => x.mode === 'linked' && x.linkedVoId).length;
+        const standCnt = all.length - linkedCnt;
+        const totalVal = all.reduce((s, x) => s + (Number(x.costImpact) || 0), 0);
+
+        kpiEl.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><div class="text-[11px] text-slate-500 font-semibold">Tổng số Đề xuất</div><div class="text-xl font-bold text-slate-900 mt-0.5">${all.length}</div></div>
+          <div class="bg-sky-50/70 border border-sky-200 rounded-xl p-3"><div class="text-[11px] text-sky-700 font-semibold">Lưu độc lập</div><div class="text-xl font-bold text-sky-900 mt-0.5">${standCnt}</div></div>
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3"><div class="text-[11px] text-indigo-700 font-semibold">Đã tích hợp VO</div><div class="text-xl font-bold text-indigo-900 mt-0.5">${linkedCnt}</div></div>
+          <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3"><div class="text-[11px] text-emerald-700 font-semibold">Tổng giá trị đề xuất</div><div class="text-xl font-bold text-emerald-900 mt-0.5">${fmtTy(totalVal)}</div></div>
+        `;
+
+        const pFilter = document.getElementById('sp-proj-filter');
+        if (pFilter) {
+          const curVal = pFilter.value || 'ALL';
+          pFilter.innerHTML = `<option value="ALL">Tất cả dự án</option>` +
+            (state.projects || []).map(p => `<option value="${esc(p.id)}">${esc(p.code)} — ${esc(p.name)}</option>`).join('');
+          pFilter.value = curVal;
+        }
+
+        const q = String((document.getElementById('sp-search') || {}).value || '').toLowerCase().trim();
+        const modeF = (document.getElementById('sp-mode-filter') || {}).value || 'ALL';
+        const projF = (document.getElementById('sp-proj-filter') || {}).value || 'ALL';
+
+        const filtered = all.filter(it => {
+          const isLinked = it.mode === 'linked' && Boolean(it.linkedVoId);
+          if (modeF === 'standalone' && isLinked) return false;
+          if (modeF === 'linked' && !isLinked) return false;
+          if (projF !== 'ALL' && String(it.linkedProjectId) !== String(projF)) return false;
+          if (q) {
+            const blob = [it.proposalNo, it.code, it.title, it.chosenContractor, it.contractor, it.companyName, it.linkedProjectCode, it.linkedVoCode].join(' ').toLowerCase();
+            if (!blob.includes(q)) return false;
+          }
+          return true;
+        });
+
+        if (!filtered.length) {
+          listEl.innerHTML = `<div class="text-center py-10 border border-dashed border-slate-300 rounded-xl text-slate-500 text-sm">Chưa có Đề xuất nào phù hợp. Bấm <strong>"+ Tạo Đề xuất mới (BM07)"</strong> để bắt đầu.</div>`;
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(it => {
+          const linkedProj = it.linkedProjectId ? (state.projects || []).find(p => String(p.id) === String(it.linkedProjectId)) : null;
+          const linkedVo = linkedProj && it.linkedVoId ? (linkedProj.vos || []).find(v => String(v.id) === String(it.linkedVoId)) : null;
+          const linkedContract = linkedProj && it.linkedContractId ? (linkedProj.contracts || []).find(c => String(c.id) === String(it.linkedContractId)) : null;
+          const isLinked = Boolean(linkedProj && linkedVo);
+          return `
+            <div class="border border-slate-200 hover:border-indigo-300 rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white transition">
+              <div class="space-y-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">ĐX: ${esc(it.proposalNo || it.code)}</span>
+                  ${isLinked
+                    ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">🔗 Đã tích hợp VO: [${esc(linkedProj.code)}] ${esc(linkedVo.code)}${linkedContract ? ' • HĐ ' + esc(linkedContract.code) : ''}</span>${statusBadge(linkedVo.status)}`
+                    : `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">📄 Lưu độc lập</span>`}
+                </div>
+                <div class="font-bold text-sm text-slate-900">${esc(it.title)}</div>
+                <div class="text-xs text-slate-600 flex flex-wrap gap-x-3 gap-y-0.5">
+                  <span>Đơn vị: <strong>${esc(it.companyName || '—')}</strong></span>
+                  <span>Nhà thầu: <strong>${esc(it.chosenContractor || it.contractor || '—')}</strong></span>
+                  <span>Giá trị: <strong class="text-rose-600">${fmtVndInput(it.costImpact || 0)} VNĐ</strong> (${esc(it.vatNote || 'chưa vat')})</span>
+                  <span>Người lập: ${esc(it.proposer || '—')}</span>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button type="button" data-sp-act="preview" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition">👁 Xem A4</button>
+                <button type="button" data-sp-act="word" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Word</button>
+                <button type="button" data-sp-act="edit" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">✏ Sửa</button>
+                ${isLinked
+                  ? `<button type="button" data-sp-act="integrate" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition">🔄 Chỉnh liên kết VO</button>
+                     <button type="button" data-sp-act="unlink" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">🔓 Gỡ VO</button>`
+                  : `<button type="button" data-sp-act="integrate" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">🔗 Tích hợp VO</button>`}
+                <button type="button" data-sp-act="to-pay" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition" title="Tạo phiếu Đề nghị Thanh toán / Tạm ứng từ Đề xuất này">💳 Tạo ĐNTT</button>
+                <button type="button" data-sp-act="del" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Xóa</button>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // ---------- 2. SHARED PAYMENT & ADVANCE REQUESTS (BMKT_02 / BMKT_03) ----------
+      function syncSharedPaymentToProject(item, targetProjId, contractId, integrateAction) {
+        const targetProj = (state.projects || []).find(p => String(p.id) === String(targetProjId));
+        if (!targetProj) return null;
+        if (!Array.isArray(targetProj.payments)) targetProj.payments = [];
+        const c = (targetProj.contracts || []).find(x => String(x.id) === String(contractId));
+
+        let payRec = (item.linkedProjectId === targetProj.id && item.linkedPaymentId)
+          ? targetProj.payments.find(p => String(p.id) === String(item.linkedPaymentId))
+          : null;
+
+        const payData = {
+          formType: item.formType || 'BMKT_03',
+          contractId: c ? c.id : '',
+          contractor: item.contractor || (c ? c.contractor : ''),
+          companyName: item.companyName || targetProj.owner || '',
+          requester: item.requester || '',
+          position: item.position || '',
+          department: item.department || '',
+          title: item.title || '',
+          amount: Number(item.amount) || 0,
+          preVat: Number(item.preVat) || 0,
+          vatAmount: Number(item.vatAmount) || 0,
+          tkNo: item.tkNo || '',
+          kmp: item.kmp || '',
+          kmLctt: item.kmLctt || '',
+          invDate: item.invDate || state.reportDate,
+          expectedPayDate: item.expectedPayDate || '',
+          attachments: item.attachments || '',
+          bankAccountName: item.bankAccountName || '',
+          bankAccountNo: item.bankAccountNo || '',
+          bankName: item.bankName || '',
+          tvgsNote: item.tvgsNote || '',
+          sharedPaymentId: item.id
+        };
+
+        if (payRec) {
+          Object.assign(payRec, payData);
+        } else {
+          payRec = {
+            id: 'pay' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+            payDate: '',
+            status: 'Chờ duyệt',
+            ...payData
+          };
+          targetProj.payments.unshift(payRec);
+        }
+
+        let linkedRoundId = item.linkedRoundId || '';
+        if (integrateAction === 'contract_round' && c) {
+          if (item.formType === 'BMKT_02') {
+            c.adv = Number(item.amount) || 0;
+            c.advInvDate = item.invDate || state.reportDate;
+          } else {
+            if (!Array.isArray(c.rounds)) c.rounds = [];
+            let rd = linkedRoundId ? c.rounds.find(r => String(r.id) === String(linkedRoundId)) : null;
+            const shortTitle = String(item.title || '').trim().slice(0, 80);
+            if (rd) {
+              rd.amount = Number(item.amount) || 0;
+              rd.invDate = item.invDate || state.reportDate;
+              rd.label = shortTitle || rd.label;
+            } else {
+              linkedRoundId = 'rd' + Date.now() + '_' + Math.random().toString(36).slice(2, 4);
+              const nextDot = c.rounds.length + 1;
+              c.rounds.push({
+                id: linkedRoundId,
+                label: `Đợt ${nextDot}${shortTitle ? ' — ' + shortTitle : ''}`,
+                amount: Number(item.amount) || 0,
+                invDate: item.invDate || state.reportDate,
+                payDate: '',
+                note: 'Tích hợp từ BMKT_03 dùng chung'
+              });
+            }
+          }
+        }
+
+        item.mode = 'linked';
+        item.linkedProjectId = targetProj.id;
+        item.linkedProjectCode = targetProj.code;
+        item.linkedContractId = c ? c.id : '';
+        item.linkedContractCode = c ? c.code : '';
+        item.linkedPaymentId = payRec.id;
+        item.linkedRoundId = linkedRoundId;
+        item.integrateAction = integrateAction || 'pending_payment';
+        return { targetProj, contract: c, payRec };
+      }
+
+      function unlinkSharedPayment(item, removeFromProject) {
+        if (removeFromProject && item.linkedProjectId) {
+          const targetProj = (state.projects || []).find(p => String(p.id) === String(item.linkedProjectId));
+          if (targetProj) {
+            if (item.linkedPaymentId && Array.isArray(targetProj.payments)) {
+              targetProj.payments = targetProj.payments.filter(p => String(p.id) !== String(item.linkedPaymentId));
+            }
+            if (item.linkedRoundId && item.linkedContractId) {
+              const c = (targetProj.contracts || []).find(x => String(x.id) === String(item.linkedContractId));
+              if (c && Array.isArray(c.rounds)) c.rounds = c.rounds.filter(r => String(r.id) !== String(item.linkedRoundId));
+            }
+          }
+        }
+        item.mode = 'standalone';
+        item.linkedProjectId = '';
+        item.linkedProjectCode = '';
+        item.linkedContractId = '';
+        item.linkedContractCode = '';
+        item.linkedPaymentId = '';
+        item.linkedRoundId = '';
+        item.integrateAction = 'pending_payment';
+      }
+
+      function openSharedPaymentModal(existingItem, preset) {
+        ensureSharedStores();
+        const p = existingItem && existingItem.id ? existingItem : null;
+        const pre = preset || {};
+        const fromProp = pre.fromProposal || null;
+        const projects = getAllowedProjects();
+        const activeProj = getActiveProject();
+        const curUser = getCurrentUser();
+
+        const defForm = (p && p.formType) || pre.formType || 'BMKT_03';
+        const defMode = (p && p.mode === 'linked' && p.linkedProjectId)
+          ? 'linked'
+          : (fromProp && fromProp.linkedProjectId ? 'linked' : 'standalone');
+        const defProjId = (p && p.linkedProjectId) || (fromProp && fromProp.linkedProjectId) || (activeProj ? activeProj.id : (projects[0] ? projects[0].id : ''));
+        const defContractId = (p && p.linkedContractId) || (fromProp && fromProp.linkedContractId) || '';
+        const defIntAction = (p && p.integrateAction) || 'pending_payment';
+        const defCompany = (p && p.companyName) || (fromProp && fromProp.companyName) || (activeProj && activeProj.owner) || 'CÔNG TY CỔ PHẦN KIM TÍN ĐỒNG NAI';
+        const defContractor = (p && p.contractor) || (fromProp && (fromProp.chosenContractor || fromProp.contractor)) || '';
+        const defTitle = p ? p.title : (fromProp ? `Thanh toán theo Đề xuất số ${fromProp.proposalNo || fromProp.code}: ${fromProp.title}` : '');
+        const defAmount = p ? p.amount : (fromProp ? fromProp.costImpact : '');
+        const defDocsAdv = '- Văn bản đề nghị tạm ứng của nhà thầu.';
+        const defDocsPay = '- Đề nghị thanh toán.\n- Hóa đơn GTGT\n- Biên bản nghiệm thu\n- Biên bản giá trị quyết toán';
+
+        openModal(p ? 'Chỉnh sửa Phiếu Đề nghị Thanh toán / Tạm ứng' : (defForm === 'BMKT_02' ? 'Tạo Phiếu Đề nghị Tạm ứng (BMKT_02)' : 'Tạo Phiếu Đề nghị Thanh toán (BMKT_03)'), `
+          <div class="max-h-[74vh] overflow-y-auto pr-1 space-y-3">
+            <!-- Mode & Project/Contract Integration -->
+            <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3 space-y-2.5">
+              <div class="text-[11px] font-bold uppercase text-amber-900">Chế độ lưu &amp; Tùy chọn tích hợp Hợp đồng / Thanh toán</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-amber-200 cursor-pointer text-xs">
+                  <input type="radio" name="saveMode" value="standalone" ${defMode === 'standalone' ? 'checked' : ''} class="mt-0.5 accent-amber-600" />
+                  <span><strong class="text-slate-900 block">📄 Lưu độc lập (Công cụ dùng chung)</strong><span class="text-[11px] text-slate-500">Không bắt buộc gắn Hợp đồng; lưu riêng để in A4/xuất Word, tích hợp sau khi cần.</span></span>
+                </label>
+                <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-amber-200 cursor-pointer text-xs">
+                  <input type="radio" name="saveMode" value="linked" ${defMode === 'linked' ? 'checked' : ''} class="mt-0.5 accent-amber-600" />
+                  <span><strong class="text-amber-900 block">🔗 Lưu &amp; Tích hợp vào Dự án / HĐ</strong><span class="text-[11px] text-slate-500">Đẩy vào Đề nghị TT chờ duyệt và/hoặc cập nhật ngay Đợt TT / Tạm ứng trong HĐ.</span></span>
+                </label>
+              </div>
+              <div id="spay-standalone-helper" class="${defMode === 'standalone' ? '' : 'hidden'} flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-600 font-medium">Lấy nhanh tên Công ty từ dự án:</span>
+                <select id="spay-fill-proj-sel" class="text-xs border border-slate-300 rounded-lg px-2 py-1 bg-white">
+                  <option value="">-- Tự nhập thủ công --</option>
+                  ${projects.map(pr => `<option value="${esc(pr.id)}">${esc(pr.code)} — ${esc(pr.name)}</option>`).join('')}
+                </select>
+              </div>
+              <div id="spay-link-box" class="${defMode === 'linked' ? '' : 'hidden'} space-y-2 pt-1 border-t border-amber-200/70">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-semibold text-amber-900 mb-0.5">Chọn Dự án đích</label>
+                    <select id="spay-target-proj" name="targetProjectId" class="w-full text-xs border border-amber-300 rounded-lg px-2.5 py-1.5 bg-white">
+                      ${projects.map(pr => `<option value="${esc(pr.id)}" ${String(pr.id) === String(defProjId) ? 'selected' : ''}>${esc(pr.code)} — ${esc(pr.name)}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-amber-900 mb-0.5">Chọn Gói thầu / Hợp đồng</label>
+                    <select id="spay-target-contract" name="targetContractId" class="w-full text-xs border border-amber-300 rounded-lg px-2.5 py-1.5 bg-white"></select>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-amber-900 mb-0.5">Cách thức tích hợp vào Tài chính dự án</label>
+                  <select name="integrateAction" class="w-full text-xs border border-amber-300 rounded-lg px-2.5 py-1.5 bg-white">
+                    <option value="pending_payment" ${defIntAction === 'pending_payment' ? 'selected' : ''}>1. Đưa vào danh sách Đề nghị Thanh toán chờ duyệt (duyệt chi mới cộng vào HĐ)</option>
+                    <option value="contract_round" ${defIntAction === 'contract_round' ? 'selected' : ''}>2. Đưa vào Đề nghị TT + Tạo/Cập nhật ngay Đợt TT hoặc Tạm ứng trong Hợp đồng</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Chọn mẫu biểu</label>
+                <select id="spay-form-type" name="formType" class="w-full text-xs font-bold border border-slate-300 rounded-xl px-2.5 py-2 bg-amber-50/40">
+                  <option value="BMKT_02" ${defForm === 'BMKT_02' ? 'selected' : ''}>BMKT_02 — Phiếu Đề nghị Tạm ứng</option>
+                  <option value="BMKT_03" ${defForm === 'BMKT_03' ? 'selected' : ''}>BMKT_03 — Phiếu Đề nghị Thanh toán</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Đơn vị / Công ty (Tiêu đề phiếu)</label>
+                <input id="spay-company-inp" name="companyName" value="${esc(defCompany)}" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Nhà thầu / Đơn vị thụ hưởng</label><input id="spay-contractor-inp" name="contractor" value="${esc(defContractor)}" placeholder="Tên nhà thầu / đối tượng nhận tiền..." required class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Người đề nghị</label><input name="requester" value="${esc(p ? (p.requester || 'Phan Văn Anh') : (curUser ? curUser.fullName : 'Phan Văn Anh'))}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-2" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Chức vụ</label><input name="position" value="${esc(p ? (p.position || 'Nhân Viên') : 'Nhân Viên')}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-2" /></div>
+                <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Bộ phận</label><input name="department" value="${esc(p ? (p.department || 'Phòng Phát Triển Hạ Tầng') : 'Phòng Phát Triển Hạ Tầng')}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-2" /></div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Nội dung / Lý do đề nghị</label>
+              <textarea id="spay-title" name="title" rows="2" required placeholder="VD: Thanh toán đợt 1 hợp đồng thi công..." class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2">${esc(defTitle)}</textarea>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Số tiền Có VAT / Tạm ứng</label><input id="spay-amt" name="amount" type="text" inputmode="numeric" value="${defAmount ? fmtVndInput(defAmount) : ''}" required placeholder="vd: 106.143.728" class="w-full text-xs font-bold text-rose-700 border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Chưa VAT (tùy chọn)</label><input id="spay-prevat" name="preVat" type="text" inputmode="numeric" value="${p && p.preVat ? fmtVndInput(p.preVat) : ''}" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">VAT (tùy chọn)</label><input id="spay-vat" name="vatAmount" type="text" inputmode="numeric" value="${p && p.vatAmount ? fmtVndInput(p.vatAmount) : ''}" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Ngày đề nghị / XHĐ</label><input name="invDate" type="date" value="${esc(p ? (p.invDate || state.reportDate) : state.reportDate)}" required class="w-full text-xs border border-slate-300 rounded-xl px-2 py-1.5" /></div>
+              <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">Ngày dự kiến TT</label><input name="expectedPayDate" type="date" value="${esc(p ? (p.expectedPayDate || '') : '')}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-1.5" /></div>
+              <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">TK Nợ</label><input name="tkNo" value="${esc(p ? (p.tkNo || '') : '')}" placeholder="vd: 331" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-1.5" /></div>
+              <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">KMP</label><input name="kmp" value="${esc(p ? (p.kmp || '') : '')}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-1.5" /></div>
+              <div><label class="block text-[11px] font-semibold text-slate-600 mb-1">KM LCTT</label><input name="kmLctt" value="${esc(p ? (p.kmLctt || '') : '')}" class="w-full text-xs border border-slate-300 rounded-xl px-2 py-1.5" /></div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Chứng từ đính kèm (mỗi dòng 1 mục)</label>
+              <textarea id="spay-attachments" name="attachments" rows="2" class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2">${esc(p && p.attachments ? p.attachments : (defForm === 'BMKT_02' ? defDocsAdv : defDocsPay))}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Chủ tài khoản</label><input id="spay-bank-acc-name" name="bankAccountName" value="${esc(p ? (p.bankAccountName || defContractor) : defContractor)}" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Số tài khoản</label><input name="bankAccountNo" value="${esc(p ? (p.bankAccountNo || '') : '')}" placeholder="vd: 96466646" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+              <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân hàng</label><input name="bankName" value="${esc(p ? (p.bankName || '') : '')}" placeholder="vd: ACB - TP HCM" class="w-full text-xs border border-slate-300 rounded-xl px-2.5 py-2" /></div>
+            </div>
+
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ghi chú / Xác nhận TVGS</label><input name="tvgsNote" value="${esc(p ? (p.tvgsNote || '') : 'TVGS đã xác nhận khối lượng')}" class="w-full text-xs border border-slate-300 rounded-xl px-3 py-2" /></div>
+
+            <div class="pt-1">
+              <button id="spay-preview-btn" type="button" class="w-full py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-semibold text-xs transition">
+                👁 Xem trước biểu mẫu (Preview A4) trước khi lưu / xuất Word
+              </button>
+            </div>
+          </div>
+        `, fd => {
+          const saveMode = fd.get('saveMode') || 'standalone';
+          const rec = {
+            id: p ? p.id : ('spay_' + Date.now()),
+            createdAt: p ? (p.createdAt || state.reportDate) : state.reportDate,
+            updatedAt: state.reportDate,
+            mode: saveMode,
+            linkedProjectId: p ? (p.linkedProjectId || '') : '',
+            linkedProjectCode: p ? (p.linkedProjectCode || '') : '',
+            linkedContractId: p ? (p.linkedContractId || '') : '',
+            linkedContractCode: p ? (p.linkedContractCode || '') : '',
+            linkedPaymentId: p ? (p.linkedPaymentId || '') : '',
+            linkedRoundId: p ? (p.linkedRoundId || '') : '',
+            integrateAction: fd.get('integrateAction') || 'pending_payment',
+            formType: fd.get('formType') || 'BMKT_03',
+            companyName: (fd.get('companyName') || '').trim(),
+            contractor: (fd.get('contractor') || '').trim(),
+            requester: (fd.get('requester') || '').trim(),
+            position: (fd.get('position') || '').trim(),
+            department: (fd.get('department') || '').trim(),
+            title: (fd.get('title') || '').trim(),
+            amount: parseVnd(fd.get('amount')),
+            preVat: fd.get('preVat') ? parseVnd(fd.get('preVat')) : 0,
+            vatAmount: fd.get('vatAmount') ? parseVnd(fd.get('vatAmount')) : 0,
+            tkNo: (fd.get('tkNo') || '').trim(),
+            kmp: (fd.get('kmp') || '').trim(),
+            kmLctt: (fd.get('kmLctt') || '').trim(),
+            invDate: fd.get('invDate'),
+            expectedPayDate: fd.get('expectedPayDate') || '',
+            attachments: (fd.get('attachments') || '').trim(),
+            bankAccountName: (fd.get('bankAccountName') || '').trim(),
+            bankAccountNo: (fd.get('bankAccountNo') || '').trim(),
+            bankName: (fd.get('bankName') || '').trim(),
+            tvgsNote: (fd.get('tvgsNote') || '').trim()
+          };
+          const targetRec = p ? Object.assign(p, rec) : (state.sharedPayments.unshift(rec), rec);
+          if (saveMode === 'linked') {
+            const res = syncSharedPaymentToProject(targetRec, fd.get('targetProjectId'), fd.get('targetContractId') || '', fd.get('integrateAction') || 'pending_payment');
+            saveState(); closeModal(); renderAll();
+            showToast(res ? `Đã lưu ${rec.formType} & tích hợp vào ${res.targetProj.code}${res.contract ? ' (HĐ ' + res.contract.code + ')' : ''}` : `Đã lưu ${rec.formType}`);
+          } else {
+            if (p && p.linkedPaymentId) unlinkSharedPayment(targetRec, false);
+            saveState(); closeModal(); renderAll();
+            showToast(p ? 'Đã cập nhật phiếu độc lập' : `Đã tạo & lưu độc lập phiếu ${rec.formType}`);
+          }
+        });
+
+        setTimeout(() => {
+          const fSel = document.getElementById('spay-form-type');
+          const pSel = document.getElementById('spay-target-proj');
+          const cSel = document.getElementById('spay-target-contract');
+          const fillPSel = document.getElementById('spay-fill-proj-sel');
+          const compInp = document.getElementById('spay-company-inp');
+          const ctrInp = document.getElementById('spay-contractor-inp');
+          const accInp = document.getElementById('spay-bank-acc-name');
+          const titEl = document.getElementById('spay-title');
+          const attEl = document.getElementById('spay-attachments');
+          const linkBox = document.getElementById('spay-link-box');
+          const standHelper = document.getElementById('spay-standalone-helper');
+          const mBox = fSel && fSel.closest('.max-w-lg, .max-w-xl, .max-w-2xl, .max-w-4xl');
+          if (mBox) { mBox.classList.remove('max-w-lg', 'max-w-xl'); mBox.classList.add('max-w-3xl'); }
+
+          function populatePayContracts(pid, selectedCid) {
+            if (!cSel) return;
+            const pObj = (state.projects || []).find(x => String(x.id) === String(pid));
+            const list = (pObj && Array.isArray(pObj.contracts)) ? pObj.contracts : [];
+            cSel.innerHTML = `<option value="">-- Không gắn HĐ cụ thể --</option>` +
+              list.map(c => `<option value="${esc(c.id)}" ${String(c.id) === String(selectedCid) ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)}</option>`).join('');
+          }
+
+          if (pSel) {
+            populatePayContracts(pSel.value, defContractId);
+            pSel.addEventListener('change', () => {
+              const pObj = (state.projects || []).find(x => String(x.id) === String(pSel.value));
+              if (pObj && compInp && pObj.owner) compInp.value = pObj.owner;
+              populatePayContracts(pSel.value, '');
+            });
+          }
+          if (cSel && !p) {
+            cSel.addEventListener('change', () => {
+              const pObj = (state.projects || []).find(x => String(x.id) === String(pSel.value));
+              const cObj = pObj && (pObj.contracts || []).find(x => String(x.id) === String(cSel.value));
+              if (cObj) {
+                if (ctrInp) ctrInp.value = cObj.contractor;
+                if (accInp) accInp.value = cObj.contractor;
+                if (titEl && !fromProp) {
+                  titEl.value = (fSel.value === 'BMKT_02' ? 'Thanh toán tạm ứng Hợp đồng số ' : 'Thanh toán hợp đồng số ') + `${cObj.code} về gói thầu “${cObj.name}” thuộc dự án “${pObj.name}”. Địa chỉ: ${pObj.location}`;
+                }
+              }
+            });
+          }
+          if (fillPSel) {
+            fillPSel.addEventListener('change', () => {
+              const pObj = (state.projects || []).find(x => String(x.id) === String(fillPSel.value));
+              if (pObj && compInp && pObj.owner) compInp.value = pObj.owner;
+            });
+          }
+          if (fSel && !p) {
+            fSel.addEventListener('change', () => {
+              if (attEl) attEl.value = fSel.value === 'BMKT_02' ? defDocsAdv : defDocsPay;
+            });
+          }
+          if (ctrInp && accInp && !p) {
+            ctrInp.addEventListener('input', () => { if (!accInp.dataset.touched) accInp.value = ctrInp.value; });
+            accInp.addEventListener('input', () => { accInp.dataset.touched = '1'; });
+          }
+          document.querySelectorAll('#modal-form input[name="saveMode"]').forEach(r => {
+            r.addEventListener('change', () => {
+              const isLink = r.value === 'linked' && r.checked;
+              if (linkBox) linkBox.classList.toggle('hidden', !isLink);
+              if (standHelper) standHelper.classList.toggle('hidden', isLink);
+            });
+          });
+
+          // Auto-sum PreVAT + VAT -> Amount if both entered
+          const preInp = document.getElementById('spay-prevat');
+          const vatInp = document.getElementById('spay-vat');
+          const amtInp = document.getElementById('spay-amt');
+          function autoSumPay() {
+            const pv = parseVnd(preInp.value), vv = parseVnd(vatInp.value);
+            if (pv > 0 && vv >= 0 && (preInp.value.trim() || vatInp.value.trim())) {
+              amtInp.value = fmtVndInput(pv + vv);
+            }
+          }
+          if (preInp && vatInp && amtInp) {
+            preInp.addEventListener('change', autoSumPay);
+            vatInp.addEventListener('change', autoSumPay);
+          }
+
+          const prevBtn = document.getElementById('spay-preview-btn');
+          if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+              const fd = new FormData(document.getElementById('modal-form'));
+              const draft = {
+                formType: fd.get('formType') || 'BMKT_03',
+                companyName: (fd.get('companyName') || '').trim(),
+                linkedProjectId: fd.get('saveMode') === 'linked' ? (fd.get('targetProjectId') || '') : '',
+                contractor: (fd.get('contractor') || '').trim(),
+                requester: (fd.get('requester') || '').trim(),
+                position: (fd.get('position') || '').trim(),
+                department: (fd.get('department') || '').trim(),
+                title: (fd.get('title') || '').trim(),
+                amount: parseVnd(fd.get('amount')),
+                preVat: fd.get('preVat') ? parseVnd(fd.get('preVat')) : 0,
+                vatAmount: fd.get('vatAmount') ? parseVnd(fd.get('vatAmount')) : 0,
+                tkNo: (fd.get('tkNo') || '').trim(),
+                kmp: (fd.get('kmp') || '').trim(),
+                kmLctt: (fd.get('kmLctt') || '').trim(),
+                invDate: fd.get('invDate'),
+                expectedPayDate: fd.get('expectedPayDate') || '',
+                attachments: (fd.get('attachments') || '').trim(),
+                bankAccountName: (fd.get('bankAccountName') || '').trim(),
+                bankAccountNo: (fd.get('bankAccountNo') || '').trim(),
+                bankName: (fd.get('bankName') || '').trim(),
+                tvgsNote: (fd.get('tvgsNote') || '').trim()
+              };
+              previewPaymentForm(getSharedCtxProject(draft), draft);
+            });
+          }
+        }, 30);
+      }
+
+      function openIntegratePaymentModal(item) {
+        const projects = getAllowedProjects();
+        if (!projects.length) { showToast('Chưa có dự án nào để tích hợp', 'error'); return; }
+        const defPid = item.linkedProjectId || (getActiveProject() ? getActiveProject().id : projects[0].id);
+        openModal(`Tích hợp phiếu ${item.formType} vào Dự án / Hợp đồng`, `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+            <div class="font-bold text-slate-900">${esc(item.formType === 'BMKT_02' ? 'Phiếu Đề nghị Tạm ứng' : 'Phiếu Đề nghị Thanh toán')} — ${esc(item.contractor || '—')}</div>
+            <div class="text-slate-600">${esc(item.title)}</div>
+            <div class="text-slate-700">Số tiền: <strong class="text-rose-600">${fmtVndInput(item.amount || 0)} VNĐ</strong></div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Chọn Dự án đích</label>
+            <select id="ipay-proj-sel" name="projectId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+              ${projects.map(p => `<option value="${esc(p.id)}" ${String(p.id) === String(defPid) ? 'selected' : ''}>${esc(p.code)} — ${esc(p.name)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Liên kết vào Gói thầu / Hợp đồng</label>
+            <select id="ipay-contract-sel" name="contractId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Cách thức tích hợp</label>
+            <select name="integrateAction" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white">
+              <option value="pending_payment" ${(item.integrateAction || 'pending_payment') === 'pending_payment' ? 'selected' : ''}>1. Đưa vào Đề nghị Thanh toán chờ duyệt của dự án</option>
+              <option value="contract_round" ${item.integrateAction === 'contract_round' ? 'selected' : ''}>2. Đưa vào Đề nghị TT + Tạo/Cập nhật ngay Đợt TT hoặc Tạm ứng trong Hợp đồng</option>
+            </select>
+          </div>
+        `, fd => {
+          const res = syncSharedPaymentToProject(item, fd.get('projectId'), fd.get('contractId') || '', fd.get('integrateAction') || 'pending_payment');
+          if (res) {
+            saveState(); closeModal(); renderAll();
+            showToast(`Đã tích hợp ${item.formType} vào ${res.targetProj.code}${res.contract ? ' (HĐ: ' + res.contract.code + ')' : ''}`);
+          }
+        });
+        setTimeout(() => {
+          const pSel = document.getElementById('ipay-proj-sel');
+          const cSel = document.getElementById('ipay-contract-sel');
+          function fillC() {
+            const pObj = (state.projects || []).find(p => String(p.id) === String(pSel.value));
+            const list = (pObj && Array.isArray(pObj.contracts)) ? pObj.contracts : [];
+            cSel.innerHTML = `<option value="">-- Không gắn HĐ cụ thể --</option>` +
+              list.map(c => `<option value="${esc(c.id)}" ${String(c.id) === String(item.linkedContractId) ? 'selected' : ''}>${esc(c.code)} — ${esc(c.contractor)} (HĐ: ${fmtTy(c.value)})</option>`).join('');
+          }
+          if (pSel && cSel) { fillC(); pSel.addEventListener('change', fillC); }
+        }, 25);
+      }
+
+      function renderSharedPaymentsTab() {
+        ensureSharedStores();
+        const listEl = document.getElementById('shared-payments-list');
+        const kpiEl = document.getElementById('shared-payments-kpis');
+        if (!listEl || !kpiEl) return;
+
+        const all = state.sharedPayments;
+        const badge = document.getElementById('badge-shared-payments');
+        if (badge) badge.textContent = all.length ? String(all.length) : 'BMKT';
+
+        const advCnt = all.filter(x => x.formType === 'BMKT_02').length;
+        const payCnt = all.filter(x => x.formType !== 'BMKT_02').length;
+        const linkedCnt = all.filter(x => x.mode === 'linked' && x.linkedPaymentId).length;
+        const totalVal = all.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+
+        kpiEl.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3"><div class="text-[11px] text-slate-500 font-semibold">Tổng số phiếu</div><div class="text-xl font-bold text-slate-900 mt-0.5">${all.length}</div></div>
+          <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3"><div class="text-[11px] text-amber-800 font-semibold">Tạm ứng (BMKT_02)</div><div class="text-xl font-bold text-amber-900 mt-0.5">${advCnt}</div></div>
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3"><div class="text-[11px] text-indigo-700 font-semibold">Thanh toán (BMKT_03)</div><div class="text-xl font-bold text-indigo-900 mt-0.5">${payCnt}</div></div>
+          <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3"><div class="text-[11px] text-emerald-700 font-semibold">Đã tích hợp / Tổng tiền</div><div class="text-lg font-bold text-emerald-900 mt-0.5">${linkedCnt} phiếu · ${fmtTy(totalVal)}</div></div>
+        `;
+
+        const q = String((document.getElementById('spay-search') || {}).value || '').toLowerCase().trim();
+        const typeF = (document.getElementById('spay-type-filter') || {}).value || 'ALL';
+        const modeF = (document.getElementById('spay-mode-filter') || {}).value || 'ALL';
+
+        const filtered = all.filter(it => {
+          const isLinked = it.mode === 'linked' && Boolean(it.linkedPaymentId);
+          if (typeF !== 'ALL' && (it.formType || 'BMKT_03') !== typeF) return false;
+          if (modeF === 'standalone' && isLinked) return false;
+          if (modeF === 'linked' && !isLinked) return false;
+          if (q) {
+            const blob = [it.formType, it.title, it.contractor, it.companyName, it.bankAccountNo, it.bankName, it.linkedProjectCode, it.linkedContractCode].join(' ').toLowerCase();
+            if (!blob.includes(q)) return false;
+          }
+          return true;
+        });
+
+        if (!filtered.length) {
+          listEl.innerHTML = `<div class="text-center py-10 border border-dashed border-slate-300 rounded-xl text-slate-500 text-sm">Chưa có phiếu Đề nghị Thanh toán / Tạm ứng nào. Chọn nút tạo mới ở góc trên bên phải để bắt đầu.</div>`;
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(it => {
+          const isAdv = it.formType === 'BMKT_02';
+          const linkedProj = it.linkedProjectId ? (state.projects || []).find(p => String(p.id) === String(it.linkedProjectId)) : null;
+          const linkedPay = linkedProj && it.linkedPaymentId ? (linkedProj.payments || []).find(p => String(p.id) === String(it.linkedPaymentId)) : null;
+          const linkedContract = linkedProj && it.linkedContractId ? (linkedProj.contracts || []).find(c => String(c.id) === String(it.linkedContractId)) : null;
+          const isLinked = Boolean(linkedProj && linkedPay);
+          return `
+            <div class="border border-slate-200 hover:border-amber-300 rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white transition">
+              <div class="space-y-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-xs font-bold px-2 py-0.5 rounded ${isAdv ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">${isAdv ? 'BMKT_02 · Tạm ứng' : 'BMKT_03 · Thanh toán'}</span>
+                  ${isLinked
+                    ? `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">🔗 Đã tích hợp: [${esc(linkedProj.code)}]${linkedContract ? ' HĐ ' + esc(linkedContract.code) : ''}</span>${statusBadge(linkedPay.status)}`
+                    : `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">📄 Lưu độc lập</span>`}
+                  <span class="text-[11px] text-slate-400">Ngày: ${fmtDateVN(it.invDate || state.reportDate)}</span>
+                </div>
+                <div class="font-bold text-sm text-slate-900">${esc(it.title)}</div>
+                <div class="text-xs text-slate-600 flex flex-wrap gap-x-3 gap-y-0.5">
+                  <span>Đơn vị: <strong>${esc(it.companyName || '—')}</strong></span>
+                  <span>Thụ hưởng: <strong>${esc(it.contractor || '—')}</strong></span>
+                  <span>Số tiền: <strong class="text-rose-600">${fmtVndInput(it.amount || 0)} VNĐ</strong></span>
+                  ${it.bankAccountNo ? `<span>STK: <strong>${esc(it.bankAccountNo)}</strong> (${esc(it.bankName || '')})</span>` : ''}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button type="button" data-spay-act="preview" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition">👁 Xem A4</button>
+                <button type="button" data-spay-act="word" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Word</button>
+                <button type="button" data-spay-act="edit" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">✏ Sửa</button>
+                ${isLinked
+                  ? `<button type="button" data-spay-act="integrate" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition">🔄 Chỉnh liên kết</button>
+                     <button type="button" data-spay-act="unlink" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition">🔓 Gỡ liên kết</button>`
+                  : `<button type="button" data-spay-act="integrate" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">🔗 Tích hợp HĐ/TT</button>`}
+                <button type="button" data-spay-act="del" data-id="${esc(it.id)}" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 transition">Xóa</button>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // Bind events for Shared Proposals & Shared Payments
+      const btnNewSP = document.getElementById('btn-new-shared-proposal');
+      if (btnNewSP) btnNewSP.addEventListener('click', () => openSharedProposalModal(null));
+      ['sp-search', 'sp-mode-filter', 'sp-proj-filter'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.addEventListener(eid === 'sp-search' ? 'input' : 'change', renderSharedProposalsTab);
+      });
+      const spListEl = document.getElementById('shared-proposals-list');
+      if (spListEl) {
+        spListEl.addEventListener('click', e => {
+          const btn = e.target.closest('[data-sp-act]');
+          if (!btn) return;
+          ensureSharedStores();
+          const item = state.sharedProposals.find(x => String(x.id) === String(btn.dataset.id));
+          if (!item) return;
+          const act = btn.dataset.spAct;
+          if (act === 'preview') previewVoProposalForm(getSharedCtxProject(item), item);
+          else if (act === 'word') exportVoProposalWord(getSharedCtxProject(item), item);
+          else if (act === 'edit') openSharedProposalModal(item);
+          else if (act === 'integrate') openIntegrateProposalModal(item);
+          else if (act === 'to-pay') openSharedPaymentModal(null, { fromProposal: item, formType: 'BMKT_03' });
+          else if (act === 'unlink') {
+            const rmVo = confirm('Bạn có muốn xóa luôn VO tương ứng khỏi dự án đã tích hợp không?\n\n- Bấm OK: Gỡ liên kết VÀ xóa VO khỏi dự án.\n- Bấm Cancel: Chỉ gỡ liên kết (giữ lại VO trong dự án).');
+            unlinkSharedProposal(item, rmVo);
+            saveState(); renderAll();
+            showToast(rmVo ? 'Đã gỡ liên kết & xóa VO khỏi dự án' : 'Đã chuyển Đề xuất về chế độ lưu độc lập', 'info');
+          } else if (act === 'del') {
+            if (!confirm(`Xác nhận xóa Đề xuất "${item.proposalNo || item.title}"?`)) return;
+            archiveBeforeDelete('Đề xuất dùng chung', `${item.proposalNo || item.code}: ${item.title}`, item);
+            state.sharedProposals = state.sharedProposals.filter(x => String(x.id) !== String(item.id));
+            saveState(); renderAll(); showToast('Đã xóa Đề xuất (đã sao lưu bản sao)', 'info');
+          }
+        });
+      }
+
+      const btnNewSAdv = document.getElementById('btn-new-shared-adv');
+      if (btnNewSAdv) btnNewSAdv.addEventListener('click', () => openSharedPaymentModal(null, { formType: 'BMKT_02' }));
+      const btnNewSPay = document.getElementById('btn-new-shared-pay');
+      if (btnNewSPay) btnNewSPay.addEventListener('click', () => openSharedPaymentModal(null, { formType: 'BMKT_03' }));
+      ['spay-search', 'spay-type-filter', 'spay-mode-filter'].forEach(eid => {
+        const el = document.getElementById(eid);
+        if (el) el.addEventListener(eid === 'spay-search' ? 'input' : 'change', renderSharedPaymentsTab);
+      });
+      const spayListEl = document.getElementById('shared-payments-list');
+      if (spayListEl) {
+        spayListEl.addEventListener('click', e => {
+          const btn = e.target.closest('[data-spay-act]');
+          if (!btn) return;
+          ensureSharedStores();
+          const item = state.sharedPayments.find(x => String(x.id) === String(btn.dataset.id));
+          if (!item) return;
+          const act = btn.dataset.spayAct;
+          if (act === 'preview') previewPaymentForm(getSharedCtxProject(item), item);
+          else if (act === 'word') exportPaymentWord(getSharedCtxProject(item), item);
+          else if (act === 'edit') openSharedPaymentModal(item);
+          else if (act === 'integrate') openIntegratePaymentModal(item);
+          else if (act === 'unlink') {
+            const rmPay = confirm('Bạn có muốn xóa luôn phiếu Đề nghị TT tương ứng khỏi dự án đã tích hợp không?\n\n- Bấm OK: Gỡ liên kết VÀ xóa khỏi dự án.\n- Bấm Cancel: Chỉ gỡ liên kết (giữ lại trong dự án).');
+            unlinkSharedPayment(item, rmPay);
+            saveState(); renderAll();
+            showToast(rmPay ? 'Đã gỡ liên kết & xóa phiếu khỏi dự án' : 'Đã chuyển phiếu về chế độ lưu độc lập', 'info');
+          } else if (act === 'del') {
+            if (!confirm(`Xác nhận xóa phiếu ${item.formType} "${item.title}"?`)) return;
+            archiveBeforeDelete('Đề nghị TT/TU dùng chung', `${item.formType}: ${item.title}`, item);
+            state.sharedPayments = state.sharedPayments.filter(x => String(x.id) !== String(item.id));
+            saveState(); renderAll(); showToast('Đã xóa phiếu (đã sao lưu bản sao)', 'info');
+          }
+        });
+      }
 
       checkAuthSession();
       renderAll();
