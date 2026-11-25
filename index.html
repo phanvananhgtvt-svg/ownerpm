@@ -754,9 +754,16 @@
 
         <div id="sched-panel-wbs" class="space-y-5">
         <!-- WBS / Contractor Tasks Table (Placed First & Compact to Fit Overall View) -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm">
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3">
-            <input id="task-search" type="text" placeholder="Tìm theo mã WBS, tên công việc hoặc nhà thầu..." class="flex-1 text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        <div id="wbs-table-card" class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-sm">
+          <div id="wbs-fs-banner" class="hidden flex items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200 shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">Toàn màn hình</span>
+              <h3 id="wbs-fs-title" class="font-bold text-slate-900 text-sm sm:text-base truncate">Bảng Tiến độ Nhà thầu &amp; Tổng (WBS)</h3>
+            </div>
+            <button id="btn-wbs-fs-close" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition shrink-0">✕ Thu nhỏ (ESC)</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mb-3 shrink-0">
+            <input id="task-search" type="text" placeholder="Tìm theo mã WBS, tên công việc hoặc nhà thầu..." class="flex-1 min-w-[180px] text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500" />
             <button id="btn-auto-combine-project" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition shrink-0" title="Tự động nhận diện trình tự thi công liên nhà thầu, gắn ràng buộc và kiểm tra xung đột">🔗 Combine Toàn dự án</button>
             <button id="btn-save-version-inline" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0">📌 Lưu Ver (1, 2...)</button>
             <select id="task-filter-status" class="text-xs sm:text-sm border border-slate-300 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
@@ -767,14 +774,15 @@
               <option value="Trễ">Trễ</option>
               <option value="Chưa bắt đầu">Chưa bắt đầu</option>
             </select>
+            <button id="btn-wbs-fullscreen" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-900 text-white transition shrink-0 allow-readonly" title="Mở bảng tiến độ ra toàn màn hình để xem rõ và thao tác rộng rãi">⛶ Màn hình lớn</button>
           </div>
 
-          <div class="overflow-x-auto max-h-[64vh] overflow-y-auto border border-slate-100 rounded-xl">
-            <table class="w-full text-left border-collapse text-[11px]">
+          <div id="wbs-table-scroll" class="overflow-x-auto max-h-[64vh] overflow-y-auto border border-slate-100 rounded-xl">
+            <table id="wbs-data-table" class="w-full text-left border-collapse text-[11px]">
               <thead class="sticky top-0 z-10 bg-slate-50 shadow-[0_1px_0_#e2e8f0]">
                 <tr class="border-b border-slate-200 text-[10px] text-slate-600 uppercase">
-                  <th class="py-2 px-2 font-semibold min-w-[165px]">Công việc (Mẹ/Con)</th>
-                  <th class="py-2 px-1.5 font-semibold min-w-[108px]">Ràng buộc</th>
+                  <th class="py-2 px-2 font-semibold min-w-[200px]">Công việc (Mẹ/Con)</th>
+                  <th class="py-2 px-1.5 font-semibold min-w-[125px]">Ràng buộc</th>
                   <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">BĐ KH</th>
                   <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">KT KH</th>
                   <th class="py-2 px-1 font-semibold text-center whitespace-nowrap">N.KH</th>
@@ -822,7 +830,7 @@
             </div>
           </div>
         <!-- Gantt Timeline, Dependency Links & Critical Path + Conflict Alerts -->
-        <div id="sched-gantt-card" class="hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div id="sched-gantt-card" class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div>
               <div class="flex flex-wrap items-center gap-2">
@@ -1909,7 +1917,7 @@
   </div>
 
   <!-- Reusable Form Modal -->
-  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 z-[70] hidden flex items-center justify-center p-4" style="z-index: 70;">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-slate-200 overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
         <h3 id="modal-title" class="font-bold text-slate-900 text-base">Tiêu đề</h3>
@@ -3047,6 +3055,14 @@
         });
         toggleSidebar(false);
         if (tabId === 'overview') renderCharts();
+        if (tabId === 'schedule') {
+          requestAnimationFrame(() => {
+            try {
+              const vp = getViewProject();
+              if (vp) renderGanttChart(vp, computeCPM(vp.tasks || []), getReportMs());
+            } catch (e) {}
+          });
+        }
         if (tabId === 'tmdt') {
           const tf = document.getElementById('tmdt-studio-frame');
           if (tf && tf.getAttribute('src') === 'about:blank') tf.src = tf.dataset.src || './tmdt.html';
@@ -4319,6 +4335,8 @@
 
         const isC = scheduleViewMode === 'contractors';
         document.getElementById('contractor-cards-wrap').classList.toggle('hidden', !isC);
+        const _ganttCardSync = document.getElementById('sched-gantt-card');
+        if (_ganttCardSync) _ganttCardSync.classList.toggle('hidden', !isC && scheduleViewMode !== 'cpm');
 
         // Contractor Cards
         const contractors = [...new Set(leaves.map(t => t.contractor).filter(Boolean))];
@@ -4490,56 +4508,65 @@
             const planDays = Math.max(1, Math.round((m.pe - m.ps) / DAY) + 1);
             const act = getTaskActualDates(t);
             const pctCls = m.a >= m.p - 3 ? 'text-emerald-600' : 'text-rose-600';
+            const succList = (succMap[t.c] && succMap[t.c].length) ? succMap[t.c] : [];
+            const succLimit = 2;
+            const succVisible = succList.slice(0, succLimit);
+            const succExtra = succList.slice(succLimit);
+            const succAllTitle = succList.map(sc => `→${sc.code}(${sc.rel}): ${sc.name}`).join('\n');
+            const renderSuccPill = (sc) => `<span class="px-1 py-0.5 rounded text-[9px] leading-none font-semibold whitespace-nowrap ${sc.isCrit ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}" title="${esc(sc.name)}">→${esc(sc.code)}(${esc(sc.rel)})</span>`;
             return `
               <tr class="hover:bg-slate-50/80 ${!leaf ? 'bg-slate-50/90 font-semibold' : ''}">
-                <td class="py-1.5 px-2" style="padding-left:${8 + (t.c.split('.').length - 1) * 10}px">
-                  <div class="text-slate-900 text-[11.5px] leading-snug">${esc(t.c)} ${esc(t.name)}</div>
-                  <div class="flex flex-wrap items-center gap-1 mt-0.5">
-                    ${t.contractor ? `<span class="text-[9.5px] font-semibold px-1 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">${esc(t.contractor)}</span>` : ''}
-                    ${!leaf ? `<span class="text-[9.5px] font-semibold px-1 py-0.5 rounded bg-blue-100 text-blue-700">Mẹ (${act.kidsCount})</span>` : ''}
-                    ${isCrit ? `<span class="text-[9.5px] font-bold px-1 py-0.5 rounded bg-rose-100 text-rose-700">GĂNG</span>` : ''}
+                <td class="py-1.5 px-2 align-middle max-w-[280px]" style="padding-left:${8 + (t.c.split('.').length - 1) * 10}px">
+                  <div class="text-slate-900 text-[11.5px] font-medium leading-snug" title="${esc(t.c + ' ' + t.name)}">${esc(t.c)} ${esc(t.name)}</div>
+                  <div class="flex items-center gap-1 mt-0.5 flex-wrap">
+                    ${t.contractor ? `<span class="inline-block max-w-[155px] truncate text-[9.5px] font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 leading-none" title="${esc(t.contractor)}">${esc(t.contractor)}</span>` : ''}
+                    ${!leaf ? `<span class="text-[9px] font-semibold px-1 py-0.5 rounded bg-blue-100 text-blue-700 leading-none">Mẹ (${act.kidsCount})</span>` : ''}
+                    ${isCrit ? `<span class="text-[9px] font-bold px-1 py-0.5 rounded bg-rose-100 text-rose-700 leading-none">GĂNG</span>` : ''}
+                    ${act.updatedAt ? `<span class="text-[9px] text-sky-600 whitespace-nowrap" title="Cập nhật gần nhất: ${esc(act.updatedAt)}">🕒 ${esc(act.updatedAt.split(' ').pop() || act.updatedAt)}</span>` : ''}
                   </div>
-                  ${act.updatedAt ? `<div class="text-[9.5px] text-sky-600 mt-0.5">🔄 ${esc(act.updatedAt)}</div>` : ''}
                 </td>
-                <td class="py-1.5 px-1.5 text-[10px] align-top">
+                <td class="py-1.5 px-1.5 text-[10px] align-middle">
                   ${leaf ? `
-                    <div class="flex items-center gap-1 mb-0.5">
-                      <span class="text-[9.5px] font-semibold text-slate-500 shrink-0">Tr:</span>
-                      <input type="text" value="${esc(t.pre || '')}" data-task-pre-id="${esc(t.id)}" placeholder="1.1FS" class="w-[74px] text-[10.5px] font-medium text-slate-800 border border-slate-200 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" title="Nhập mã công việc tiên quyết (VD: 1.1FS, 1.2SS+5)" />
-                    </div>` : `<div class="text-[9.5px] text-slate-400 mb-0.5">Tổng hợp</div>`}
-                  ${(succMap[t.c] && succMap[t.c].length) ? `
-                    <div class="flex flex-wrap items-center gap-0.5">
-                      ${succMap[t.c].map(sc => `<span class="px-1 py-0.5 rounded text-[9.5px] font-semibold ${sc.isCrit ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}" title="${esc(sc.name)}">→${esc(sc.code)}(${esc(sc.rel)})</span>`).join('')}
+                    <div class="flex items-center gap-1">
+                      <span class="text-[9.5px] font-semibold text-slate-400 shrink-0">Tr:</span>
+                      <input type="text" value="${esc(t.pre || '')}" data-task-pre-id="${esc(t.id)}" placeholder="1.1FS" class="w-[66px] text-[10px] font-medium text-slate-800 border border-slate-200 rounded px-1 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" title="Nhập mã công việc tiên quyết (VD: 1.1FS, 1.2SS+5)" />
+                      ${cpmN ? `<span class="text-[9px] text-slate-400 whitespace-nowrap" title="Total Float (Dự trữ thời gian): ${cpmN.tf} ngày">F:${cpmN.tf}d</span>` : ''}
+                    </div>` : `<div class="text-[9.5px] text-slate-400">Tổng hợp</div>`}
+                  ${succList.length ? `
+                    <div class="flex flex-wrap items-center gap-0.5 mt-1">
+                      ${succVisible.map(renderSuccPill).join('')}
+                      ${succExtra.length ? `
+                        <span class="hidden flex-wrap items-center gap-0.5" data-succ-more="${esc(t.id)}">${succExtra.map(renderSuccPill).join('')}</span>
+                        <button type="button" data-toggle-succ="${esc(t.id)}" data-more-count="${succExtra.length}" class="px-1.5 py-0.5 rounded text-[9px] leading-none font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 cursor-pointer allow-readonly whitespace-nowrap" title="${esc(succAllTitle)}">+${succExtra.length} nữa ▾</button>` : ''}
                     </div>` : ''}
-                  ${(cpmN && leaf) ? `<div class="text-[9.5px] text-slate-400 mt-0.5">Float: <b>${cpmN.tf}d</b></div>` : ''}
                 </td>
-                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${fmtDateVN(m.ps)}</td>
-                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${fmtDateVN(m.pe)}</td>
-                <td class="py-1.5 px-1 text-center text-[11px] font-medium text-slate-700 whitespace-nowrap">${planDays}n</td>
-                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap">${leaf ? `<input type="date" value="${esc(t.as || act.asStr || '')}" data-task-as-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Sửa ngày bắt đầu thực tế" class="w-[102px] text-[10.5px] border border-slate-200 rounded px-1 py-0.5 bg-white" />` : (act.asStr ? fmtDateVN(act.asStr) : '—')}</td>
-                <td class="py-1.5 px-1 text-center text-[11px] whitespace-nowrap">${leaf ? (() => {
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap align-middle">${fmtDateVN(m.ps)}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap align-middle">${fmtDateVN(m.pe)}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] font-medium text-slate-700 whitespace-nowrap align-middle">${planDays}n</td>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-600 whitespace-nowrap align-middle">${leaf ? `<input type="date" value="${esc(t.as || act.asStr || '')}" data-task-as-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Sửa ngày bắt đầu thực tế" class="w-[100px] text-[10.5px] border border-slate-200 rounded px-1 py-0.5 bg-white" />` : (act.asStr ? fmtDateVN(act.asStr) : '—')}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] whitespace-nowrap align-middle">${leaf ? (() => {
                   const aeVal = t.ae || (act.done ? (act.aeStr || '') : '');
                   let delayTag = '';
                   if (aeVal && t.pe) {
                     const diffD = Math.round((iso(aeVal) - iso(t.pe)) / DAY);
                     const prefix = act.done ? '' : 'DK ';
                     delayTag = diffD > 0
-                      ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-rose-100 text-rose-700 text-[9.5px] font-bold">${prefix}Trễ +${diffD}n</span></div>`
+                      ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] leading-none font-bold">${prefix}Trễ +${diffD}n</span></div>`
                       : (diffD < 0
-                        ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-semibold">${prefix}Sớm ${-diffD}n</span></div>`
-                        : `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-semibold">${prefix}Đúng hạn</span></div>`);
+                        ? `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] leading-none font-semibold">${prefix}Sớm ${-diffD}n</span></div>`
+                        : `<div class="mt-0.5"><span class="px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] leading-none font-semibold">${prefix}Đúng hạn</span></div>`);
                   } else if (act.started && !act.done) {
                     const overNow = t.pe && atMs > iso(t.pe) ? Math.round((atMs - iso(t.pe)) / DAY) : 0;
-                    delayTag = overNow > 0 ? `<div class="mt-0.5 text-[9.5px] text-rose-600 font-semibold">Trễ +${overNow}n</div>` : `<div class="mt-0.5 text-[9.5px] text-brand-600 font-medium">Đang làm</div>`;
+                    delayTag = overNow > 0 ? `<div class="mt-0.5 text-[9px] leading-none text-rose-600 font-semibold">Trễ +${overNow}n</div>` : `<div class="mt-0.5 text-[9px] leading-none text-brand-600 font-medium">Đang làm</div>`;
                   }
-                  return `<input type="date" value="${esc(aeVal)}" data-task-ae-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Ngày kết thúc thực tế (tự tính theo số ngày KH khi đổi BĐ TT, hoặc chỉnh trực tiếp)" class="w-[102px] text-[10.5px] border ${act.done ? 'border-indigo-300 font-semibold text-indigo-800' : (aeVal ? 'border-sky-300 text-slate-800' : 'border-slate-200 text-slate-500')} rounded px-1 py-0.5 bg-white" />${delayTag}`;
+                  return `<input type="date" value="${esc(aeVal)}" data-task-ae-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} title="Ngày kết thúc thực tế (tự tính theo số ngày KH khi đổi BĐ TT, hoặc chỉnh trực tiếp)" class="w-[100px] text-[10.5px] border ${act.done ? 'border-indigo-300 font-semibold text-indigo-800' : (aeVal ? 'border-sky-300 text-slate-800' : 'border-slate-200 text-slate-500')} rounded px-1 py-0.5 bg-white" />${delayTag}`;
                 })() : (act.done ? fmtDateVN(act.aeStr) : (act.started ? '<span class="text-brand-600 font-medium">Đang làm</span>' : '<span class="text-slate-400">—</span>'))}</td>
-                <td class="py-1.5 px-1 text-center text-[11px] text-slate-700 whitespace-nowrap">${act.aDays ? act.aDays + 'n' : '—'}</td>
-                <td class="py-1.5 px-1 text-center text-[11px]">
-                  <div class="font-semibold text-slate-700">${m.p.toFixed(0)}%</div>
+                <td class="py-1.5 px-1 text-center text-[11px] text-slate-700 whitespace-nowrap align-middle">${act.aDays ? act.aDays + 'n' : '—'}</td>
+                <td class="py-1.5 px-1 text-center text-[11px] align-middle">
+                  <div class="font-semibold text-slate-700 leading-tight">${m.p.toFixed(0)}%</div>
                   <div class="w-8 mx-auto bg-slate-200 rounded-full h-1 mt-0.5"><div class="bg-slate-600 h-1 rounded-full" style="width:${Math.min(100, m.p)}%"></div></div>
                 </td>
-                <td class="py-1.5 px-1 text-center">
+                <td class="py-1.5 px-1 text-center align-middle">
                   ${leaf ? `
                     <div class="inline-flex items-center gap-1 ${canEditSched ? '' : 'opacity-60'}">
                       <button type="button" data-action="step-task" data-delta="-5" data-id="${esc(t.id)}" ${canEditSched ? '' : 'disabled'} class="w-4 h-4 flex items-center justify-center text-[10px] bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 ${canEditSched ? '' : 'pointer-events-none'}">-</button>
@@ -4548,9 +4575,9 @@
                       <span class="text-[11px] font-bold ${pctCls} w-7 text-right">${t.progress}%</span>
                     </div>` : `<div class="text-[11px] font-semibold text-slate-500">TB <span class="font-bold ${pctCls}">${m.a.toFixed(0)}%</span></div>`}
                 </td>
-                <td class="py-1.5 px-1 text-center whitespace-nowrap">${statusBadge(st)}</td>
-                <td class="py-1.5 px-1"><input type="text" value="${esc(t.note || '')}" data-task-note-id="${esc(t.id)}" placeholder="Ghi chú..." class="w-20 text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></td>
-                <td class="py-1.5 px-1 text-right whitespace-nowrap space-x-0.5">
+                <td class="py-1.5 px-1 text-center whitespace-nowrap align-middle">${statusBadge(st)}</td>
+                <td class="py-1.5 px-1 align-middle"><input type="text" value="${esc(t.note || '')}" data-task-note-id="${esc(t.id)}" placeholder="Ghi chú..." class="w-20 text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" /></td>
+                <td class="py-1.5 px-1 text-right whitespace-nowrap space-x-0.5 align-middle">
                   <button type="button" data-action="add-subtask" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-emerald-700 hover:bg-emerald-50 px-1 py-0.5 rounded" title="Thêm tiến độ con">+Con</button>
                   <button type="button" data-action="edit-task" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-brand-600 hover:bg-brand-50 px-1 py-0.5 rounded">Sửa</button>
                   <button type="button" data-action="del-task" data-id="${esc(t.id)}" class="text-[10.5px] font-medium text-rose-600 hover:bg-rose-50 px-1 py-0.5 rounded">Xóa</button>
@@ -6668,14 +6695,14 @@
           const lbl = document.getElementById('gantt-zoom-label');
           if (lbl) lbl.textContent = next === 'fit' ? 'Vừa' : Math.round(next * 100) + '%';
           const p = getViewProject();
-          renderGanttChart(p, calcCPM(p.tasks), getReportMs());
+          renderGanttChart(p, computeCPM(p.tasks), getReportMs());
         };
         const updateFsZoom = (next) => {
           ganttFsZoomScale = next;
           const lbl = document.getElementById('gantt-fs-zoom-label');
           if (lbl) lbl.textContent = next === 'fit' ? 'Vừa' : Math.round(next * 100) + '%';
           const p = getViewProject();
-          drawGanttOnCanvas(document.getElementById('gantt-fullscreen-canvas'), document.getElementById('gantt-fs-scroll-wrap'), p, calcCPM(p.tasks), getReportMs(), ganttFsZoomScale);
+          drawGanttOnCanvas(document.getElementById('gantt-fullscreen-canvas'), document.getElementById('gantt-fs-scroll-wrap'), p, computeCPM(p.tasks), getReportMs(), ganttFsZoomScale);
         };
         const bOut = document.getElementById('btn-gantt-zoom-out');
         const bIn = document.getElementById('btn-gantt-zoom-in');
@@ -10319,7 +10346,7 @@ function doPost(e) {
         const curSchedEntry = schedSubMap.find(s => s.mode === scheduleViewMode);
         if (curSchedEntry && !isSubModuleEnabledForProject(activeProjObj, curSchedEntry.sub)) {
           const firstSched = schedSubMap.find(s => isSubModuleEnabledForProject(activeProjObj, s.sub));
-          if (firstSched && typeof setScheduleViewMode === 'function') setScheduleViewMode(firstSched.mode);
+          if (firstSched && typeof setScheduleMode === 'function') setScheduleMode(firstSched.mode);
         }
 
         // All-projects combined mode banner on single-project detail tabs
@@ -10362,7 +10389,8 @@ function doPost(e) {
             sec.querySelectorAll('button').forEach(btn => {
               const id = btn.id || '';
               const isSafeRead = btn.hasAttribute('data-sched-subtab') || btn.hasAttribute('data-bim-cam') ||
-                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml', 'btn-export-tracking-pdf', 'btn-export-tracking-xlsx', 'btn-mode-owner', 'btn-mode-plan', 'btn-mode-contractors', 'btn-mode-tracking', 'btn-mode-cpm', 'btn-mode-ai'].includes(id) ||
+                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml', 'btn-export-tracking-pdf', 'btn-export-tracking-xlsx', 'btn-mode-owner', 'btn-mode-plan', 'btn-mode-contractors', 'btn-mode-tracking', 'btn-mode-cpm', 'btn-mode-ai', 'btn-wbs-fullscreen', 'btn-wbs-fs-close', 'btn-gantt-zoom-out', 'btn-gantt-zoom-in', 'btn-gantt-zoom-fit', 'btn-gantt-fullscreen'].includes(id) ||
+                btn.classList.contains('allow-readonly') ||
                 btn.dataset.weeklyAct === 'pdf' || btn.dataset.weeklyAct === 'load';
               if (!isSafeRead) {
                 btn.disabled = true;
@@ -13889,6 +13917,74 @@ function doPost(e) {
           }
         });
       }
+
+      // WBS Fullscreen & Expandable Successor Constraints Toggle
+      (function wireWbsFullscreenAndCompact() {
+        let isWbsFs = false;
+        const card = document.getElementById('wbs-table-card');
+        const scrollWrap = document.getElementById('wbs-table-scroll');
+        const tbl = document.getElementById('wbs-data-table');
+        const banner = document.getElementById('wbs-fs-banner');
+        const fsTitle = document.getElementById('wbs-fs-title');
+        const btnFs = document.getElementById('btn-wbs-fullscreen');
+        const btnFsClose = document.getElementById('btn-wbs-fs-close');
+
+        function setWbsFullscreen(enable) {
+          if (!card || !scrollWrap) return;
+          isWbsFs = Boolean(enable);
+          if (isWbsFs) {
+            const vp = getViewProject();
+            if (fsTitle && vp) fsTitle.textContent = `Bảng Tiến độ Chi tiết (WBS) — ${vp.code || ''} ${vp.name || ''}`.trim();
+            card.classList.remove('rounded-2xl', 'border', 'border-slate-200', 'shadow-sm');
+            card.classList.add('fixed', 'inset-0', 'z-[60]', 'flex', 'flex-col', 'rounded-none', 'p-4', 'sm:p-5');
+            card.style.zIndex = '60';
+            scrollWrap.classList.remove('max-h-[64vh]');
+            scrollWrap.classList.add('flex-1', 'min-h-0');
+            if (tbl) { tbl.classList.remove('text-[11px]'); tbl.classList.add('text-xs'); }
+            if (banner) banner.classList.remove('hidden');
+            if (btnFs) btnFs.textContent = '✕ Thu nhỏ';
+            document.body.style.overflow = 'hidden';
+          } else {
+            card.classList.remove('fixed', 'inset-0', 'z-[60]', 'flex', 'flex-col', 'rounded-none', 'p-4', 'sm:p-5');
+            card.classList.add('rounded-2xl', 'border', 'border-slate-200', 'shadow-sm');
+            card.style.zIndex = '';
+            scrollWrap.classList.remove('flex-1', 'min-h-0');
+            scrollWrap.classList.add('max-h-[64vh]');
+            if (tbl) { tbl.classList.remove('text-xs'); tbl.classList.add('text-[11px]'); }
+            if (banner) banner.classList.add('hidden');
+            if (btnFs) btnFs.textContent = '⛶ Màn hình lớn';
+            document.body.style.overflow = '';
+          }
+          setTimeout(attachTopScrollbars, 40);
+        }
+
+        if (btnFs) btnFs.addEventListener('click', () => setWbsFullscreen(!isWbsFs));
+        if (btnFsClose) btnFsClose.addEventListener('click', () => setWbsFullscreen(false));
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape' && isWbsFs) {
+            const modalOpen = document.getElementById('modal-backdrop') && !document.getElementById('modal-backdrop').classList.contains('hidden');
+            const rptOpen = document.getElementById('rpt-preview') && !document.getElementById('rpt-preview').classList.contains('hidden');
+            if (!modalOpen && !rptOpen) setWbsFullscreen(false);
+          }
+        });
+
+        // Toggle "+N nữa" successor pills inside WBS table
+        const tbody = document.getElementById('task-table-body');
+        if (tbody) {
+          tbody.addEventListener('click', e => {
+            const tBtn = e.target.closest('[data-toggle-succ]');
+            if (!tBtn) return;
+            e.stopPropagation();
+            const tid = tBtn.dataset.toggleSucc;
+            const moreEl = tbody.querySelector(`[data-succ-more="${CSS.escape(tid)}"]`);
+            if (!moreEl) return;
+            const isHidden = moreEl.classList.contains('hidden');
+            moreEl.classList.toggle('hidden', !isHidden);
+            moreEl.classList.toggle('inline-flex', isHidden);
+            tBtn.textContent = isHidden ? 'Thu gọn ▴' : `+${tBtn.dataset.moreCount || ''} nữa ▾`;
+          });
+        }
+      })();
 
       checkAuthSession();
       renderAll();
