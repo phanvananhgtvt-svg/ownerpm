@@ -216,13 +216,6 @@
           </span>
           <span id="badge-payments" class="hidden text-[11px] font-semibold bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-full">0</span>
         </button>
-        <button type="button" data-tab="tmdt" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
-          <span class="flex items-center gap-3">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-            <span>Tổng mức đầu tư (TMĐT)</span>
-          </span>
-          <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full">AI</span>
-        </button>
         <button type="button" data-tab="approvals" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
           <span class="flex items-center gap-3">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -251,6 +244,23 @@
         <button type="button" data-tab="docs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
           <span>Thư viện Hồ sơ</span>
+        </button>
+        <div class="pt-3 mt-2 border-t border-slate-800">
+          <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Công cụ dùng chung</div>
+        </div>
+        <button type="button" data-tab="tmdt" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span>Tổng mức đầu tư (TMĐT)</span>
+          </span>
+          <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded-full">AI</span>
+        </button>
+        <button type="button" data-tab="dongia" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
+          <span class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+            <span>Tra cứu Đơn giá 2 Miền</span>
+          </span>
+          <span class="text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30 px-1.5 py-0.5 rounded-full">B-N</span>
         </button>
 
       </nav>
@@ -1731,6 +1741,20 @@
         <iframe id="tmdt-studio-frame" data-src="./tmdt.html" src="about:blank" class="w-full flex-1 border-0 bg-slate-50" title="TMĐT Pro Studio"></iframe>
       </section>
 
+      <!-- TAB: THƯ VIỆN TRA CỨU ĐƠN GIÁ 2 MIỀN -->
+      <section id="tab-dongia" class="tab-panel hidden -m-4 sm:-m-6 flex flex-col" style="height: calc(100vh - 64px);">
+        <div class="bg-slate-900 text-white px-4 py-2 flex items-center justify-between gap-2 border-b border-slate-700 shrink-0">
+          <div class="flex items-center gap-2 text-xs font-semibold">
+            <span class="inline-flex items-center px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">Đơn giá 2 Miền</span>
+            <span>Thư viện tra cứu đơn giá tham khảo Miền Bắc &amp; Miền Nam (KL đại diện = 1) · So sánh · Dự toán nhanh · Xuất Excel</span>
+          </div>
+          <a href="./dongia.html" target="_blank" rel="noopener" class="text-xs font-semibold text-sky-300 hover:text-white inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition">
+            Mở toàn màn hình ↗
+          </a>
+        </div>
+        <iframe id="dongia-studio-frame" data-src="./dongia.html" src="about:blank" class="w-full flex-1 border-0 bg-slate-50" title="Thư viện Đơn giá 2 Miền"></iframe>
+      </section>
+
     </main>
   </div>
 
@@ -2379,6 +2403,7 @@
         weekly: 'Báo cáo tuần & Ảnh',
         mytasks: 'Công việc cá nhân',
         docs: 'Thư viện Hồ sơ',
+        dongia: 'Tra cứu Đơn giá 2 Miền',
       };
       function pushAdminNotif(detail, actionType, locationStr) {
         if (!Array.isArray(state.adminNotifications)) state.adminNotifications = [];
@@ -2922,6 +2947,10 @@
           const tf = document.getElementById('tmdt-studio-frame');
           if (tf && tf.getAttribute('src') === 'about:blank') tf.src = tf.dataset.src || './tmdt.html';
         }
+        if (tabId === 'dongia') {
+          const df = document.getElementById('dongia-studio-frame');
+          if (df && df.getAttribute('src') === 'about:blank') df.src = df.dataset.src || './dongia.html';
+        }
         setTimeout(attachTopScrollbars, 40);
       }
       document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -3013,11 +3042,11 @@
         { key: 'mytasks', label: 'Công việc cá nhân', children: [] },
         { key: 'docs', label: 'Thư viện Hồ sơ', children: [] }
       ];
-      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'tmdt', 'weekly', 'mytasks', 'docs'];
+      const DEFAULT_MAINTENANCE_MODULES = ['overview', 'schedule', 'finance', 'tmdt', 'dongia', 'weekly', 'mytasks', 'docs'];
       const DEFAULT_MAINTENANCE_SUBMODULES = ['ov_kpis', 'ov_alerts', 'ov_approvals', 'sch_plan', 'sch_contractors', 'fin_contracts', 'fin_rounds', 'fin_approvals', 'wk_info', 'wk_tasks', 'wk_photos'];
 
       function isModuleEnabledForProject(proj, modKey) {
-        if (state.viewAllProjects || modKey === 'projects' || modKey === 'tmdt' || !proj) return true;
+        if (state.viewAllProjects || modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia' || !proj) return true;
         if (proj.projectType !== 'maintenance') return true;
         const vis = Array.isArray(proj.visibleModules) && proj.visibleModules.length ? proj.visibleModules : DEFAULT_MAINTENANCE_MODULES;
         return vis.includes(modKey);
@@ -9938,6 +9967,7 @@ function doPost(e) {
         { key: 'weekly', label: 'Báo cáo tuần, Kho lưu tuần & Ảnh hiện trường' },
         { key: 'mytasks', label: 'Công việc cá nhân theo tài khoản' },
         { key: 'docs', label: 'Thư viện Hồ sơ Tổng thể' },
+        { key: 'dongia', label: 'Tra cứu Đơn giá 2 Miền (Bắc - Nam)' },
       ];
       function isAdminAccount(u) {
         if (!u) return false;
@@ -9950,7 +9980,7 @@ function doPost(e) {
         const mods = {};
         PERM_MODULES.forEach(m => {
           if (r === 'admin') mods[m.key] = { view: true, edit: true };
-          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'tmdt', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
+          else if (r === 'engineer') mods[m.key] = { view: true, edit: ['schedule', 'tmdt', 'dongia', 'approvals', 'weekly', 'mytasks', 'docs'].includes(m.key) };
           else mods[m.key] = { view: true, edit: false };
         });
         return {
@@ -9983,7 +10013,7 @@ function doPost(e) {
         return state.projects.filter(pr => p.projectIds.includes(pr.id));
       }
       function canViewModule(modKey) {
-        if (modKey === 'projects' || modKey === 'tmdt') return true;
+        if (modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia') return true;
         const cur = getCurrentUser();
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return true;
         const p = ensureUserPerms(cur);
