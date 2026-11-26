@@ -311,6 +311,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.2 • Phân quyền &amp; Sync độc lập</div>
       </div>
     </aside>
 
@@ -2181,7 +2182,10 @@
                 <h4 class="text-xs font-bold uppercase tracking-wider text-brand-800">⚙ Phân quyền chi tiết cho: <span id="perm-target-name" class="text-slate-900">—</span></h4>
                 <p class="text-[11px] text-slate-500">Tích chọn dự án được quản lý và quyền Xem / Chỉnh sửa cho từng loại dữ liệu</p>
               </div>
-              <button id="btn-close-perm-panel" type="button" class="text-xs px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600">Đóng</button>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button id="btn-save-user-perms-top" type="button" class="text-xs px-3 py-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold shadow-sm">💾 Lưu phân quyền</button>
+                <button id="btn-close-perm-panel" type="button" class="text-xs px-2 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600">Đóng</button>
+              </div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
@@ -2670,11 +2674,13 @@
 
       let lastLocalMutationAt = 0;
       let lastCloudSyncedTs = 0;
+      let hasPendingLocalPush = false;
       function saveState(skipAutoPush) {
         if (!skipAutoPush) {
           lastLocalMutationAt = Date.now();
           state.lastUpdated = lastLocalMutationAt;
           state.syncId = genSyncId();
+          hasPendingLocalPush = true;
           latestNotifRef = pushAdminNotif('Cập nhật dữ liệu dự án', 'Chỉnh sửa');
           clearTimeout(latestNotifTimer);
           latestNotifTimer = setTimeout(() => { latestNotifRef = null; }, 80);
@@ -3292,9 +3298,9 @@
           }
         }
         activeTab = tabId;
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.tab-panel').forEach(p => { p.classList.add('hidden'); p.style.display = 'none'; });
         const target = document.getElementById(`tab-${tabId}`);
-        if (target) target.classList.remove('hidden');
+        if (target) { target.classList.remove('hidden'); target.style.display = ''; }
         document.querySelectorAll('.nav-btn').forEach(btn => {
           const m = btn.dataset.tab === tabId;
           btn.classList.toggle('bg-brand-600', m); btn.classList.toggle('text-white', m);
@@ -13943,16 +13949,19 @@ function doPost(e) {
         } catch (e) {}
       }
 
-      function applyCloudState(data, url, silent) {
-        if (!data || !Array.isArray(data.projects) || data.projects.length === 0) return false;
-        if (silent && lastLocalMutationAt > 0 && (Date.now() - lastLocalMutationAt) < 8000) return false;
-        if (silent && lastCloudSyncedTs > 0 && Number(state.lastUpdated || 0) > lastCloudSyncedTs) return false;
+      function applyCloudState(data, url, silent, forcePull) {
+        if (!data || typeof data !== 'object') return false;
+        if (data.projects && !Array.isArray(data.projects) && typeof data.projects === 'object') data.projects = Object.values(data.projects);
+        if (data.users && !Array.isArray(data.users) && typeof data.users === 'object') data.users = Object.values(data.users);
+        if (!Array.isArray(data.projects) || data.projects.length === 0) return false;
+        // Skip silent background pulls only when THIS client has an unpushed local edit in flight (immune to PC clock skew!)
+        if (silent && !forcePull && hasPendingLocalPush) return false;
+        if (silent && !forcePull && lastLocalMutationAt > 0 && (Date.now() - lastLocalMutationAt) < 4000) return false;
         const incomingTs = Number(data.lastUpdated) || 0;
         const currentTs = Number(state.lastUpdated) || 0;
-        if (silent && currentTs > 0 && (incomingTs === 0 || incomingTs < currentTs)) return false;
         const incomingId = data.syncId || String(incomingTs);
         const currentId = state.syncId || String(currentTs);
-        if (!silent || incomingId !== currentId) {
+        if (!silent || forcePull || incomingId !== currentId) {
           // Preserve THIS device/user's own active project, viewAllProjects & role so other users switching projects NEVER yank this user!
           const localActiveProjectId = state.activeProjectId;
           const localViewAllProjects = Boolean(state.viewAllProjects);
@@ -14040,9 +14049,11 @@ function doPost(e) {
               body: JSON.stringify(state)
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
+            hasPendingLocalPush = false;
             lastCloudSyncedTs = Number(state.lastUpdated) || Date.now();
           } else {
             await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildCloudPayload()) });
+            hasPendingLocalPush = false;
           }
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -14074,8 +14085,8 @@ function doPost(e) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           cloudPullCompleted = true;
           const data = await res.json();
-          if (data && Array.isArray(data.projects) && data.projects.length > 0) {
-            const changed = applyCloudState(data, url, silent);
+          if (data && (Array.isArray(data.projects) ? data.projects.length > 0 : (data.projects && typeof data.projects === 'object' && Object.keys(data.projects).length > 0))) {
+            const changed = applyCloudState(data, url, silent, forcePull);
             const tm = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             if (!changed) updateSyncBadge('☁ Đã đồng bộ ' + tm, 'ok');
             if (!silent && msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-semibold">✅ Đã tải dữ liệu mới nhất từ Cloud!</span>';
@@ -14761,24 +14772,33 @@ function setupDailyBackupTrigger() {
       }
       function getAllowedProjects() {
         const cur = getCurrentUser();
+        if (cur && !isAdminAccount(cur)) {
+          const p = ensureUserPerms(cur);
+          if (p.allProjects) return state.projects;
+          return state.projects.filter(pr => p.projectIds.includes(pr.id));
+        }
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return state.projects;
-        const p = ensureUserPerms(cur);
-        if (p.allProjects) return state.projects;
-        return state.projects.filter(pr => p.projectIds.includes(pr.id));
+        return state.projects;
       }
       function canViewModule(modKey) {
         const cur = getCurrentUser();
+        if (cur && !isAdminAccount(cur)) {
+          const p = ensureUserPerms(cur);
+          return Boolean(p.modules[modKey] && p.modules[modKey].view === true);
+        }
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return true;
-        const p = ensureUserPerms(cur);
-        return Boolean(p.modules[modKey] && p.modules[modKey].view === true);
+        return false;
       }
       function canEditModule(modKey) {
         const cur = getCurrentUser();
+        if (cur && !isAdminAccount(cur)) {
+          const p = ensureUserPerms(cur);
+          return Boolean(p.modules[modKey] && p.modules[modKey].view === true && p.modules[modKey].edit === true);
+        }
         if (!state.authEnabled) return (state.role || 'admin') !== 'viewer';
         if (!cur) return false;
         if (isAdminAccount(cur)) return state.role !== 'viewer';
-        const p = ensureUserPerms(cur);
-        return Boolean(p.modules[modKey] && p.modules[modKey].view && p.modules[modKey].edit);
+        return false;
       }
       function applyUserPermissions() {
         const cur = getCurrentUser();
@@ -14839,17 +14859,20 @@ function setupDailyBackupTrigger() {
           const t = btn.dataset.tab;
           const visible = canViewModule(t) && isModuleEnabledForProject(activeProjObj, t);
           btn.classList.toggle('hidden', !visible);
+          btn.style.display = visible ? '' : 'none';
         });
         const sharedHdr = document.getElementById('nav-shared-tools-header');
         if (sharedHdr) {
           const anySharedVisible = ['tmdt', 'dongia', 'shared_proposals', 'shared_payments'].some(k => canViewModule(k) && isModuleEnabledForProject(activeProjObj, k));
           sharedHdr.classList.toggle('hidden', !anySharedVisible);
+          sharedHdr.style.display = anySharedVisible ? '' : 'none';
         }
         // Hide any disallowed tab panel immediately & redirect to first allowed tab
         PERM_MODULES.forEach(m => {
           const sec = document.getElementById('tab-' + m.key);
           if (sec && (!canViewModule(m.key) || !isModuleEnabledForProject(activeProjObj, m.key))) {
             sec.classList.add('hidden');
+            sec.style.display = 'none';
           }
         });
         if (!canViewModule(activeTab) || !isModuleEnabledForProject(activeProjObj, activeTab)) {
@@ -14940,6 +14963,9 @@ function setupDailyBackupTrigger() {
       }
       function ensureAuthDefaults() {
         if (state.authEnabled === undefined) state.authEnabled = true;
+        if (state.users && !Array.isArray(state.users) && typeof state.users === 'object') {
+          state.users = Object.values(state.users);
+        }
         if (!Array.isArray(state.users) || state.users.length === 0) {
           state.users = [
             { id: 'u_admin', username: 'admin', pwHash: hashPw('123456'), fullName: 'Phan Anh (Quản trị)', role: 'admin', active: true, lastLogin: '', permissions: defaultPermsForRole('admin') }
@@ -14965,8 +14991,9 @@ function setupDailyBackupTrigger() {
       }
       function getCurrentUser() {
         ensureAuthDefaults();
-        const uname = getSessionUsername();
-        return state.users.find(u => u.username === uname && u.active) || null;
+        const uname = String(getSessionUsername() || '').trim().toLowerCase();
+        if (!uname) return null;
+        return state.users.find(u => String(u.username || '').trim().toLowerCase() === uname && u.active) || null;
       }
       function recordAuthLog(username, fullName, role, status) {
         ensureAuthDefaults();
@@ -15382,7 +15409,7 @@ function setupDailyBackupTrigger() {
         document.querySelectorAll('[data-perm-view]').forEach(el => { el.checked = true; });
         document.querySelectorAll('[data-perm-edit]').forEach(el => { el.checked = false; });
       });
-      document.getElementById('btn-save-user-perms').addEventListener('click', () => {
+      async function saveUserPermissionsAction() {
         const u = state.users.find(x => x.id === editingPermUserId);
         if (!u) return;
         const allP = document.getElementById('perm-all-projects').checked;
@@ -15395,15 +15422,19 @@ function setupDailyBackupTrigger() {
         });
         u.permissions = { allProjects: allP, projectIds: pIds, modules: mods };
         saveState();
+        applyUserPermissions();
+        document.getElementById('sec-user-perm-panel').classList.add('hidden');
         if (state.autoSync !== false && (state.cloudUrl || DEFAULT_FIREBASE_URL)) {
           clearTimeout(autoPushTimer);
           autoPushTimer = null;
-          pushToCloud(true);
+          await pushToCloud(true);
+          showToast(`✅ Đã lưu phân quyền cho ${u.fullName} & đồng bộ lên Cloud`);
+        } else {
+          showToast(`Đã lưu phân quyền cho ${u.fullName} (chưa bật Cloud Sync)`, 'info');
         }
-        applyUserPermissions();
-        document.getElementById('sec-user-perm-panel').classList.add('hidden');
-        showToast(`Đã lưu phân quyền cho ${u.fullName} & đồng bộ lên Cloud`);
-      });
+      }
+      document.getElementById('btn-save-user-perms').addEventListener('click', saveUserPermissionsAction);
+      document.getElementById('btn-save-user-perms-top')?.addEventListener('click', saveUserPermissionsAction);
 
       document.getElementById('btn-clear-auth-logs').addEventListener('click', () => {
         state.authLogs = [];
