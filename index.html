@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.12 • Tab Ngân sách hiển thị đúng Năm NS</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.14 • Gọn hóa KPI &amp; Chênh lệch NS - Triển khai</div>
       </div>
     </aside>
 
@@ -5268,6 +5268,22 @@
         return { kind: 'budget', year: budYr, key: `year:${budYr}`, label: `Năm ${budYr}` };
       }
 
+      function getContractDisplayYear(c, proj) {
+        if (!c) return `Năm ${getProjectBudgetYear(proj)}`;
+        if (Number(c.fiscalYear) >= 2020 && Number(c.fiscalYear) <= 2099) return `Năm ${Number(c.fiscalYear)}`;
+        if (c.budgetItemId && proj && Array.isArray(proj.budgetItems)) {
+          const b = proj.budgetItems.find(x => String(x.id) === String(c.budgetItemId));
+          if (b) return getBudgetItemFiscalMeta(b, proj).label;
+        }
+        const yrs = new Set();
+        if ((Number(c.adv) || 0) > 0 || c.advDate || c.advInvDate) yrs.add(getFiscalMeta(c, proj, true).year);
+        (c.rounds || []).forEach(r => yrs.add(getFiscalMeta(r, proj, false).year));
+        const sorted = [...yrs].filter(y => y >= 2020 && y <= 2099).sort((a, b) => a - b);
+        if (sorted.length === 1) return `Năm ${sorted[0]}`;
+        if (sorted.length > 1) return `${sorted[0]}–${sorted[sorted.length - 1]}`;
+        return `Năm ${getProjectBudgetYear(proj)}`;
+      }
+
       function matchesBudgetFiscalFilter(b, proj, filterVal) {
         if (!filterVal || filterVal === 'all') return true;
         const fm = getBudgetItemFiscalMeta(b, proj);
@@ -5686,7 +5702,7 @@
           return `<tr class="hover:bg-slate-50/80">
             <td class="py-3 px-3">
               <div class="font-medium text-slate-900">${projTagHtml(c)}${esc(c.name)}</div>
-              <div class="text-xs text-slate-400">${esc(c.code)} • Hạn TT: <strong class="text-slate-600">${Number(c.payTermDays) || 15} ngày</strong>${c.advDate ? ` • Mốc Tạm ứng: <strong class="text-brand-600">${fmtDateVN(c.advDate)}</strong> (${Math.max(0, Math.round(countContractWorkDays(iso(c.advDate), getReportMs(), proj)))} ngày TC)` : ''}</div>
+              <div class="text-xs text-slate-400">${esc(c.code)} • <span class="inline-flex items-center px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold text-[10.5px]">📅 ${esc(getContractDisplayYear(c, proj))}</span> • Hạn TT: <strong class="text-slate-600">${Number(c.payTermDays) || 15} ngày</strong>${c.advDate ? ` • Mốc Tạm ứng: <strong class="text-brand-600">${fmtDateVN(c.advDate)}</strong> (${Math.max(0, Math.round(countContractWorkDays(iso(c.advDate), getReportMs(), proj)))} ngày TC)` : ''}</div>
               <div class="mt-1 flex items-center gap-1.5">
                 <span class="text-[10px] text-slate-500">🔗 Ngân sách:</span>
                 <select data-contract-budget-cid="${esc(c.id)}" class="text-[11px] border border-slate-200 rounded-md px-1.5 py-0.5 bg-slate-50 text-slate-700 max-w-[200px]">
@@ -6756,11 +6772,12 @@
               const effVat = typeof getBudgetWithVatEffective === 'function' ? getBudgetWithVatEffective(proj.budgetItems, b) : (Number(b.budget) || 0);
               const actB = getBudgetActual(proj, b);
               const diffB = effVat - actB;
-              let rHtml = `<tr class="border-b border-slate-200 ${isParent ? 'bg-slate-100 font-bold' : ''}"><td class="p-2" style="padding-left:${8 + depth * 12}px;">${depth > 0 ? '↳ ' : ''}${esc(b.name)}</td><td class="p-2">${esc(b.category)}</td><td class="p-2 text-right">${fmtTy(effVat)}</td><td class="p-2 text-right">${fmtTy(actB)}</td><td class="p-2 text-right font-semibold">${fmtTy(diffB)}</td><td class="p-2 text-center">${diffB >= 0 ? 'Trong hạn mức' : 'Vượt ngân sách'}</td></tr>`;
+              const fmB = getBudgetItemFiscalMeta(b, proj);
+              let rHtml = `<tr class="border-b border-slate-200 ${isParent ? 'bg-slate-100 font-bold' : ''}"><td class="p-2" style="padding-left:${8 + depth * 12}px;">${depth > 0 ? '↳ ' : ''}${esc(b.name)}</td><td class="p-2">${esc(b.category)}</td><td class="p-2 text-center font-semibold text-indigo-800 whitespace-nowrap">${esc(fmB.label)}</td><td class="p-2 text-right">${fmtTy(effVat)}</td><td class="p-2 text-right">${fmtTy(actB)}</td><td class="p-2 text-right font-semibold">${fmtTy(diffB)}</td><td class="p-2 text-center">${diffB >= 0 ? 'Trong hạn mức' : 'Vượt ngân sách'}</td></tr>`;
               if (isParent && typeof getBudgetUnallocated === 'function') {
                 const un = getBudgetUnallocated(proj.budgetItems, b);
                 if ((Number(un && un.vat) || 0) > 0.5) {
-                  rHtml += `<tr class="border-b border-slate-200 bg-amber-50/70 italic text-amber-900"><td class="p-1.5" style="padding-left:${8 + (depth + 1) * 12}px;">↳ Phần còn lại chưa phân bổ (${esc(b.name)})</td><td class="p-1.5">Chưa phân bổ</td><td class="p-1.5 text-right">${fmtTy(un.vat)}</td><td class="p-1.5 text-right">—</td><td class="p-1.5 text-right">${fmtTy(un.vat)}</td><td class="p-1.5 text-center">Dự trữ phân bổ</td></tr>`;
+                  rHtml += `<tr class="border-b border-slate-200 bg-amber-50/70 italic text-amber-900"><td class="p-1.5" style="padding-left:${8 + (depth + 1) * 12}px;">↳ Phần còn lại chưa phân bổ (${esc(b.name)})</td><td class="p-1.5">Chưa phân bổ</td><td class="p-1.5 text-center">${esc(fmB.label)}</td><td class="p-1.5 text-right">${fmtTy(un.vat)}</td><td class="p-1.5 text-right">—</td><td class="p-1.5 text-right">${fmtTy(un.vat)}</td><td class="p-1.5 text-center">Dự trữ phân bổ</td></tr>`;
                 }
               }
               return rHtml;
@@ -6772,8 +6789,8 @@
                 <div class="border border-slate-200 rounded-xl p-2"><div class="text-[11px] font-bold text-slate-700 mb-1">Tình trạng Thanh toán Hợp đồng</div>${imgPay ? `<img src="${imgPay}" style="max-height:155px;margin:0 auto;" />` : ''}</div>
               </div>` : ''}
               <table class="w-full text-[10.5px] border-collapse border border-slate-300">
-                <thead><tr class="bg-blue-900 text-white"><th class="p-2 text-left">Tên mục chi phí</th><th class="p-2 text-left">Danh mục</th><th class="p-2 text-right">Ngân sách (VNĐ)</th><th class="p-2 text-right">Thực tế (VNĐ)</th><th class="p-2 text-right">Chênh lệch (VNĐ)</th><th class="p-2 text-center">Trạng thái</th></tr></thead>
-                <tbody>${budRowsHtml || `<tr><td colspan="6" class="p-3 text-center text-slate-400">Không có hạng mục ngân sách thuộc kỳ "${esc(rptFiscalLbl)}".</td></tr>`}<tr class="bg-slate-100 font-bold"><td class="p-2" colspan="2">TỔNG CỘNG (Mục cấp 1)</td><td class="p-2 text-right">${fmtTy(totalBudget)}</td><td class="p-2 text-right">${fmtTy(totalBudgetAct)}</td><td class="p-2 text-right">${fmtTy(totalBudget - totalBudgetAct)}</td><td></td></tr></tbody>
+                <thead><tr class="bg-blue-900 text-white"><th class="p-2 text-left">Tên mục chi phí</th><th class="p-2 text-left">Danh mục</th><th class="p-2 text-center">Năm</th><th class="p-2 text-right">Ngân sách (VNĐ)</th><th class="p-2 text-right">Thực tế (VNĐ)</th><th class="p-2 text-right">Chênh lệch (VNĐ)</th><th class="p-2 text-center">Trạng thái</th></tr></thead>
+                <tbody>${budRowsHtml || `<tr><td colspan="7" class="p-3 text-center text-slate-400">Không có hạng mục ngân sách thuộc ${esc(rptFiscalLbl)}.</td></tr>`}<tr class="bg-slate-100 font-bold"><td class="p-2" colspan="3">TỔNG CỘNG (Mục cấp 1)</td><td class="p-2 text-right">${fmtTy(totalBudget)}</td><td class="p-2 text-right">${fmtTy(totalBudgetAct)}</td><td class="p-2 text-right">${fmtTy(totalBudget - totalBudgetAct)}</td><td></td></tr></tbody>
               </table>`, ftrLabel);
 
             const pdfPayStats = calcContractPayStats(proj, atMs);
@@ -6798,8 +6815,8 @@
               ${fiscalStripHtml}
               <div class="text-[11px] font-bold text-blue-900 uppercase mb-1">1. Tổng hợp Gói thầu, Công nợ đang trình &amp; Thống kê Nhanh/Trễ Thanh toán (${proj.contracts.length} HĐ)</div>
               <table class="w-full text-[9.5px] border-collapse border border-slate-300 mb-3">
-                <thead><tr class="bg-blue-900 text-white"><th class="p-1 text-left">Mã</th><th class="p-1 text-left">Nhà thầu</th><th class="p-1 text-right">GT HĐ</th><th class="p-1 text-right">Đã TT</th><th class="p-1 text-right">Đang trình</th><th class="p-1 text-right">Còn lại</th><th class="p-1 text-center">Nhanh / Trễ TT</th></tr></thead>
-                <tbody>${proj.contracts.length ? proj.contracts.map((c, idx) => { const m = calcContract(c); const st = pdfPayStats.contractStats[idx] || {}; return `<tr class="border-b border-slate-200"><td class="p-1 font-semibold">${esc(c.code)}</td><td class="p-1">${esc(c.contractor)}</td><td class="p-1 text-right">${fmtTy(m.base)}</td><td class="p-1 text-right">${fmtTy(m.paid)}</td><td class="p-1 text-right font-semibold text-rose-700">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td><td class="p-1 text-right">${fmtTy(m.rem)}</td><td class="p-1 text-center">${st.onTimeCnt || 0} đúng (${st.earlyDaysSum || 0}n) / <span class="${(st.lateCnt || 0) > 0 ? 'text-rose-700 font-bold' : ''}">${st.lateCnt || 0} trễ (${st.lateDaysSum || 0}n)</span></td></tr>`; }).join('') : `<tr><td colspan="7" class="p-2 text-center text-slate-400">Không có hợp đồng thuộc ${esc(rptFiscalLbl)}</td></tr>`}</tbody>
+                <thead><tr class="bg-blue-900 text-white"><th class="p-1 text-left">Mã</th><th class="p-1 text-left">Nhà thầu</th><th class="p-1 text-center">Năm</th><th class="p-1 text-right">GT HĐ</th><th class="p-1 text-right">Đã TT</th><th class="p-1 text-right">Đang trình</th><th class="p-1 text-right">Còn lại</th><th class="p-1 text-center">Nhanh / Trễ TT</th></tr></thead>
+                <tbody>${proj.contracts.length ? proj.contracts.map((c, idx) => { const m = calcContract(c); const st = pdfPayStats.contractStats[idx] || {}; return `<tr class="border-b border-slate-200"><td class="p-1 font-semibold">${esc(c.code)}</td><td class="p-1">${esc(c.contractor)}</td><td class="p-1 text-center font-semibold text-indigo-800 whitespace-nowrap">${esc(getContractDisplayYear(c, proj))}</td><td class="p-1 text-right">${fmtTy(m.base)}</td><td class="p-1 text-right">${fmtTy(m.paid)}</td><td class="p-1 text-right font-semibold text-rose-700">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td><td class="p-1 text-right">${fmtTy(m.rem)}</td><td class="p-1 text-center">${st.onTimeCnt || 0} đúng (${st.earlyDaysSum || 0}n) / <span class="${(st.lateCnt || 0) > 0 ? 'text-rose-700 font-bold' : ''}">${st.lateCnt || 0} trễ (${st.lateDaysSum || 0}n)</span></td></tr>`; }).join('') : `<tr><td colspan="8" class="p-2 text-center text-slate-400">Không có hợp đồng thuộc ${esc(rptFiscalLbl)}</td></tr>`}</tbody>
               </table>
               <div class="text-[11px] font-bold text-blue-900 uppercase mb-1">2. Tổng hợp Công nợ Đang trình (Đã xuất HĐ chưa thanh toán)</div>
               <table class="w-full text-[9.5px] border-collapse border border-slate-300 mb-3">
@@ -7099,11 +7116,9 @@
         // Portfolio Summary Page when >= 2 projects selected & enabled
         if (selectedProjs.length >= 2 && showPortfolio) {
           const sumCty = allStats.reduce((s, x) => s + x.tc.company, 0);
-          const sumDep = allStats.reduce((s, x) => s + x.tc.deploy, 0);
-          const sumDiffTmdt = sumDep - sumCty;
-          const sumBud = allStats.reduce((s, x) => s + x.totalBudget, 0);
+          const sumBud = allStats.reduce((s, x) => s + (x.totalBudget || x.tc.company || 0), 0);
           const sumCon = allStats.reduce((s, x) => s + x.totalContracted, 0);
-          const sumSet = allStats.reduce((s, x) => s + x.totalSettled, 0);
+          const sumDiffNsDeploy = sumBud - sumCon;
           const sumPaid = allStats.reduce((s, x) => s + x.totalPaid, 0);
           const sumRem = allStats.reduce((s, x) => s + x.totalRem, 0);
           const sumSub = allStats.reduce((s, x) => s + x.subDebt.total, 0);
@@ -7127,8 +7142,8 @@
               </div>
               ${qFiscalBannerHtml}
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px;">
-                <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty</div><div style="font-size:12.5px;font-weight:800;">${fmtTy(sumCty)}</div><div style="font-size:8.5px;color:#64748b;">Triển khai: ${fmtTy(sumDep)}</div></div>
-                <div style="padding:7px 9px;border:1px solid ${sumDiffTmdt > 0 ? '#fecdd3' : '#a7f3d0'};background:${sumDiffTmdt > 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch TMĐT</div><div style="font-size:12.5px;font-weight:800;color:${sumDiffTmdt > 0 ? '#be123c' : '#047857'};">${sumDiffTmdt > 0 ? '+' : ''}${fmtTy(sumDiffTmdt)}</div><div style="font-size:8.5px;color:#64748b;">Tổng NS duyệt: ${fmtTy(sumBud)}</div></div>
+                <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty (Ngân sách)</div><div style="font-size:12.5px;font-weight:800;">${fmtTy(sumBud)}</div><div style="font-size:8.5px;color:#64748b;">Tổng HĐ triển khai: ${fmtTy(sumCon)}</div></div>
+                <div style="padding:7px 9px;border:1px solid ${sumDiffNsDeploy < 0 ? '#fecdd3' : '#a7f3d0'};background:${sumDiffNsDeploy < 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch NS &amp; Triển khai</div><div style="font-size:12.5px;font-weight:800;color:${sumDiffNsDeploy < 0 ? '#be123c' : '#047857'};">${sumDiffNsDeploy >= 0 ? '+' : ''}${fmtTy(sumDiffNsDeploy)}</div><div style="font-size:8.5px;color:${sumDiffNsDeploy < 0 ? '#be123c' : '#047857'};">${sumDiffNsDeploy < 0 ? 'Vượt ngân sách' : 'Còn trong hạn mức'}</div></div>
                 <div style="padding:7px 9px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9px;color:#047857;">Đã TT / Tổng HĐ</div><div style="font-size:12.5px;font-weight:800;color:#047857;">${fmtTy(sumPaid)}</div><div style="font-size:8.5px;color:#475569;">HĐ: ${fmtTy(sumCon)} (${sumCon > 0 ? ((sumPaid / sumCon) * 100).toFixed(1) : '0.0'}%)</div></div>
                 <div style="padding:7px 9px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9px;color:#be123c;">Công nợ trình / Còn lại</div><div style="font-size:12.5px;font-weight:800;color:#be123c;">${fmtTy(sumSub)} (${sumSubCnt} đợt)</div><div style="font-size:8.5px;color:#b45309;">Còn lại: ${fmtTy(sumRem)} • SPI TB ${avgSpi.toFixed(2)}</div></div>
               </div>
@@ -7137,10 +7152,9 @@
                 <thead>
                   <tr style="background:#1e3a8a;color:#fff;">
                     <th style="padding:4.5px 5px;text-align:left;">Mã &amp; Tên Dự án</th>
-                    <th style="padding:4.5px 5px;text-align:right;">TMĐT Cty</th>
-                    <th style="padding:4.5px 5px;text-align:right;">TMĐT Triển khai</th>
-                    <th style="padding:4.5px 5px;text-align:right;">Tổng Ngân sách</th>
-                    <th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Ngân sách (TMĐT)</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ (Triển khai)</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Chênh lệch NS &amp; TK</th>
                     <th style="padding:4.5px 5px;text-align:right;">Đã TT</th>
                     <th style="padding:4.5px 5px;text-align:right;">Đang trình</th>
                     <th style="padding:4.5px 5px;text-align:right;">Còn lại</th>
@@ -7148,24 +7162,26 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${allStats.map(x => `
+                  ${allStats.map(x => {
+                    const pBud = x.totalBudget || x.tc.company || 0;
+                    const pDiff = pBud - x.totalContracted;
+                    return `
                     <tr style="border-bottom:1px solid #e2e8f0;">
                       <td style="padding:4px 5px;"><strong>${esc(x.proj.code)}</strong> — ${esc(x.proj.name)}</td>
-                      <td style="padding:4px 5px;text-align:right;">${fmtTy(x.tc.company)}</td>
-                      <td style="padding:4px 5px;text-align:right;font-weight:700;color:${x.tc.deploy > x.tc.company ? '#be123c' : '#0f172a'};">${fmtTy(x.tc.deploy)}</td>
-                      <td style="padding:4px 5px;text-align:right;font-weight:600;">${fmtTy(x.totalBudget)}</td>
+                      <td style="padding:4px 5px;text-align:right;font-weight:600;">${fmtTy(pBud)}</td>
                       <td style="padding:4px 5px;text-align:right;">${fmtTy(x.totalContracted)}</td>
+                      <td style="padding:4px 5px;text-align:right;font-weight:700;color:${pDiff < 0 ? '#be123c' : '#047857'};">${pDiff >= 0 ? '+' : ''}${fmtTy(pDiff)}</td>
                       <td style="padding:4px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(x.totalPaid)}</td>
                       <td style="padding:4px 5px;text-align:right;color:${x.subDebt.total > 0 ? '#be123c' : '#64748b'};font-weight:${x.subDebt.total > 0 ? '700' : '400'};">${x.subDebt.total > 0 ? fmtTy(x.subDebt.total) : '—'}</td>
                       <td style="padding:4px 5px;text-align:right;">${fmtTy(x.totalRem)}</td>
                       <td style="padding:4px 5px;text-align:center;font-weight:600;">${x.g.p.toFixed(1)}% / <span style="color:${x.g.a - x.g.p < -3 ? '#be123c' : '#047857'};">${x.g.a.toFixed(1)}%</span></td>
-                    </tr>`).join('')}
+                    </tr>`;
+                  }).join('')}
                   <tr style="background:#fef08a;font-weight:800;border-top:2px solid #0f172a;">
                     <td style="padding:5px;">TỔNG CỘNG (${selectedProjs.length} DỰ ÁN)</td>
-                    <td style="padding:5px;text-align:right;">${fmtTy(sumCty)}</td>
-                    <td style="padding:5px;text-align:right;">${fmtTy(sumDep)}</td>
                     <td style="padding:5px;text-align:right;">${fmtTy(sumBud)}</td>
                     <td style="padding:5px;text-align:right;">${fmtTy(sumCon)}</td>
+                    <td style="padding:5px;text-align:right;color:${sumDiffNsDeploy < 0 ? '#be123c' : '#047857'};">${sumDiffNsDeploy >= 0 ? '+' : ''}${fmtTy(sumDiffNsDeploy)}</td>
                     <td style="padding:5px;text-align:right;color:#047857;">${fmtTy(sumPaid)}</td>
                     <td style="padding:5px;text-align:right;color:#be123c;">${fmtTy(sumSub)}</td>
                     <td style="padding:5px;text-align:right;">${fmtTy(sumRem)}</td>
@@ -7239,16 +7255,15 @@
           let secNo = 0;
           const nextRom = () => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][secNo++] || String(secNo);
 
-          const tcOver = tc.deploy - tc.company;
-          const tcPct = Number(tc.pct) || 0;
+          const nsBase = totalBudget || tc.company || 0;
+          const diffNsDeploy = nsBase - totalContracted;
+          const diffNsPct = nsBase > 0 ? ((totalContracted - nsBase) / nsBase) * 100 : 0;
           const kpiHtml = secs.kpi ? `
-            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:6px 0 6px;">${nextRom()}. Tổng quan KPI &amp; Đối chiếu TMĐT</h2>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px;">
-              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(tc.company)}</div></div>
-              <div style="padding:7px 9px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9px;color:#0369a1;">TMĐT Triển khai DA</div><div style="font-size:12.5px;font-weight:800;color:#0369a1;">${fmtTy(tc.deploy)}</div></div>
-              <div style="padding:7px 9px;border:1px solid ${tcOver > 0 ? '#fecdd3' : '#a7f3d0'};background:${tcOver > 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch TMĐT</div><div style="font-size:12.5px;font-weight:800;color:${tcOver > 0 ? '#be123c' : '#047857'};">${tcOver > 0 ? '+' : ''}${fmtTy(tcOver)} (${tcPct >= 0 ? '+' : ''}${tcPct.toFixed(1)}%)</div></div>
-              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">Tổng Ngân sách duyệt</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(totalBudget)}</div></div>
-              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">Tổng HĐ đã ký</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(totalContracted)}</div></div>
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:6px 0 6px;">${nextRom()}. Tổng quan KPI &amp; Đối chiếu Ngân sách</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px;">
+              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty (Ngân sách)</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(nsBase)}</div></div>
+              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">Tổng HĐ triển khai (Đã ký)</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(totalContracted)}</div></div>
+              <div style="padding:7px 9px;border:1px solid ${diffNsDeploy < 0 ? '#fecdd3' : '#a7f3d0'};background:${diffNsDeploy < 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch Ngân sách &amp; Triển khai</div><div style="font-size:12.5px;font-weight:800;color:${diffNsDeploy < 0 ? '#be123c' : '#047857'};">${diffNsDeploy >= 0 ? '+' : ''}${fmtTy(diffNsDeploy)}</div><div style="font-size:8.5px;color:${diffNsDeploy < 0 ? '#be123c' : '#047857'};">${nsBase > 0 ? (diffNsDeploy < 0 ? `Vượt NS +${diffNsPct.toFixed(1)}%` : `Còn dư (${(100 - (totalContracted / nsBase) * 100).toFixed(1)}%)`) : '—'}</div></div>
               <div style="padding:7px 9px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9px;color:#047857;">Đã thanh toán</div><div style="font-size:12.5px;font-weight:800;color:#047857;">${fmtTy(totalPaid)} (${totalContracted > 0 ? ((totalPaid / totalContracted) * 100).toFixed(1) : '0.0'}%)</div></div>
               <div style="padding:7px 9px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9px;color:#be123c;">Công nợ đang trình / Còn lại</div><div style="font-size:11.5px;font-weight:800;color:#be123c;">${fmtTy(subDebt.total)} (${subDebt.count} đợt)</div><div style="font-size:8.5px;color:#b45309;">Còn lại: ${fmtTy(totalRem)}</div></div>
               <div style="padding:7px 9px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9px;color:#0369a1;">Tiến độ KH / TT</div><div style="font-size:12px;font-weight:800;color:${g.a - g.p < -3 ? '#be123c' : '#047857'};">${g.p.toFixed(1)}% / ${g.a.toFixed(1)}%</div><div style="font-size:8.5px;color:#475569;">SPI ${g.spi.toFixed(2)}</div></div>
@@ -7260,9 +7275,11 @@
             const withVat = typeof getBudgetWithVatEffective === 'function' ? getBudgetWithVatEffective(proj.budgetItems, b) : (Number(b.budget) || 0);
             const act = getBudgetActual(proj, b);
             const df = withVat - act;
+            const fmB = getBudgetItemFiscalMeta(b, proj);
             let row = `<tr style="border-bottom:1px solid #e2e8f0;${isParent ? 'background:#f1f5f9;font-weight:700;' : ''}">
               <td style="padding:3.5px 5px;padding-left:${5 + depth * 12}px;">${depth > 0 ? '↳ ' : ''}${esc(b.name)}${isParent ? ' <span style="color:#4338ca;font-size:8px;">[MỤC CHA]</span>' : ''}</td>
               <td style="padding:3.5px 5px;">${esc(b.category)}</td>
+              <td style="padding:3.5px 5px;text-align:center;font-weight:700;color:#3730a3;white-space:nowrap;">${esc(fmB.label)}</td>
               <td style="padding:3.5px 5px;text-align:right;">${fmtTy(pre)}</td>
               <td style="padding:3.5px 5px;text-align:right;font-weight:700;">${fmtTy(withVat)}</td>
               <td style="padding:3.5px 5px;text-align:right;">${fmtTy(act)}</td>
@@ -7276,6 +7293,7 @@
                 row += `<tr style="border-bottom:1px dashed #cbd5e1;background:#fffbeb;font-style:italic;color:#92400e;">
                   <td style="padding:3px 5px;padding-left:${5 + (depth + 1) * 12}px;">↳ Phần còn lại chưa phân bổ (${esc(b.name)})</td>
                   <td style="padding:3px 5px;">Chưa phân bổ</td>
+                  <td style="padding:3px 5px;text-align:center;white-space:nowrap;">${esc(fmB.label)}</td>
                   <td style="padding:3px 5px;text-align:right;">${fmtTy(uPre)}</td>
                   <td style="padding:3px 5px;text-align:right;">${fmtTy(uVat)}</td>
                   <td style="padding:3px 5px;text-align:right;">—</td>
@@ -7292,20 +7310,20 @@
           const budgetHtml = secs.budget ? `
             <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Bảng phân bổ Ngân sách theo Hạng mục Chi phí (Cha / Con)</h2>
             <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;">
-              <thead><tr style="background:#334155;color:#fff;"><th style="padding:4px 5px;text-align:left;">Hạng mục chi phí</th><th style="padding:4px 5px;text-align:left;">Nhóm</th><th style="padding:4px 5px;text-align:right;">NS chưa VAT</th><th style="padding:4px 5px;text-align:right;">NS có VAT</th><th style="padding:4px 5px;text-align:right;">Thực tế / HĐ</th><th style="padding:4px 5px;text-align:right;">Chênh lệch</th></tr></thead>
+              <thead><tr style="background:#334155;color:#fff;"><th style="padding:4px 5px;text-align:left;">Hạng mục chi phí</th><th style="padding:4px 5px;text-align:left;">Nhóm</th><th style="padding:4px 5px;text-align:center;">Năm</th><th style="padding:4px 5px;text-align:right;">NS chưa VAT</th><th style="padding:4px 5px;text-align:right;">NS có VAT</th><th style="padding:4px 5px;text-align:right;">Thực tế / HĐ</th><th style="padding:4px 5px;text-align:right;">Chênh lệch</th></tr></thead>
               <tbody>
-                ${budgetRowsHtml || `<tr><td colspan="6" style="padding:6px;text-align:center;color:#64748b;">Chưa có hạng mục ngân sách chi tiết.</td></tr>`}
-                ${budFlat.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="2" style="padding:4.5px 5px;">TỔNG NGÂN SÁCH (Mục cấp 1)</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotPre)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotVat)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotAct)}</td><td style="padding:4.5px 5px;text-align:right;color:${budTotVat - budTotAct < 0 ? '#be123c' : '#047857'};">${fmtTy(budTotVat - budTotAct)}</td></tr>` : ''}
+                ${budgetRowsHtml || `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có hạng mục ngân sách chi tiết.</td></tr>`}
+                ${budFlat.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="3" style="padding:4.5px 5px;">TỔNG NGÂN SÁCH (Mục cấp 1)</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotPre)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotVat)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotAct)}</td><td style="padding:4.5px 5px;text-align:right;color:${budTotVat - budTotAct < 0 ? '#be123c' : '#047857'};">${fmtTy(budTotVat - budTotAct)}</td></tr>` : ''}
               </tbody>
             </table>` : '';
 
           const contractsHtml = secs.contracts ? `
             <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Chi tiết Hợp đồng &amp; Quyết toán (${cMetrics.length} HĐ)</h2>
             <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;">
-              <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4.5px 5px;text-align:left;">Gói thầu / Hợp đồng</th><th style="padding:4.5px 5px;text-align:left;">Nhà thầu</th><th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ</th><th style="padding:4.5px 5px;text-align:right;">Quyết toán</th><th style="padding:4.5px 5px;text-align:right;">Đã thanh toán</th><th style="padding:4.5px 5px;text-align:right;">Còn lại</th><th style="padding:4.5px 5px;text-align:right;">Đang trình chưa TT</th></tr></thead>
+              <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4.5px 5px;text-align:left;">Gói thầu / Hợp đồng</th><th style="padding:4.5px 5px;text-align:left;">Nhà thầu</th><th style="padding:4.5px 5px;text-align:center;">Năm</th><th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ</th><th style="padding:4.5px 5px;text-align:right;">Quyết toán</th><th style="padding:4.5px 5px;text-align:right;">Đã thanh toán</th><th style="padding:4.5px 5px;text-align:right;">Còn lại</th><th style="padding:4.5px 5px;text-align:right;">Đang trình chưa TT</th></tr></thead>
               <tbody>
-                ${cMetrics.length ? cMetrics.map(({ c, m }) => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(c.code)}</strong> — ${esc(c.name)}</td><td style="padding:3.5px 5px;">${esc(c.contractor)}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(c.value)}</td><td style="padding:3.5px 5px;text-align:right;">${c.settle ? fmtTy(c.settle) : '—'}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(m.paid)} (${m.pct.toFixed(0)}%)</td><td style="padding:3.5px 5px;text-align:right;font-weight:600;">${fmtTy(m.rem)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${m.submitted > 0 ? '#be123c' : '#64748b'};">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td></tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có hợp đồng.</td></tr>`}
-                ${cMetrics.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="2" style="padding:4.5px 5px;">TỔNG CỘNG HỢP ĐỒNG</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalContracted)}</td><td style="padding:4.5px 5px;text-align:right;">${totalSettled > 0 ? fmtTy(totalSettled) : '—'}</td><td style="padding:4.5px 5px;text-align:right;color:#047857;">${fmtTy(totalPaid)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalRem)}</td><td style="padding:4.5px 5px;text-align:right;color:#be123c;">${fmtTy(subDebt.total)}</td></tr>` : ''}
+                ${cMetrics.length ? cMetrics.map(({ c, m }) => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(c.code)}</strong> — ${esc(c.name)}</td><td style="padding:3.5px 5px;">${esc(c.contractor)}</td><td style="padding:3.5px 5px;text-align:center;font-weight:700;color:#3730a3;white-space:nowrap;">${esc(getContractDisplayYear(c, proj))}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(c.value)}</td><td style="padding:3.5px 5px;text-align:right;">${c.settle ? fmtTy(c.settle) : '—'}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(m.paid)} (${m.pct.toFixed(0)}%)</td><td style="padding:3.5px 5px;text-align:right;font-weight:600;">${fmtTy(m.rem)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${m.submitted > 0 ? '#be123c' : '#64748b'};">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td></tr>`).join('') : `<tr><td colspan="8" style="padding:6px;text-align:center;color:#64748b;">Chưa có hợp đồng.</td></tr>`}
+                ${cMetrics.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="3" style="padding:4.5px 5px;">TỔNG CỘNG HỢP ĐỒNG</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalContracted)}</td><td style="padding:4.5px 5px;text-align:right;">${totalSettled > 0 ? fmtTy(totalSettled) : '—'}</td><td style="padding:4.5px 5px;text-align:right;color:#047857;">${fmtTy(totalPaid)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalRem)}</td><td style="padding:4.5px 5px;text-align:right;color:#be123c;">${fmtTy(subDebt.total)}</td></tr>` : ''}
               </tbody>
             </table>` : '';
 
@@ -8489,7 +8507,7 @@
         }
 
         if (opts.includeBudgetItems) {
-          const bRows = [['Dự án', 'Tên mục chi phí', 'Mục cha', 'Danh mục', 'NS chưa VAT (VNĐ)', 'VAT (%)', 'NS có VAT (VNĐ)', 'Thực tế / HĐ (VNĐ)', 'Chênh lệch (VNĐ)']];
+          const bRows = [['Dự án', 'Tên mục chi phí', 'Mục cha', 'Danh mục', 'Năm', 'NS chưa VAT (VNĐ)', 'VAT (%)', 'NS có VAT (VNĐ)', 'Thực tế / HĐ (VNĐ)', 'Chênh lệch (VNĐ)']];
           list.forEach(p => {
             const tree = getBudgetTreeRows(p.budgetItems || []);
             const byId = {};
@@ -8502,6 +8520,7 @@
               const r1 = startIdx + idx + 1;
               const parName = b.parentId && byId[String(b.parentId)] ? byId[String(b.parentId)].name : '';
               const label = n.depth > 0 ? `${'  '.repeat(n.depth)}↳ ${b.name}` : b.name;
+              const fmB = getBudgetItemFiscalMeta(b, p);
               const pre = getBudgetPreVatEffective(p.budgetItems || [], b);
               const vat = (b.vatRate !== undefined && b.vatRate !== '') ? Number(b.vatRate) : 10;
               const withVat = getBudgetWithVatEffective(p.budgetItems || [], b);
@@ -8510,19 +8529,19 @@
                 const kidsR1 = getBudgetChildren(p.budgetItems || [], b.id).map(ch => row1ById[String(ch.id)]).filter(Boolean);
                 const sumF = (col) => kidsR1.length ? kidsR1.map(rr => `${col}${rr}`).join('+') : '0';
                 bRows.push([
-                  p.name, label, parName, b.category || '',
-                  xlFormulaCell(sumF('E'), pre),
+                  p.name, label, parName, b.category || '', fmB.label,
+                  xlFormulaCell(sumF('F'), pre),
                   '',
-                  xlFormulaCell(sumF('G'), withVat),
-                  xlFormulaCell(sumF('H'), act),
-                  xlFormulaCell(`G${r1}-H${r1}`, withVat - act)
+                  xlFormulaCell(sumF('H'), withVat),
+                  xlFormulaCell(sumF('I'), act),
+                  xlFormulaCell(`H${r1}-I${r1}`, withVat - act)
                 ]);
               } else {
                 bRows.push([
-                  p.name, label, parName, b.category || '', pre, vat,
-                  xlFormulaCell(`ROUND(E${r1}*(1+F${r1}/100),0)`, withVat),
+                  p.name, label, parName, b.category || '', fmB.label, pre, vat,
+                  xlFormulaCell(`ROUND(F${r1}*(1+G${r1}/100),0)`, withVat),
                   act,
-                  xlFormulaCell(`G${r1}-H${r1}`, withVat - act)
+                  xlFormulaCell(`H${r1}-I${r1}`, withVat - act)
                 ]);
               }
             });
@@ -8531,7 +8550,7 @@
             linkOpts.budgetSheet = 'Phan_bo_Ngan_sach';
             linkOpts.budgetLastRow = bRows.length;
             linkOpts.budgetProjCol = 'A';
-            linkOpts.budgetValCol = 'G';
+            linkOpts.budgetValCol = 'H';
             linkOpts.budgetParentCol = 'C';
           }
           sBud = formatStyledSheet(XLSX.utils.aoa_to_sheet(bRows), { headerRow: 0 });
@@ -8545,12 +8564,12 @@
             const totPre = list.reduce((s, p) => s + getBudgetTotalPreVat(p.budgetItems || []), 0);
             const totVat = list.reduce((s, p) => s + getBudgetTotalWithVat(p.budgetItems || []), 0);
             const totAct = list.reduce((s, p) => s + getBudgetTreeRows(p.budgetItems || []).filter(n => n.depth === 0).reduce((a, n) => a + getBudgetActual(p, n.item), 0), 0);
-            for (let c = 0; c < 9; c++) setBudTot(c, c === 0 ? 'TỔNG CỘNG (Mục cấp 1)' : '', null, null);
-            setBudTot(4, totPre, `SUMIF(C2:C${last1},"",E2:E${last1})`, XL_NUM_VND);
-            setBudTot(6, totVat, `SUMIF(C2:C${last1},"",G2:G${last1})`, XL_NUM_VND);
-            setBudTot(7, totAct, `SUMIF(C2:C${last1},"",H2:H${last1})`, XL_NUM_VND);
-            setBudTot(8, totVat - totAct, `G${tr + 1}-H${tr + 1}`, XL_NUM_VND);
-            sBud['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: tr, c: 8 } });
+            for (let c = 0; c < 10; c++) setBudTot(c, c === 0 ? 'TỔNG CỘNG (Mục cấp 1)' : '', null, null);
+            setBudTot(5, totPre, `SUMIF(C2:C${last1},"",F2:F${last1})`, XL_NUM_VND);
+            setBudTot(7, totVat, `SUMIF(C2:C${last1},"",H2:H${last1})`, XL_NUM_VND);
+            setBudTot(8, totAct, `SUMIF(C2:C${last1},"",I2:I${last1})`, XL_NUM_VND);
+            setBudTot(9, totVat - totAct, `H${tr + 1}-I${tr + 1}`, XL_NUM_VND);
+            sBud['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: tr, c: 9 } });
           }
         }
 
