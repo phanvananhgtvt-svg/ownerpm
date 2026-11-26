@@ -54,12 +54,47 @@
     @media print {
       @page { size: A4 portrait; margin: 0; }
       body { background: #fff !important; }
-      #app-shell, #modal-backdrop, #toast-container, #rpt-toolbar, #rpt-filter-bar, #letter-modal { display: none !important; }
+      #app-shell, #modal-backdrop, #toast-container, #rpt-toolbar, #rpt-filter-bar, #letter-modal, #cloud-modal, #security-modal, #file-export-preview-modal { display: none !important; }
       #rpt-preview { position: static !important; background: #fff !important; padding: 0 !important; display: block !important; overflow: visible !important; }
       #rpt-scroll { padding: 0 !important; overflow: visible !important; }
       .rpt-page { margin: 0 !important; box-shadow: none !important; width: 210mm !important; min-height: 297mm !important; }
+      body.printing-file-preview #rpt-preview { display: none !important; }
+      body.printing-file-preview #file-export-preview-modal {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        background: #fff !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        height: auto !important;
+      }
+      body.printing-file-preview #fp-toolbar,
+      body.printing-file-preview #fp-tabs-bar,
+      body.printing-file-preview #fp-info-bar,
+      body.printing-file-preview .xl-grid-hdr { display: none !important; }
+      body.printing-file-preview #fp-body {
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        height: auto !important;
+      }
+      body.printing-file-preview .fp-sheet-card {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        zoom: 1 !important;
+      }
+      body.printing-file-preview .fp-sheet-break { page-break-before: always; break-before: page; }
+      body.printing-file-preview .xl-preview-table { width: 100% !important; font-size: 9pt !important; }
+      body.printing-file-preview .xl-has-formula::after { display: none !important; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
+    .xl-preview-table { border-collapse: collapse; font-family: 'Times New Roman', Times, serif; background: #fff; }
+    .xl-preview-table td, .xl-preview-table th { border: 1px solid #cbd5e1; padding: 3px 6px; vertical-align: middle; line-height: 1.28; position: relative; }
+    .xl-preview-table .xl-grid-hdr { background: #f1f5f9 !important; color: #64748b !important; font-family: 'Inter', system-ui, sans-serif !important; font-size: 10px !important; font-weight: 600 !important; text-align: center !important; user-select: none; }
+    .xl-has-formula::after { content: ''; position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 6px 6px 0; border-color: transparent #10b981 transparent transparent; }
+    .xl-formula-mode-cell { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important; color: #047857 !important; background-color: #ecfdf5 !important; font-size: 11px !important; }
     .top-hscroll { overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 4px; }
     .top-hscroll::-webkit-scrollbar { height: 8px; }
     .top-hscroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
@@ -311,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.2 • Phân quyền &amp; Sync độc lập</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.3 • Xem trước file &amp; Phân quyền</div>
       </div>
     </aside>
 
@@ -1994,6 +2029,49 @@
       </div>
       <div id="letter-content" contenteditable="true" class="p-7 sm:p-10 overflow-y-auto text-[13.5px] leading-relaxed text-slate-900 space-y-3 font-serif bg-white focus:outline-none"></div>
     </div>
+  </div>
+
+  <!-- Universal File & Excel Print/Save Preview Modal -->
+  <div id="file-export-preview-modal" class="fixed inset-0 bg-slate-950/85 z-[95] hidden flex flex-col" style="z-index: 95;">
+    <div id="fp-toolbar" class="bg-slate-900 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 shadow-lg shrink-0">
+      <div class="flex flex-wrap items-center gap-2.5 min-w-0">
+        <span id="fp-badge-icon" class="w-8 h-8 rounded-lg bg-emerald-600/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-base shrink-0">📊</span>
+        <div class="min-w-0">
+          <div id="fp-title" class="text-xs sm:text-sm font-bold text-white truncate">Xem trước file Excel trước khi Lưu / In</div>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <label for="fp-filename-input" class="text-[11px] text-slate-400 shrink-0">Tên file:</label>
+            <input id="fp-filename-input" type="text" class="bg-slate-800 border border-slate-600 rounded-md px-2 py-0.5 text-xs text-amber-200 font-medium w-56 sm:w-80 focus:outline-none focus:ring-1 focus:ring-emerald-400" />
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
+        <button id="fp-toggle-formula" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-emerald-300 font-semibold transition" title="Bật/tắt hiển thị công thức Excel động trong từng ô">ƒx Hiện công thức</button>
+        <select id="fp-print-scope" class="bg-slate-800 border border-slate-600 text-slate-100 rounded-lg px-2 py-1.5 text-xs font-medium" title="Phạm vi in">
+          <option value="current">In Sheet hiện tại</option>
+          <option value="all">In Tất cả các Sheet</option>
+        </select>
+        <select id="fp-orientation" class="bg-slate-800 border border-slate-600 text-slate-100 rounded-lg px-2 py-1.5 text-xs font-medium" title="Khổ giấy khi in / lưu PDF">
+          <option value="landscape">Khổ Ngang (A4 Landscape)</option>
+          <option value="portrait">Khổ Dọc (A4 Portrait)</option>
+        </select>
+        <select id="fp-zoom" class="bg-slate-800 border border-slate-600 text-slate-100 rounded-lg px-2 py-1.5 text-xs font-medium" title="Tỷ lệ thu phóng xem trước">
+          <option value="0.75">75%</option>
+          <option value="0.9">90%</option>
+          <option value="1" selected>100%</option>
+          <option value="1.15">115%</option>
+        </select>
+        <button id="fp-copy-text" type="button" class="hidden px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-semibold transition">📋 Sao chép</button>
+        <button id="fp-btn-print" type="button" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-sm transition">🖨 In / Lưu PDF</button>
+        <button id="fp-btn-download" type="button" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-sm transition">⬇ Lưu file về máy</button>
+        <button id="fp-btn-close" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white font-semibold transition">✕ Đóng</button>
+      </div>
+    </div>
+    <div id="fp-tabs-bar" class="bg-slate-800 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto border-b border-slate-700 shrink-0"></div>
+    <div id="fp-info-bar" class="bg-slate-100 text-slate-600 px-4 py-1.5 text-[11px] flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 shrink-0">
+      <span id="fp-info-left">—</span>
+      <span id="fp-info-right" class="text-emerald-700 font-medium">💡 Ô có góc tam giác xanh lá chứa công thức Excel động (di chuột vào ô để xem công thức)</span>
+    </div>
+    <div id="fp-body" class="flex-1 overflow-auto bg-slate-200/80 p-3 sm:p-5"></div>
   </div>
 
   <!-- Reusable Form Modal -->
@@ -7422,8 +7500,10 @@
         const safeName = list.length === 1
           ? `${(list[0].code || 'DuAn').replace(/[^a-zA-Z0-9_-]+/g, '_')}_NganSach_ThanhToan_${state.reportDate}.xlsx`
           : `TongHop_NganSach_ThanhToan_${list.length}DuAn_${state.reportDate}.xlsx`;
-        XLSX.writeFile(wb, safeName);
-        showToast(`Đã xuất file Excel Theo dõi Ngân sách & Thanh toán (${list.length} dự án) chuẩn định dạng!`);
+        openExcelExportPreview(wb, safeName, {
+          title: `Xem trước Excel — Theo dõi Ngân sách & Thanh toán (${list.length} dự án)`,
+          successMsg: `Đã lưu file Excel Theo dõi Ngân sách & Thanh toán (${list.length} dự án) chuẩn định dạng!`
+        });
       }
 
       function parseFinanceSummaryWorkbook(wb) {
@@ -7727,8 +7807,10 @@
         XLSX.utils.book_append_sheet(wb, sLegal, 'Phap_ly');
         XLSX.utils.book_append_sheet(wb, sRisks, 'Rui_ro');
         XLSX.utils.book_append_sheet(wb, sWeekly, 'Cong_viec_tuan');
-        XLSX.writeFile(wb, `${proj.code}_ToanBoDuLieu_${state.reportDate}.xlsx`);
-        showToast('Đã xuất toàn bộ dữ liệu dự án ra Excel (16 sheet có công thức liên kết động)');
+        openExcelExportPreview(wb, `${proj.code}_ToanBoDuLieu_${state.reportDate}.xlsx`, {
+          title: `Xem trước Excel — Toàn bộ dữ liệu ${proj.code} (16 sheet)`,
+          successMsg: 'Đã lưu toàn bộ dữ liệu dự án ra Excel (16 sheet có công thức liên kết động)'
+        });
       });
 
       document.getElementById('btn-import-xlsx-trigger').addEventListener('click', () => document.getElementById('input-import-xlsx').click());
@@ -7935,6 +8017,342 @@
         const blob = new Blob([content], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a');
         a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
       }
+
+      // =========================================================================
+      // UNIVERSAL FILE & EXCEL PRINT/SAVE PREVIEW ENGINE
+      // =========================================================================
+      let _fpState = null;
+
+      function fpNormHexColor(rgb) {
+        if (!rgb) return '';
+        const s = String(rgb).replace(/^#/, '').trim();
+        if (s.length === 8) return '#' + s.slice(2);
+        if (s.length === 6) return '#' + s;
+        return '';
+      }
+
+      function fpColLabel(c) {
+        let s = '', n = c + 1;
+        while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+        return s;
+      }
+
+      function fpFormatExcelCell(cell, showFormula) {
+        if (!cell) return '';
+        if (showFormula && cell.f) return '=' + String(cell.f).replace(/^=/, '');
+        const v = cell.v;
+        if (v === null || v === undefined || v === '') return '';
+        const fmt = String(cell.z || (cell.s && cell.s.numFmt) || '');
+        if (typeof v === 'number') {
+          if (/d.*m.*y|y.*m.*d/i.test(fmt) && v > 20000 && v < 90000) {
+            const dt = new Date(Math.round((v - 25569) * 86400 * 1000));
+            const dd = String(dt.getUTCDate()).padStart(2, '0');
+            const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+            const yy = dt.getUTCFullYear();
+            return `${dd}/${mm}/${yy}`;
+          }
+          if (/%/.test(fmt)) {
+            const dec = fmt.includes('.00') ? 2 : (fmt.includes('.0') ? 1 : 0);
+            return (v * 100).toFixed(dec) + '%';
+          }
+          if (/#,##0/.test(fmt)) {
+            if (Math.abs(v) < 1e-9 && fmt.includes('"-"')) return '-';
+            const dec = fmt.includes('.00') ? 2 : (fmt.includes('.0') ? 1 : 0);
+            const absStr = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+            if (v < 0 && fmt.includes('(')) return `(${absStr})`;
+            return v < 0 ? `-${absStr}` : absStr;
+          }
+          return Number.isInteger(v) ? v.toLocaleString('en-US') : v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        }
+        return String(v);
+      }
+
+      function fpCellInlineStyle(cell, showFormula) {
+        const s = cell && cell.s ? cell.s : null;
+        const css = [];
+        if (s) {
+          const bg = fpNormHexColor(s.fill && s.fill.fgColor && s.fill.fgColor.rgb);
+          if (bg && !(showFormula && cell.f)) css.push(`background-color:${bg}`);
+          const fg = fpNormHexColor(s.font && s.font.color && s.font.color.rgb);
+          if (fg && !(showFormula && cell.f)) css.push(`color:${fg}`);
+          if (s.font && s.font.bold) css.push('font-weight:700');
+          if (s.font && s.font.italic) css.push('font-style:italic');
+          if (s.font && s.font.sz) css.push(`font-size:${Math.max(10, Math.min(18, Math.round(Number(s.font.sz) * 1.12)))}px`);
+          const hAlign = s.alignment && s.alignment.horizontal;
+          if (hAlign === 'center' || hAlign === 'right' || hAlign === 'left') css.push(`text-align:${hAlign}`);
+          if (s.alignment && s.alignment.wrapText) css.push('white-space:pre-wrap;word-break:break-word');
+          const b = s.border;
+          if (b) {
+            ['top', 'right', 'bottom', 'left'].forEach(side => {
+              if (b[side] && b[side].style) {
+                const w = b[side].style === 'medium' || b[side].style === 'thick' ? '1.5px' : '1px';
+                const c = fpNormHexColor(b[side].color && b[side].color.rgb) || '#94a3b8';
+                css.push(`border-${side}:${w} solid ${c}`);
+              }
+            });
+          }
+        }
+        if (cell && typeof cell.v === 'number' && !(s && s.alignment && s.alignment.horizontal)) {
+          css.push('text-align:right');
+        }
+        return css.join(';');
+      }
+
+      function fpRenderSheetHtml(ws, sheetName, showFormula, forPrintAll) {
+        if (!ws || !ws['!ref']) {
+          return { html: `<div class="fp-sheet-card bg-white rounded-xl shadow border border-slate-300 p-6 text-center text-slate-400 text-xs">(Sheet "${esc(sheetName)}" trống)</div>`, rows: 0, cols: 0, formulas: 0 };
+        }
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        const maxRows = Math.min(range.e.r, range.s.r + 1499);
+        const maxCols = Math.min(range.e.c, range.s.c + 180);
+        const merges = Array.isArray(ws['!merges']) ? ws['!merges'] : [];
+        const mergeStart = new Map();
+        const mergeHidden = new Set();
+        merges.forEach(m => {
+          const r1 = m.s.r, c1 = m.s.c, r2 = Math.min(m.e.r, maxRows), c2 = Math.min(m.e.c, maxCols);
+          if (r1 > maxRows || c1 > maxCols) return;
+          mergeStart.set(`${r1},${c1}`, { rowspan: Math.max(1, r2 - r1 + 1), colspan: Math.max(1, c2 - c1 + 1) });
+          for (let r = r1; r <= r2; r++) {
+            for (let c = c1; c <= c2; c++) {
+              if (r === r1 && c === c1) continue;
+              mergeHidden.add(`${r},${c}`);
+            }
+          }
+        });
+        const colsMeta = Array.isArray(ws['!cols']) ? ws['!cols'] : [];
+        let colGroup = '<colgroup><col class="xl-grid-hdr" style="width:34px;" />';
+        for (let c = range.s.c; c <= maxCols; c++) {
+          const wch = colsMeta[c] && colsMeta[c].wch ? Number(colsMeta[c].wch) : 14;
+          const px = Math.max(24, Math.min(360, Math.round(wch * 7.6)));
+          colGroup += `<col style="min-width:${px}px;width:${px}px;" />`;
+        }
+        colGroup += '</colgroup>';
+
+        let hdrRow = '<tr class="xl-grid-hdr"><th class="xl-grid-hdr"></th>';
+        for (let c = range.s.c; c <= maxCols; c++) hdrRow += `<th class="xl-grid-hdr">${fpColLabel(c)}</th>`;
+        hdrRow += '</tr>';
+
+        let bodyRows = '';
+        let formulaCount = 0;
+        for (let r = range.s.r; r <= maxRows; r++) {
+          const rMeta = ws['!rows'] && ws['!rows'][r];
+          const trStyle = rMeta && rMeta.hpt ? ` style="height:${Math.round(rMeta.hpt * 1.33)}px;"` : '';
+          let rowHtml = `<tr${trStyle}><th class="xl-grid-hdr">${r + 1}</th>`;
+          for (let c = range.s.c; c <= maxCols; c++) {
+            const key = `${r},${c}`;
+            if (mergeHidden.has(key)) continue;
+            const addr = XLSX.utils.encode_cell({ r, c });
+            const cell = ws[addr];
+            const hasF = Boolean(cell && cell.f);
+            if (hasF) formulaCount++;
+            const span = mergeStart.get(key);
+            const spanAttr = span ? `${span.colspan > 1 ? ` colspan="${span.colspan}"` : ''}${span.rowspan > 1 ? ` rowspan="${span.rowspan}"` : ''}` : '';
+            const cls = [hasF ? 'xl-has-formula' : '', (showFormula && hasF) ? 'xl-formula-mode-cell' : ''].filter(Boolean).join(' ');
+            const titleAttr = hasF ? ` title="Công thức Excel: =${esc(String(cell.f).replace(/^=/, ''))}"` : '';
+            const styleStr = fpCellInlineStyle(cell, showFormula);
+            const valStr = fpFormatExcelCell(cell, showFormula);
+            rowHtml += `<td${spanAttr}${cls ? ` class="${cls}"` : ''}${styleStr ? ` style="${styleStr}"` : ''}${titleAttr}>${esc(valStr)}</td>`;
+          }
+          rowHtml += '</tr>';
+          bodyRows += rowHtml;
+        }
+        const truncNote = (range.e.r > maxRows || range.e.c > maxCols)
+          ? `<div class="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">⚠ Đang xem trước ${maxRows - range.s.r + 1} dòng × ${maxCols - range.s.c + 1} cột đầu tiên. Khi bấm <strong>Lưu file về máy</strong> sẽ lưu đầy đủ toàn bộ ${range.e.r - range.s.r + 1} dòng × ${range.e.c - range.s.c + 1} cột.</div>`
+          : '';
+        const titleHdr = forPrintAll ? `<div class="font-bold text-sm text-slate-800 mb-2 pb-1 border-b border-slate-300">Sheet: ${esc(sheetName)}</div>` : '';
+        return {
+          html: `<div class="fp-sheet-card bg-white rounded-xl shadow-md border border-slate-300 p-3 sm:p-4 inline-block min-w-full">${titleHdr}<table class="xl-preview-table">${colGroup}<thead>${hdrRow}</thead><tbody>${bodyRows}</tbody></table>${truncNote}</div>`,
+          rows: range.e.r - range.s.r + 1,
+          cols: range.e.c - range.s.c + 1,
+          formulas: formulaCount
+        };
+      }
+
+      function fpCountSheetStats(ws) {
+        if (!ws || !ws['!ref']) return { rows: 0, cols: 0, formulas: 0 };
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        let formulas = 0;
+        Object.keys(ws).forEach(k => { if (k[0] !== '!' && ws[k] && ws[k].f) formulas++; });
+        return { rows: range.e.r - range.s.r + 1, cols: range.e.c - range.s.c + 1, formulas };
+      }
+
+      function fpRenderModalBody() {
+        if (!_fpState) return;
+        const bodyEl = document.getElementById('fp-body');
+        const tabsEl = document.getElementById('fp-tabs-bar');
+        const infoL = document.getElementById('fp-info-left');
+        const infoR = document.getElementById('fp-info-right');
+        const zoomVal = Number(document.getElementById('fp-zoom')?.value || 1);
+
+        if (_fpState.mode === 'excel') {
+          const wb = _fpState.wb;
+          const names = wb.SheetNames || [];
+          if (!_fpState.activeSheet || !names.includes(_fpState.activeSheet)) _fpState.activeSheet = names[0] || '';
+          tabsEl.classList.remove('hidden');
+          tabsEl.innerHTML = names.map(sn => {
+            const st = fpCountSheetStats(wb.Sheets[sn]);
+            const act = sn === _fpState.activeSheet;
+            return `<button type="button" data-fp-sheet="${esc(sn)}" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${act ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-700/80 hover:bg-slate-600 text-slate-200'}">
+              <span>${esc(sn)}</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded-full ${act ? 'bg-white/20 text-white' : 'bg-slate-900/50 text-slate-300'}">${st.rows}d</span>
+              ${st.formulas > 0 ? `<span class="text-[10px] px-1 rounded ${act ? 'bg-amber-400/25 text-amber-100' : 'bg-emerald-500/20 text-emerald-300'}" title="${st.formulas} công thức động">ƒx ${st.formulas}</span>` : ''}
+            </button>`;
+          }).join('');
+          const curWs = wb.Sheets[_fpState.activeSheet];
+          const rendered = fpRenderSheetHtml(curWs, _fpState.activeSheet, _fpState.showFormula, false);
+          bodyEl.innerHTML = `<div style="zoom:${zoomVal};">${rendered.html}</div>`;
+          const totalFormulas = names.reduce((s, n) => s + fpCountSheetStats(wb.Sheets[n]).formulas, 0);
+          infoL.innerHTML = `<strong>${names.length} sheet</strong> • Đang xem: <strong>${esc(_fpState.activeSheet)}</strong> (${rendered.rows} dòng × ${rendered.cols} cột • <strong>${rendered.formulas}</strong> công thức động, tổng toàn file: <strong>${totalFormulas}</strong> công thức)`;
+          infoR.innerHTML = _fpState.showFormula
+            ? '🔍 <strong>Đang bật chế độ kiểm tra công thức Excel (=...)</strong> — Bấm lại ƒx để xem giá trị hiển thị'
+            : '💡 Ô có góc tam giác xanh lá chứa công thức Excel động (di chuột vào ô để xem công thức)';
+          const fBtn = document.getElementById('fp-toggle-formula');
+          if (fBtn) {
+            fBtn.classList.toggle('bg-emerald-600', _fpState.showFormula);
+            fBtn.classList.toggle('text-white', _fpState.showFormula);
+            fBtn.classList.toggle('bg-slate-800', !_fpState.showFormula);
+            fBtn.classList.toggle('text-emerald-300', !_fpState.showFormula);
+            fBtn.textContent = _fpState.showFormula ? 'ƒx Đang hiện công thức' : 'ƒx Hiện công thức';
+          }
+        } else {
+          tabsEl.classList.add('hidden');
+          const txt = String(_fpState.content || '');
+          const lines = txt.split('\n');
+          const kb = (new Blob([txt]).size / 1024).toFixed(1);
+          const previewText = txt.length > 180000 ? (txt.slice(0, 180000) + `\n\n... [Đã rút gọn xem trước — Tổng file ${kb} KB (${lines.length.toLocaleString('en-US')} dòng). Bấm "Lưu file về máy" để tải trọn vẹn 100%]`) : txt;
+          infoL.innerHTML = `Loại file: <strong>${esc(_fpState.fileTypeLabel || 'Văn bản')}</strong> • Dung lượng: <strong>${kb} KB</strong> • <strong>${lines.length.toLocaleString('en-US')}</strong> dòng`;
+          infoR.textContent = '💡 Có thể đổi tên file ở thanh trên, in ra PDF hoặc bấm Lưu file về máy';
+          bodyEl.innerHTML = `<div class="fp-sheet-card bg-white rounded-xl shadow-md border border-slate-300 p-4 sm:p-6 max-w-6xl mx-auto" style="zoom:${zoomVal};">
+            ${_fpState.summaryHtml ? `<div class="mb-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">${_fpState.summaryHtml}</div>` : ''}
+            <pre class="text-[11.5px] leading-relaxed font-mono text-slate-800 whitespace-pre-wrap break-all bg-slate-50 border border-slate-200 rounded-lg p-3.5">${esc(previewText)}</pre>
+          </div>`;
+        }
+      }
+
+      function openExcelExportPreview(wb, filename, opts = {}) {
+        if (!wb || typeof XLSX === 'undefined') { showToast('Không có dữ liệu Excel để xem trước', 'error'); return; }
+        _fpState = {
+          mode: 'excel',
+          wb,
+          filename: filename || 'OwnerPM_Export.xlsx',
+          title: opts.title || 'Xem trước file Excel trước khi Lưu / In',
+          successMsg: opts.successMsg || `Đã lưu file Excel "${filename}" về máy!`,
+          activeSheet: (wb.SheetNames && wb.SheetNames[0]) || '',
+          showFormula: false
+        };
+        document.getElementById('fp-badge-icon').textContent = '📊';
+        document.getElementById('fp-title').textContent = _fpState.title;
+        document.getElementById('fp-filename-input').value = _fpState.filename;
+        document.getElementById('fp-toggle-formula').classList.remove('hidden');
+        document.getElementById('fp-print-scope').classList.remove('hidden');
+        document.getElementById('fp-copy-text').classList.add('hidden');
+        document.getElementById('fp-orientation').value = opts.orientation || 'landscape';
+        document.getElementById('fp-zoom').value = '1';
+        document.getElementById('fp-btn-download').textContent = '⬇ Lưu file Excel (.xlsx)';
+        fpRenderModalBody();
+        document.getElementById('file-export-preview-modal').classList.remove('hidden');
+      }
+
+      function openTextExportPreview(content, filename, mime, opts = {}) {
+        const ext = String(filename || '').split('.').pop().toUpperCase();
+        _fpState = {
+          mode: 'text',
+          content: String(content || ''),
+          filename: filename || 'export.txt',
+          mime: mime || 'text/plain;charset=utf-8',
+          title: opts.title || `Xem trước file ${ext} trước khi Lưu / In`,
+          fileTypeLabel: opts.fileTypeLabel || ext || 'TEXT',
+          summaryHtml: opts.summaryHtml || '',
+          successMsg: opts.successMsg || `Đã lưu file "${filename}" về máy!`
+        };
+        document.getElementById('fp-badge-icon').textContent = ext === 'XML' ? '📅' : (ext === 'JSON' ? '💾' : '📄');
+        document.getElementById('fp-title').textContent = _fpState.title;
+        document.getElementById('fp-filename-input').value = _fpState.filename;
+        document.getElementById('fp-toggle-formula').classList.add('hidden');
+        document.getElementById('fp-print-scope').classList.add('hidden');
+        document.getElementById('fp-copy-text').classList.remove('hidden');
+        document.getElementById('fp-orientation').value = opts.orientation || 'portrait';
+        document.getElementById('fp-zoom').value = '1';
+        document.getElementById('fp-btn-download').textContent = `⬇ Lưu file (.${ext.toLowerCase()})`;
+        fpRenderModalBody();
+        document.getElementById('file-export-preview-modal').classList.remove('hidden');
+      }
+
+      function closeFileExportPreview() {
+        document.getElementById('file-export-preview-modal').classList.add('hidden');
+        document.body.classList.remove('printing-file-preview');
+      }
+
+      document.getElementById('fp-btn-close')?.addEventListener('click', closeFileExportPreview);
+      document.getElementById('fp-tabs-bar')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-fp-sheet]');
+        if (!btn || !_fpState || _fpState.mode !== 'excel') return;
+        _fpState.activeSheet = btn.dataset.fpSheet;
+        fpRenderModalBody();
+      });
+      document.getElementById('fp-toggle-formula')?.addEventListener('click', () => {
+        if (!_fpState || _fpState.mode !== 'excel') return;
+        _fpState.showFormula = !_fpState.showFormula;
+        fpRenderModalBody();
+      });
+      document.getElementById('fp-zoom')?.addEventListener('change', fpRenderModalBody);
+      document.getElementById('fp-copy-text')?.addEventListener('click', async () => {
+        if (!_fpState || _fpState.mode !== 'text') return;
+        try {
+          await navigator.clipboard.writeText(_fpState.content);
+          showToast('Đã sao chép toàn bộ nội dung file vào bộ nhớ tạm!');
+        } catch (err) {
+          showToast('Trình duyệt không cho phép sao chép tự động', 'error');
+        }
+      });
+      document.getElementById('fp-btn-download')?.addEventListener('click', () => {
+        if (!_fpState) return;
+        let fname = (document.getElementById('fp-filename-input')?.value || _fpState.filename || 'export').trim();
+        if (!fname) fname = _fpState.filename;
+        if (_fpState.mode === 'excel') {
+          if (!/\.xlsx$/i.test(fname)) fname += '.xlsx';
+          XLSX.writeFile(_fpState.wb, fname);
+          showToast(_fpState.successMsg || `Đã lưu file Excel ${fname}`);
+        } else {
+          downloadTextFile(_fpState.content, fname, _fpState.mime);
+          showToast(_fpState.successMsg || `Đã lưu file ${fname}`);
+        }
+      });
+      document.getElementById('fp-btn-print')?.addEventListener('click', () => {
+        if (!_fpState) return;
+        const orient = document.getElementById('fp-orientation')?.value || 'landscape';
+        const scope = document.getElementById('fp-print-scope')?.value || 'current';
+        let pageStyle = document.getElementById('fp-dynamic-page-style');
+        if (!pageStyle) {
+          pageStyle = document.createElement('style');
+          pageStyle.id = 'fp-dynamic-page-style';
+          document.head.appendChild(pageStyle);
+        }
+        pageStyle.textContent = `@media print { @page { size: A4 ${orient}; margin: 8mm; } }`;
+        const bodyEl = document.getElementById('fp-body');
+        const prevHtml = bodyEl.innerHTML;
+        if (_fpState.mode === 'excel' && scope === 'all') {
+          const names = _fpState.wb.SheetNames || [];
+          bodyEl.innerHTML = names.map((sn, idx) => {
+            const r = fpRenderSheetHtml(_fpState.wb.Sheets[sn], sn, _fpState.showFormula, true);
+            return `<div class="${idx > 0 ? 'fp-sheet-break' : ''}">${r.html}</div>`;
+          }).join('');
+        }
+        document.body.classList.add('printing-file-preview');
+        const cleanup = () => {
+          document.body.classList.remove('printing-file-preview');
+          if (_fpState && _fpState.mode === 'excel' && scope === 'all') bodyEl.innerHTML = prevHtml;
+          window.removeEventListener('afterprint', cleanup);
+        };
+        window.addEventListener('afterprint', cleanup);
+        setTimeout(() => { window.print(); }, 80);
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          const fpModal = document.getElementById('file-export-preview-modal');
+          if (fpModal && !fpModal.classList.contains('hidden')) closeFileExportPreview();
+        }
+      });
 
       function buildScheduleConstraintsSheet(tasksList, cp) {
         const list = Array.isArray(tasksList) ? tasksList : [];
@@ -8564,16 +8982,27 @@
         XLSX.utils.book_append_sheet(wb, sReserve, 'Du tru thoi gian');
         XLSX.utils.book_append_sheet(wb, sCrit, 'Duong gang');
         XLSX.utils.book_append_sheet(wb, sConf, 'Xung dot');
-        XLSX.writeFile(wb, `${proj.code}_Tien_do_Timeline_${state.reportDate}.xlsx`);
-        showToast('Đã xuất file Excel Tiến độ kèm Timeline Gantt & Ràng buộc CPM (10 sheet chuẩn định dạng)');
+        openExcelExportPreview(wb, `${proj.code}_Tien_do_Timeline_${state.reportDate}.xlsx`, {
+          title: `Xem trước Excel — Tiến độ & Timeline Gantt ${proj.code} (10 sheet)`,
+          successMsg: 'Đã lưu file Excel Tiến độ kèm Timeline Gantt & Ràng buộc CPM (10 sheet chuẩn định dạng)'
+        });
       }
 
       document.getElementById('btn-export-master-xlsx').addEventListener('click', exportMasterScheduleExcel);
       document.getElementById('btn-export-msp').addEventListener('click', () => {
         const proj = getActiveProject();
         if (!proj.tasks.length) { showToast('Chưa có hạng mục tiến độ để xuất', 'error'); return; }
-        downloadTextFile(buildMspXml(proj.tasks, proj.name), `${proj.code}_TienDo_TongThe_MSProject.xml`, 'application/xml');
-        showToast('Đã xuất file MS Project Tiến độ Tổng thể (.xml)');
+        openTextExportPreview(
+          buildMspXml(proj.tasks, proj.name),
+          `${proj.code}_TienDo_TongThe_MSProject.xml`,
+          'application/xml',
+          {
+            title: `Xem trước file MS Project (.xml) — ${proj.code}`,
+            fileTypeLabel: 'MS Project XML',
+            summaryHtml: `<strong>Dự án:</strong> ${esc(proj.code)} — ${esc(proj.name)} • <strong>Số hạng mục WBS:</strong> ${proj.tasks.length} dòng`,
+            successMsg: 'Đã lưu file MS Project Tiến độ Tổng thể (.xml)'
+          }
+        );
       });
 
       document.getElementById('btn-import-msp-trigger').addEventListener('click', () => document.getElementById('input-import-msp').click());
@@ -9626,8 +10055,10 @@
                 formatStyledSheet(wsGuide, { headerRow: 0, isKeyValue: true, colWidths: { 0: 18, 1: 76 }, maxWidth: 80 });
                 XLSX.utils.book_append_sheet(wb, wsGuide, 'Huong_dan');
                 const safeK = kSample.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]+/g, '_');
-                XLSX.writeFile(wb, `Mau_Tien_do_Nha_thau_${safeK}.xlsx`);
-                showToast('Đã tải file Excel mẫu tiến độ nhà thầu');
+                openExcelExportPreview(wb, `Mau_Tien_do_Nha_thau_${safeK}.xlsx`, {
+                  title: `Xem trước Excel — Mẫu Tiến độ Nhà thầu (${kSample})`,
+                  successMsg: 'Đã lưu file Excel mẫu tiến độ nhà thầu'
+                });
               });
             }
             const fEl = document.getElementById('nc-file');
@@ -9713,15 +10144,26 @@
           XLSX.utils.book_append_sheet(wb, ws, 'Tien_do_WBS');
           XLSX.utils.book_append_sheet(wb, sRb, 'Rang_buoc_CPM');
           const safeK = kName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]+/g, '_');
-          XLSX.writeFile(wb, `${proj.code}_${safeK}_Timeline_${state.reportDate}.xlsx`);
-          showToast(`Đã xuất Excel tiến độ kèm Timeline & Ràng buộc riêng của "${kName}"`);
+          openExcelExportPreview(wb, `${proj.code}_${safeK}_Timeline_${state.reportDate}.xlsx`, {
+            title: `Xem trước Excel — Tiến độ & Timeline Nhà thầu "${kName}"`,
+            successMsg: `Đã lưu Excel tiến độ kèm Timeline & Ràng buộc riêng của "${kName}"`
+          });
         } else if (action === 'contractor-export-msp') {
           const kName = btn.dataset.k, proj = getActiveProject();
           const kTasks = proj.tasks.filter(t => t.contractor === kName || (!isLeafTask(proj.tasks, t) && proj.tasks.some(x => x.c.startsWith(t.c + '.') && x.contractor === kName)));
           if (!kTasks.length) { showToast('Nhà thầu chưa có hạng mục để xuất', 'error'); return; }
           const safeK = kName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]+/g, '_');
-          downloadTextFile(buildMspXml(kTasks, `${proj.name} - ${kName}`), `${proj.code}_${safeK}_MSProject.xml`, 'application/xml');
-          showToast(`Đã xuất MS Project (.xml) riêng của "${kName}"`);
+          openTextExportPreview(
+            buildMspXml(kTasks, `${proj.name} - ${kName}`),
+            `${proj.code}_${safeK}_MSProject.xml`,
+            'application/xml',
+            {
+              title: `Xem trước file MS Project (.xml) — Nhà thầu "${kName}"`,
+              fileTypeLabel: 'MS Project XML',
+              summaryHtml: `<strong>Dự án:</strong> ${esc(proj.code)} • <strong>Nhà thầu:</strong> ${esc(kName)} • <strong>Số hạng mục:</strong> ${kTasks.length} dòng`,
+              successMsg: `Đã lưu MS Project (.xml) riêng của "${kName}"`
+            }
+          );
         } else if (action === 'contractor-import') {
           window._importContractorTarget = btn.dataset.k;
           document.getElementById('input-import-contractor').click();
@@ -10784,8 +11226,10 @@
         if (!list.length) { showToast('Vui lòng chọn ít nhất 1 dự án để xuất Excel', 'error'); return; }
         const wb = buildAllProjectsWorkbook(list, opts);
         const fName = `ToanBoDuAn_${list.length}DA_${state.reportDate}.xlsx`;
-        XLSX.writeFile(wb, fName);
-        showToast(`Đã xuất Excel Toàn bộ Dự án (${list.length} dự án) chuẩn định dạng!`);
+        openExcelExportPreview(wb, fName, {
+          title: `Xem trước Excel — Toàn bộ Dự án (${list.length} dự án)`,
+          successMsg: `Đã lưu Excel Toàn bộ Dự án (${list.length} dự án) chuẩn định dạng!`
+        });
       }
 
       function parseAllProjectsWorkbook(wb) {
@@ -11380,8 +11824,10 @@
         XLSX.utils.book_append_sheet(wb, s1, '1_Tong_hop_Tracking');
         XLSX.utils.book_append_sheet(wb, s2, '2_Tong_hop_Nha_thau');
         XLSX.utils.book_append_sheet(wb, s3, '3_Danh_gia_Nhanh_Cham');
-        XLSX.writeFile(wb, `${proj.code}_Bao_cao_Tracking_${state.reportDate}.xlsx`);
-        showToast('Đã xuất file Excel Báo cáo Tracking đầy đủ (3 sheet có công thức liên kết động)');
+        openExcelExportPreview(wb, `${proj.code}_Bao_cao_Tracking_${state.reportDate}.xlsx`, {
+          title: `Xem trước Excel — Báo cáo Tracking ${proj.code} (3 sheet)`,
+          successMsg: 'Đã lưu file Excel Báo cáo Tracking đầy đủ (3 sheet có công thức liên kết động)'
+        });
       });
 
       document.getElementById('btn-combine-files').addEventListener('click', () => document.getElementById('input-combine-files').click());
@@ -11935,7 +12381,13 @@
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
 
-      function exportPaymentWord(proj, p) {
+      function exportPaymentWord(proj, p, forceDirect) {
+        const rptModal = document.getElementById('rpt-preview');
+        if (!forceDirect && rptModal && rptModal.classList.contains('hidden') && typeof previewPaymentForm === 'function') {
+          previewPaymentForm(proj, p);
+          showToast('Đã mở xem trước Phiếu TT/TU — bấm "Xuất file Word" hoặc "In / Lưu PDF" trên thanh công cụ', 'info');
+          return;
+        }
         const built = buildPaymentFormInnerHtml(proj, p);
         const wordHtml = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -12338,7 +12790,13 @@
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
 
-      function exportVoProposalWord(proj, vo) {
+      function exportVoProposalWord(proj, vo, forceDirect) {
+        const rptModal = document.getElementById('rpt-preview');
+        if (!forceDirect && rptModal && rptModal.classList.contains('hidden') && typeof previewVoProposalForm === 'function') {
+          previewVoProposalForm(proj, vo);
+          showToast('Đã mở xem trước Phiếu Đề xuất — bấm "Xuất file Word" hoặc "In / Lưu PDF" trên thanh công cụ', 'info');
+          return;
+        }
         const built = buildVoProposalInnerHtml(proj, vo);
         const wordHtml = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -12904,11 +13362,14 @@
           app: 'OwnerPM_KimTin',
           ...state
         };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob), a = document.createElement('a');
         const dt = new Date().toISOString().slice(0, 10);
-        a.href = url; a.download = `OwnerPM_ToanBoDuLieu_${dt}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        showToast('Đã xuất toàn bộ dữ liệu về máy (.json)');
+        const fname = `OwnerPM_ToanBoDuLieu_${dt}.json`;
+        openTextExportPreview(JSON.stringify(payload, null, 2), fname, 'application/json', {
+          title: 'Xem trước file Sao lưu Toàn bộ Dữ liệu (.json)',
+          fileTypeLabel: 'JSON Backup',
+          summaryHtml: `<strong>Tổng số dự án:</strong> ${(state.projects || []).length} dự án • <strong>Tài khoản:</strong> ${(state.users || []).length} • <strong>Ngày xuất:</strong> ${dt}`,
+          successMsg: 'Đã lưu toàn bộ dữ liệu về máy (.json)'
+        });
       });
 
       document.getElementById('btn-import-json-trigger').addEventListener('click', () => {
@@ -13370,8 +13831,10 @@
         setTotC(7, totVat - totAct, `F${tr + 1}-G${tr + 1}`, XL_NUM_VND);
         ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: tr, c: 7 } });
         XLSX.utils.book_append_sheet(wb, ws, 'Ngan_sach');
-        XLSX.writeFile(wb, `${proj.code}_Ngan_sach_${state.reportDate}.xlsx`);
-        showToast('Đã xuất file Excel Ngân sách phân cấp mục cha/con có công thức động!');
+        openExcelExportPreview(wb, `${proj.code}_Ngan_sach_${state.reportDate}.xlsx`, {
+          title: `Xem trước Excel — Bảng phân bổ Ngân sách ${proj.code}`,
+          successMsg: 'Đã lưu file Excel Ngân sách phân cấp mục cha/con có công thức động!'
+        });
       });
 
       document.getElementById('btn-import-budget-xlsx-trigger').addEventListener('click', () => {
@@ -14636,8 +15099,12 @@ function setupDailyBackupTrigger() {
         const payload = { exportedAt: new Date().toISOString(), app: 'OwnerPM_KimTin', backupFolderId: extractDriveFolderId(folderUrl), ...state };
         const dt = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
         const fname = `OwnerPM_FullBackup_${dt}.json`;
-        downloadTextFile(JSON.stringify(payload, null, 2), fname, 'application/json');
-        showToast(`Đã tải file backup ${fname} về máy`);
+        openTextExportPreview(JSON.stringify(payload, null, 2), fname, 'application/json', {
+          title: 'Xem trước file Sao lưu Hệ thống (.json)',
+          fileTypeLabel: 'JSON Full Backup',
+          summaryHtml: `<strong>Tổng số dự án:</strong> ${(state.projects || []).length} dự án • <strong>Thư mục Drive liên kết:</strong> ${esc(extractDriveFolderId(folderUrl))}`,
+          successMsg: `Đã lưu file backup ${fname} về máy`
+        });
       });
       document.getElementById('btn-restore-from-drive')?.addEventListener('click', async () => {
         const gasUrl = (document.getElementById('drive-gas-url-input')?.value || state.driveGasUrl || '').trim();
