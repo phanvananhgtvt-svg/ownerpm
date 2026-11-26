@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.25 • Soạn thảo, lưu &amp; xuất Báo cáo Giải trình NS (Word/PDF)</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.26 • Tự liên kết TMĐT Triển khai từ Bảng phân bổ NS &amp; Phân rã hạng mục</div>
       </div>
     </aside>
 
@@ -3465,6 +3465,18 @@
             r.item.budget = getBudgetPreVatEffective(items, r.item);
           }
         }
+        // Auto-sync TMĐT Triển khai (tổng & theo từng năm) trực tiếp từ Bảng phân bổ Ngân sách
+        const totVat = getBudgetTotalWithVat(items);
+        if (totVat > 0) {
+          proj.tmdtDeploy = totVat;
+          proj.tmdt = totVat;
+          const byYr = {};
+          rows.filter(r => r.depth === 0).forEach(r => {
+            const yr = String(getBudgetItemFiscalMeta(r.item, proj).year);
+            byYr[yr] = (byYr[yr] || 0) + getBudgetWithVatEffective(items, r.item);
+          });
+          proj.tmdtDeployByYear = byYr;
+        }
       }
       function buildBudgetSelectOptionsHtml(proj, selectedId) {
         const rows = getBudgetTreeRows(proj && proj.budgetItems ? proj.budgetItems : []);
@@ -3478,7 +3490,7 @@
         const budgetSum = getBudgetTotalWithVat(p.budgetItems || []);
         if (p._fiscalFilter && p._fiscalFilter !== 'all') {
           const company = Math.round(Number(p.tmdtCompany) || 0);
-          const deploy = Math.round(Number(p.tmdtDeploy) || 0);
+          const deploy = budgetSum > 0 ? Math.round(budgetSum) : Math.round(Number(p.tmdtDeploy) || 0);
           const diff = company - deploy;
           const pct = company > 0 ? ((deploy - company) / company) * 100 : 0;
           return { company, deploy, diff, pct, budgetSum, hasBoth: company > 0 || deploy > 0 };
@@ -3486,10 +3498,11 @@
         const hasCo = p.tmdtCompany !== undefined && p.tmdtCompany !== null && p.tmdtCompany !== '' && Number(p.tmdtCompany) > 0;
         const hasDep = p.tmdtDeploy !== undefined && p.tmdtDeploy !== null && p.tmdtDeploy !== '' && Number(p.tmdtDeploy) > 0;
         const company = hasCo ? Math.round(Number(p.tmdtCompany)) : Math.round(Number(p.tmdt) || budgetSum || 0);
-        const deploy = hasDep ? Math.round(Number(p.tmdtDeploy)) : Math.round(budgetSum || Number(p.tmdt) || company || 0);
+        // TMĐT khi Triển khai luôn tự động liên kết từ Bảng phân bổ Ngân sách nếu đã có hạng mục chi phí
+        const deploy = budgetSum > 0 ? Math.round(budgetSum) : (hasDep ? Math.round(Number(p.tmdtDeploy)) : Math.round(Number(p.tmdt) || company || 0));
         const diff = company - deploy; // > 0: Tiết kiệm; < 0: Vượt NS Công ty
         const pct = company > 0 ? ((deploy - company) / company) * 100 : 0; // +%: Vượt, -%: Giảm
-        return { company, deploy, diff, pct, budgetSum, hasBoth: hasCo || hasDep };
+        return { company, deploy, diff, pct, budgetSum, hasBoth: hasCo || hasDep || budgetSum > 0 };
       }
       function getBudgetActual(proj, b) {
         if (!proj || !b) return 0;
@@ -5674,10 +5687,11 @@
         const yrDepOverride = (filterYrKey && proj.tmdtDeployByYear && Number(proj.tmdtDeployByYear[filterYrKey]) > 0) ? Number(proj.tmdtDeployByYear[filterYrKey]) : 0;
         const projBudgetMatches = matchesBudgetFiscalFilter({ fiscalKind: 'budget', fiscalYear: getProjectBudgetYear(proj) }, proj, fiscalFilter);
         let slicedTmdtCo, slicedTmdtDep;
-        if (yrDepOverride > 0) {
-          slicedTmdtDep = Math.round(yrDepOverride);
-        } else if (slicedBudTotal > 0) {
+        // TMĐT khi Triển khai luôn tự động link trực tiếp từ Bảng phân bổ Ngân sách của năm đang chọn
+        if (slicedBudTotal > 0) {
           slicedTmdtDep = Math.round(slicedBudTotal);
+        } else if (yrDepOverride > 0 && allItems.length === 0) {
+          slicedTmdtDep = Math.round(yrDepOverride);
         } else if (projBudgetMatches && allItems.length === 0) {
           slicedTmdtDep = Math.round(Number(proj.tmdtDeploy) || Number(proj.tmdt) || 0);
         } else {
@@ -6047,7 +6061,6 @@
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                ${canEditFin && totalBudgetWithVat > 0 ? `<button id="btn-sync-tmdt-deploy-from-budget" type="button" class="px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition">🔗 Lấy TMĐT Triển khai từ Bảng phân bổ NS (${fmtTy(totalBudgetWithVat)})</button>` : ''}
                 <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${isOver ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}">
                   ${isOver ? `⚠ Vượt NS Công ty +${tmdtCmp.pct.toFixed(1)}%` : (tmdtCmp.company > 0 ? `✓ Trong hạn mức (${tmdtCmp.pct.toFixed(1)}%)` : 'Chưa nhập NS Công ty')}
                 </span>
@@ -6062,11 +6075,12 @@
                 <div class="text-[10.5px] text-slate-500 mt-1">${state.viewAllProjects && finSlice._activeFiscalProjCount !== undefined ? `Tổng hạn mức NS Công ty của ${finSlice._activeFiscalProjCount} DA có NS (${esc(finFiscalLbl)})` : 'Hạn mức ngân sách Công ty duyệt'}</div>
               </div>
               <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
-                <div class="text-[11px] font-semibold text-indigo-800">2. TMĐT khi Triển khai Dự án (${esc(finFiscalLbl)})</div>
-                ${canEditFin
-                  ? `<input id="inp-fin-tmdt-deploy" type="text" inputmode="numeric" value="${fmtVndInput(tmdtCmp.deploy)}" class="mt-1.5 w-full text-sm font-bold text-indigo-900 border border-indigo-300 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 bg-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-200" />`
-                  : `<div class="mt-1.5 text-base font-bold text-indigo-700">${fmtTy(tmdtCmp.deploy)}</div>`}
-                <div class="text-[10.5px] text-indigo-700/80 mt-1">Tổng bảng phân bổ NS (${esc(finFiscalLbl)}): ${fmtTy(totalBudgetWithVat)}</div>
+                <div class="text-[11px] font-semibold text-indigo-800 flex items-center justify-between gap-1">
+                  <span>2. TMĐT khi Triển khai Dự án (${esc(finFiscalLbl)})</span>
+                  <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9.5px] font-bold whitespace-nowrap">🔗 Tự liên kết</span>
+                </div>
+                <div class="mt-1.5 text-base font-extrabold text-indigo-800">${fmtTy(tmdtCmp.deploy)}</div>
+                <div class="text-[10.5px] text-indigo-700/80 mt-1">Tự động cập nhật từ Bảng phân bổ NS (${esc(finFiscalLbl)})</div>
               </div>
               <div class="p-3 rounded-xl ${isOver ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'} border flex flex-col justify-between">
                 <div class="text-[11px] font-semibold ${isOver ? 'text-rose-800' : 'text-emerald-800'}">Chênh lệch (NS Công ty − Triển khai)</div>
@@ -6673,7 +6687,7 @@
             <td class="py-2.5 px-3 whitespace-nowrap">${statusBadge(diff >= 0 ? 'Trong hạn mức' : 'Vượt ngân sách')}</td>
             <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
               ${canEditBudget ? `
-                <button type="button" data-action="add-budget-child" data-id="${esc(b.id)}" class="px-1.5 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200" title="Phân bổ thêm mục con chi tiết">+ Con</button>
+                <button type="button" data-action="add-budget-child" data-id="${esc(b.id)}" class="px-1.5 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200" title="Phân rã mục này thành các hạng mục chi tiết con">${b._fromSummaryExcel ? '+ Phân rã' : '+ Con'}</button>
                 <button type="button" data-action="edit-budget" data-id="${esc(b.id)}" class="text-xs text-brand-600 hover:underline">Sửa</button>
                 <button type="button" data-action="del-budget" data-id="${esc(b.id)}" class="text-xs text-rose-600 hover:underline">Xóa</button>
               ` : `<span class="text-[11px] text-slate-400">🔒 Chỉ xem</span>`}
@@ -15719,21 +15733,28 @@
       document.getElementById('btn-add-budget-item').addEventListener('click', () => {
         if (!isAdminUser()) { showToast('Chỉ Quản trị viên (Admin) mới được phép chỉnh sửa Bảng phân bổ Ngân sách', 'error'); return; }
         const proj = getActiveProject();
-        openModal('Thêm hạng mục ngân sách', `
-          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên mục chi phí</label><input name="name" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+        const curF = (document.getElementById('filter-budget-fiscal') || {}).value || '';
+        const mY = curF.match(/(?:year|budget|carryover):(\d{4})/);
+        const defYr = mY ? Number(mY[1]) : getProjectBudgetYear(proj);
+        // Nếu năm này đang có dòng TMĐT tổng tự tạo từ Excel, mặc định gợi ý phân rã làm mục con của dòng tổng đó (giữ nguyên tổng TMĐT dự án)
+        const excelRoot = (proj.budgetItems || []).find(b => !b.parentId && b._fromSummaryExcel && getBudgetItemFiscalMeta(b, proj).year === defYr);
+        const defParentId = excelRoot ? excelRoot.id : '';
+        openModal('Thêm / Phân rã hạng mục ngân sách', `
+          ${excelRoot ? `<div class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-[11px] text-indigo-900">💡 Dự án đang có dòng <strong>${esc(excelRoot.name)}</strong> (${fmtTy(getBudgetWithVatEffective(proj.budgetItems, excelRoot))}). Hệ thống mặc định chọn phân rã làm mục con bên dưới để giữ nguyên tổng TMĐT (hoặc chọn <em>-- Mục chính (cấp 1) --</em> để cộng bổ sung ngoài tổng).</div>` : ''}
+          <div><label class="block text-xs font-semibold text-slate-600 mb-1">Tên mục chi phí</label><input name="name" required placeholder="VD: Chi phí Xây dựng, MEP, PCCC, Thiết bị..." class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Danh mục</label><input name="category" value="Gia công & Thầu phụ" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thuộc mục cha (tùy chọn)</label><select name="parentId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"><option value="">-- Mục chính (cấp 1) --</option>${buildBudgetSelectOptionsHtml(proj, '')}</select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Danh mục</label><input name="category" value="Xây dựng" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">Thuộc mục cha (phân rã từ)</label><select name="parentId" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"><option value="">-- Mục chính (cấp 1) --</option>${buildBudgetSelectOptionsHtml(proj, defParentId)}</select></div>
           </div>
           <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5">
             <label class="block text-xs font-bold text-amber-900 mb-1">📆 Năm Ngân sách</label>
             <select name="fiscalTag" class="w-full text-sm font-semibold border border-amber-300 rounded-xl px-3 py-2 bg-white">
-              ${buildFiscalSelectOptions((() => { const curF = (document.getElementById('filter-budget-fiscal') || {}).value || ''; const mY = curF.match(/(?:year|budget|carryover):(\d{4})/); return mY ? `year:${mY[1]}` : `year:${getProjectBudgetYear(proj)}`; })(), proj)}
+              ${buildFiscalSelectOptions(`year:${defYr}`, proj)}
             </select>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-xs font-semibold text-slate-600 mb-1">Ngân sách chưa VAT (VNĐ)</label><input name="budget" type="text" inputmode="numeric" required class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2" /></div>
-            <div><label class="block text-xs font-semibold text-slate-600 mb-1">VAT (%)</label><select name="vatRate" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"><option value="10" selected>10%</option><option value="8">8%</option><option value="5">5%</option><option value="0">0%</option></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 mb-1">VAT (%)</label><select name="vatRate" class="w-full text-sm border border-slate-300 rounded-xl px-3 py-2 bg-white"><option value="10">10%</option><option value="8">8%</option><option value="5">5%</option><option value="0" ${excelRoot ? 'selected' : ''}>0%</option></select></div>
           </div>
         `, fd => {
           const liveP = getActiveProject();
