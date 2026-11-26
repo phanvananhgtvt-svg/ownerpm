@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.24 • Giải trình tăng/giảm NS &amp; Chuẩn hóa cột bảng Tồn đọng kỳ trước</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.25 • Soạn thảo, lưu &amp; xuất Báo cáo Giải trình NS (Word/PDF)</div>
       </div>
     </aside>
 
@@ -1222,6 +1222,9 @@
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button id="btn-open-explain-report" type="button" class="allow-readonly px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition flex items-center gap-1.5" title="Soạn thảo, chỉnh sửa trực tiếp, lưu trữ và xuất Word/PDF Báo cáo Giải trình Ngân sách">
+              <span>📝 Báo cáo Giải trình NS</span>
+            </button>
             <button id="btn-export-finance-summary-xlsx" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition flex items-center gap-1.5">
               <span>📥 Xuất Excel NS &amp; TT (1 / Nhiều DA)</span>
             </button>
@@ -2027,6 +2030,7 @@
           <button type="button" data-qrpt-mode="risks_vo" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">VO &amp; Rủi ro</button>
           <button type="button" data-qrpt-mode="both" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Tổng hợp</button>
         </div>
+        <button id="btn-open-explain-report-from-qrpt" type="button" class="allow-readonly px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white transition" title="Mở trình soạn thảo Báo cáo Giải trình Ngân sách có thể chỉnh sửa, lưu lại và xuất Word/PDF">📝 Báo cáo Giải trình</button>
         <button id="btn-qrpt-export-excel" type="button" class="hidden px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-teal-600 hover:bg-teal-700 text-white transition">📊 Xuất Excel</button>
         <button id="btn-rpt-export-word" type="button" class="hidden px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Xuất file Word</button>
         <button id="btn-print-rpt" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition">🖨 In / Lưu thành PDF</button>
@@ -2134,6 +2138,53 @@
     <div id="rpt-scroll" class="flex-1 overflow-y-auto p-4 sm:p-6">
       <div id="rpt-pages"></div>
     </div>
+  </div>
+
+  <!-- Editable & Savable Budget Explanation Report Studio Modal -->
+  <div id="explain-report-modal" class="fixed inset-0 bg-slate-800/95 hidden flex flex-col" style="z-index: 95;">
+    <div class="bg-slate-900 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-700">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div>
+          <div class="font-bold text-sm flex items-center gap-2">
+            <span>📝 Trình Soạn thảo &amp; Lưu trữ Báo cáo Giải trình Ngân sách</span>
+            <span id="exp-rpt-status-badge" class="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-amber-300 border border-slate-600">Bản nháp mới</span>
+          </div>
+          <div class="text-[11px] text-slate-400">Chỉnh sửa trực tiếp nội dung giải trình trên bản A4, lưu lại để chỉnh sửa tiếp nhiều lần, xuất Word (.doc) hoặc In/PDF</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button id="btn-exp-rpt-save" type="button" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white shadow-sm transition">💾 Lưu bản báo cáo</button>
+        <button id="btn-exp-rpt-save-as" type="button" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-700 hover:bg-slate-600 text-white transition" title="Lưu thêm thành một phiên bản mới giữ nguyên bản cũ">📋 Lưu bản mới</button>
+        <button id="btn-exp-rpt-refresh-nums" type="button" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-sky-700 hover:bg-sky-600 text-white transition" title="Cập nhật lại số liệu Ngân sách/HĐ mới nhất nhưng giữ nguyên lời giải trình đã gõ">🔄 Làm mới số liệu</button>
+        <button id="btn-exp-rpt-word" type="button" class="allow-readonly px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition">📝 Xuất Word (.doc)</button>
+        <button id="btn-exp-rpt-print" type="button" class="allow-readonly px-3 py-1.5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition">🖨 Xem bản in / PDF</button>
+        <button id="btn-exp-rpt-delete" type="button" class="hidden px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-rose-700 hover:bg-rose-600 text-white transition" title="Xóa bản báo cáo đang chọn">🗑 Xóa</button>
+        <button id="btn-exp-rpt-close" type="button" class="allow-readonly px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-700 hover:bg-slate-600 text-white transition">✕ Đóng</button>
+      </div>
+    </div>
+    <div class="bg-slate-800 text-slate-100 px-4 py-2 flex flex-wrap items-center gap-2 border-b border-slate-700 text-xs">
+      <div class="flex items-center gap-1.5 flex-1 min-w-[240px]">
+        <span class="font-semibold text-amber-300 whitespace-nowrap">📂 Bản đã lưu:</span>
+        <select id="exp-rpt-saved-select" class="allow-readonly flex-1 max-w-md bg-slate-900 border border-slate-600 text-white rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-400">
+          <option value="__NEW__">+ Tạo bản giải trình mới từ dữ liệu hiện tại</option>
+        </select>
+      </div>
+      <div class="inline-flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/60 px-2 py-0.5 rounded-lg">
+        <span class="text-amber-300 font-semibold whitespace-nowrap">📆 Năm:</span>
+        <select id="exp-rpt-fiscal" class="allow-readonly bg-slate-900 text-amber-200 font-bold text-[11px] focus:outline-none py-0.5"></select>
+      </div>
+      <div class="inline-flex items-center gap-2 bg-slate-900/80 border border-indigo-400/60 px-2.5 py-1 rounded-lg">
+        <span class="text-indigo-300 font-semibold whitespace-nowrap">📂 Nhóm:</span>
+        <label class="inline-flex items-center gap-1 cursor-pointer text-indigo-200 font-bold text-[11px]"><input id="exp-rpt-grp-new" type="checkbox" checked class="exp-rpt-grp-chk accent-indigo-400 w-3.5 h-3.5" value="new" /><span>🏗️ Triển khai</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer text-teal-200 font-bold text-[11px]"><input id="exp-rpt-grp-maint" type="checkbox" checked class="exp-rpt-grp-chk accent-teal-400 w-3.5 h-3.5" value="maintenance" /><span>🔧 Bảo trì</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer text-amber-200 font-bold text-[11px]"><input id="exp-rpt-grp-co" type="checkbox" checked class="exp-rpt-grp-chk accent-amber-400 w-3.5 h-3.5" value="carryover" /><span>🔄 Tồn đọng</span></label>
+      </div>
+      <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/70 border border-slate-600 px-2 py-1 rounded-lg text-[11px] text-sky-200 font-semibold">
+        <input id="exp-rpt-only-diff" type="checkbox" class="accent-sky-400 w-3.5 h-3.5" />
+        <span>Chỉ hiện DA có chênh lệch</span>
+      </label>
+    </div>
+    <div id="exp-rpt-body" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-700/80"></div>
   </div>
 
   <!-- Delay Warning Letter Modal -->
@@ -8676,6 +8727,770 @@
       });
       document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); else if (_previewVoContext) exportVoProposalWord(_previewVoContext.proj, _previewVoContext.vo); else if (window._previewPrelimHtml) { const b = new Blob(['\ufeff', '<html><head><meta charset="utf-8"></head><body>' + window._previewPrelimHtml + '</body></html>'], { type: 'application/msword;charset=utf-8' }); const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = (window._previewPrelimName || 'Tien_do_so_bo') + '.doc'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } });
       document.getElementById('btn-print-rpt').addEventListener('click', () => window.print());
+
+      // =========================================================================
+      // EDITABLE & SAVABLE BUDGET EXPLANATION REPORT STUDIO (v2.9.25)
+      // =========================================================================
+      let _expDraft = null;
+      let _expActiveId = null;
+
+      function getSavedExplainReports() {
+        const toArr = v => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v).filter(Boolean) : []);
+        state.budgetExplainReports = toArr(state.budgetExplainReports).map(r => ({
+          ...r,
+          projIds: toArr(r.projIds),
+          rows: toArr(r.rows),
+          coRows: toArr(r.coRows),
+          extraNotes: toArr(r.extraNotes)
+        }));
+        return state.budgetExplainReports;
+      }
+
+      function computeExplainReportMetrics(projIds, fiscalFilter, groupKey) {
+        const allowed = getAllowedProjects();
+        const pool = (Array.isArray(projIds) && projIds.length)
+          ? allowed.filter(p => projIds.includes(p.id))
+          : allowed;
+        const atMs = getReportMs();
+        const gSel = resolveBudgetGroupSelection(groupKey || 'all');
+        const mYr = String(fiscalFilter || 'all').match(/^(?:year|budget|carryover):(\d{4})$/);
+        const isYearScoped = Boolean(mYr);
+        let coToYr = mYr ? Number(mYr[1]) : (Number(String(state.reportDate || '2026').slice(0, 4)) || 2026);
+        const coFromYr = coToYr - 1;
+        const entries = pool.map(rawP => {
+          const sp = projectSliceForFiscal(rawP, fiscalFilter || 'all');
+          const st = buildQuickRptProjectStats(sp, atMs);
+          st.rawProj = rawP;
+          return st;
+        });
+
+        const rows = [];
+        const coRows = [];
+        entries.forEach(e => {
+          const rawP = e.rawProj || e.proj;
+          const proj = e.proj;
+          const isMaint = isMaintenanceProject(rawP);
+          const budget = Number(e.totalBudget) || (e.tc ? Number(e.tc.company) : 0) || 0;
+          let deployed = Number(e.totalContracted) || 0;
+          let paid = Number(e.totalPaid) || 0;
+          let submitted = Number(e.subDebt ? e.subDebt.total : 0) || 0;
+          let remaining = Number(e.totalRem) || 0;
+          if (isYearScoped && Array.isArray(proj.contracts) && proj.contracts.some(c => c._fiscalPeriodScoped)) {
+            const curYearContracts = proj.contracts.filter(c => !c._fiscalPeriodScoped);
+            const cM = curYearContracts.map(c => ({ c, m: calcContract(c) }));
+            deployed = cM.reduce((s, x) => s + (Number(x.m.base) || Number(x.c.value) || 0), 0);
+            paid = cM.reduce((s, x) => s + (Number(x.m.paid) || 0), 0);
+            submitted = cM.reduce((s, x) => s + (Number(x.m.submitted) || 0), 0);
+            remaining = cM.reduce((s, x) => s + (Number(x.m.rem) || 0), 0);
+          }
+          const delta = deployed - budget;
+          const signedValSum = (proj.contracts || []).filter(c => !isYearScoped || !c._fiscalPeriodScoped).reduce((s, c) => s + (Number(c.value) || 0), 0);
+          const approvedVos = (proj.vos || []).filter(v => v.status === 'Đã duyệt');
+          const approvedVoSum = approvedVos.reduce((s, v) => s + (Number(v.costImpact) || 0), 0);
+          const curContractsCnt = (proj.contracts || []).filter(c => !isYearScoped || !c._fiscalPeriodScoped).length;
+          const savedProjNote = (mYr && rawP.budgetVarianceNoteByYear && rawP.budgetVarianceNoteByYear[String(mYr[1])])
+            ? String(rawP.budgetVarianceNoteByYear[String(mYr[1])]).trim()
+            : String(rawP.budgetVarianceNote || '').trim();
+          let autoNote = savedProjNote;
+          if (!autoNote) {
+            const pct = budget > 0 ? Math.abs((delta / budget) * 100).toFixed(1) : '';
+            if (budget <= 0 && deployed <= 0) autoNote = 'Chưa phát sinh ngân sách & hợp đồng trong kỳ.';
+            else if (deployed <= 0 && budget > 0) autoNote = 'Chưa ký hợp đồng triển khai trong kỳ (còn nguyên hạn mức duyệt).';
+            else if (budget <= 0 && deployed > 0) autoNote = `Phát sinh ${curContractsCnt} HĐ nhưng chưa nhập hạn mức ngân sách duyệt.`;
+            else if (delta > 1) autoNote = `Vượt ngân sách duyệt +${fmtTy(delta)} (+${pct}%) qua ${curContractsCnt} HĐ${approvedVoSum > 0 ? ` (gồm ${approvedVos.length} VO đã duyệt: +${fmtTy(approvedVoSum)})` : ''}.`;
+            else if (delta < -1) {
+              const settleSave = signedValSum > deployed ? Math.round(signedValSum - deployed) : 0;
+              autoNote = `Giảm / còn dư ${fmtTy(Math.abs(delta))} (−${pct}%) so với ngân sách duyệt${settleSave > 1 ? ` (giảm quyết toán ${fmtTy(settleSave)})` : ''}.`;
+            } else autoNote = 'Thực hiện khớp 100% hạn mức ngân sách duyệt.';
+          }
+          rows.push({
+            projId: rawP.id,
+            code: rawP.code,
+            name: rawP.name,
+            isMaint,
+            groupName: isMaint ? 'Bảo trì' : 'Triển khai mới',
+            budget,
+            deployed,
+            delta,
+            paid,
+            submitted,
+            remaining,
+            explanation: autoNote,
+            recommendation: delta > 1 ? 'Đề xuất điều chuyển/bổ sung hạn mức ngân sách phê duyệt.' : (deployed <= 0 && budget > 0 ? 'Tiếp tục theo dõi kế hoạch đấu thầu/triển khai.' : 'Kiểm soát giải ngân đúng tiến độ hợp đồng.')
+          });
+
+          if (typeof calcYearCarryoverContracts === 'function') {
+            const co = calcYearCarryoverContracts(rawP, coFromYr, coToYr);
+            if (co && co.items && co.items.length) {
+              coRows.push({
+                projId: rawP.id,
+                code: rawP.code,
+                name: rawP.name,
+                contractCount: co.items.length,
+                contractCodes: co.items.map(it => it.c.code).filter(Boolean).join(', '),
+                priorExecuted: co.sumTotalVal,
+                priorPaid: co.sumPaidPrior,
+                priorDebtRemaining: co.sumOpening,
+                paidInTarget: co.sumPaidTarget,
+                remaining: co.sumRemaining,
+                note: co.sumRemaining > 0 ? `Tiếp tục hoàn thiện hồ sơ nghiệm thu/quyết toán để giải ngân trong Năm ${coToYr}.` : `Đã hoàn tất thanh toán công nợ tồn đọng trong Năm ${coToYr}.`
+              });
+            }
+          }
+        });
+        return { rows, coRows, coFromYr, coToYr, gSel, isYearScoped };
+      }
+
+      function buildNewExplainDraft(opts) {
+        const o = opts || {};
+        const fiscalFilter = o.fiscalFilter || 'all';
+        const groupKey = o.groupKey || 'all';
+        const projIds = Array.isArray(o.projIds) && o.projIds.length ? o.projIds : getAllowedProjects().map(p => p.id);
+        const calc = computeExplainReportMetrics(projIds, fiscalFilter, groupKey);
+        const fiscalLbl = getFiscalFilterLabel(fiscalFilter);
+        const todayIso = state.reportDate || new Date().toISOString().slice(0, 10);
+        const [yy, mm, dd] = todayIso.split('-');
+        const visRows = calc.rows.filter(r => (calc.gSel.includeNew && !r.isMaint) || (calc.gSel.includeMaint && r.isMaint));
+        const sBud = visRows.reduce((s, r) => s + r.budget, 0);
+        const sDep = visRows.reduce((s, r) => s + r.deployed, 0);
+        const sPaid = visRows.reduce((s, r) => s + r.paid, 0);
+        const sDelta = sDep - sBud;
+        const sCoRem = calc.coRows.reduce((s, r) => s + r.priorDebtRemaining, 0);
+
+        return {
+          id: null,
+          savedName: `Giải trình NS ${fiscalLbl} (${dd}/${mm}/${yy})`,
+          docNo: `BC-GTNS/${yy || '2026'}/${String(getSavedExplainReports().length + 1).padStart(2, '0')}`,
+          unit: 'KIMTIN GROUP — BAN QLDA ĐẦU TƯ XÂY DỰNG',
+          dateLine: `Ngày ${dd || '01'} tháng ${mm || '01'} năm ${yy || '2026'}`,
+          title: `BÁO CÁO GIẢI TRÌNH NGÂN SÁCH TĂNG / GIẢM & CÔNG NỢ TỒN ĐỌNG${fiscalFilter !== 'all' ? ' — ' + fiscalLbl.toUpperCase() : ''}`,
+          recipient: 'Ban Tổng Giám đốc Tập đoàn Kim Tín',
+          fiscalFilter,
+          groupKey,
+          onlyDiff: false,
+          projIds,
+          intro: `Căn cứ kế hoạch ngân sách duyệt và tình hình thực hiện hợp đồng (${fiscalLbl}), Ban QLDA tổng hợp báo cáo giải trình chi tiết biến động tăng/giảm ngân sách trên ${visRows.length} dự án:\n• Tổng ngân sách duyệt: ${fmtTy(sBud)} | Tổng thực hiện (HĐ/QT): ${fmtTy(sDep)} | Chênh lệch (TH − NS): ${sDelta >= 0 ? '+' : '−'}${fmtTy(Math.abs(sDelta))}.\n• Tổng đã giải ngân: ${fmtTy(sPaid)}${calc.gSel.includeCo && sCoRem > 0 ? ` | Công nợ kỳ trước (${calc.coFromYr}→${calc.coToYr}) còn lại chuyển sang: ${fmtTy(sCoRem)}` : ''}.`,
+          rows: calc.rows,
+          coRows: calc.coRows,
+          extraNotes: [],
+          coFromYr: calc.coFromYr,
+          coToYr: calc.coToYr,
+          conclusion: `Kính trình Ban Tổng Giám đốc xem xét, phê duyệt các nội dung giải trình tăng/giảm ngân sách và kế hoạch giải ngân công nợ tồn đọng nêu trên để Ban QLDA làm cơ sở triển khai các bước tiếp theo.`,
+          signerLeft: 'Người lập báo cáo',
+          signerLeftName: (getActiveProject() && getActiveProject().pmName) || 'Ban QLDA Đầu tư Xây dựng',
+          signerMid: 'Kiểm soát chi phí / Kế toán',
+          signerMidName: 'Phòng Tài chính - Kế toán',
+          signerRight: 'Phê duyệt',
+          signerRightName: 'Ban Tổng Giám đốc',
+          updatedAt: ''
+        };
+      }
+
+      function populateExplainSavedSelect() {
+        const sel = document.getElementById('exp-rpt-saved-select');
+        if (!sel) return;
+        const list = getSavedExplainReports();
+        sel.innerHTML = `<option value="__NEW__">+ Tạo bản giải trình mới từ dữ liệu hiện tại</option>` +
+          list.map(r => `<option value="${esc(r.id)}" ${r.id === _expActiveId ? 'selected' : ''}>📄 ${esc(r.savedName || r.title)} • ${esc(getFiscalFilterLabel(r.fiscalFilter || 'all'))}${r.updatedAt ? ' (' + esc(r.updatedAt) + ')' : ''}</option>`).join('');
+        sel.value = _expActiveId && list.some(r => r.id === _expActiveId) ? _expActiveId : '__NEW__';
+        const delBtn = document.getElementById('btn-exp-rpt-delete');
+        if (delBtn) delBtn.classList.toggle('hidden', !_expActiveId);
+      }
+
+      function syncExplainDraftFromDom() {
+        if (!_expDraft) return;
+        const val = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
+        const sName = val('exp-inp-savedname'); if (sName !== undefined) _expDraft.savedName = sName;
+        const docNo = val('exp-inp-docno'); if (docNo !== undefined) _expDraft.docNo = docNo;
+        const unit = val('exp-inp-unit'); if (unit !== undefined) _expDraft.unit = unit;
+        const dateLine = val('exp-inp-dateline'); if (dateLine !== undefined) _expDraft.dateLine = dateLine;
+        const title = val('exp-inp-title'); if (title !== undefined) _expDraft.title = title;
+        const recipient = val('exp-inp-recipient'); if (recipient !== undefined) _expDraft.recipient = recipient;
+        const intro = val('exp-inp-intro'); if (intro !== undefined) _expDraft.intro = intro;
+        const concl = val('exp-inp-conclusion'); if (concl !== undefined) _expDraft.conclusion = concl;
+        ['Left', 'Mid', 'Right'].forEach(k => {
+          const t = val('exp-inp-sig-' + k.toLowerCase()); if (t !== undefined) _expDraft['signer' + k] = t;
+          const n = val('exp-inp-signame-' + k.toLowerCase()); if (n !== undefined) _expDraft['signer' + k + 'Name'] = n;
+        });
+        document.querySelectorAll('[data-exp-row-pid]').forEach(el => {
+          const pid = el.dataset.expRowPid;
+          const field = el.dataset.expRowField;
+          const row = (_expDraft.rows || []).find(r => String(r.projId) === String(pid));
+          if (row && field) row[field] = el.value;
+        });
+        document.querySelectorAll('[data-exp-co-pid]').forEach(el => {
+          const pid = el.dataset.expCoPid;
+          const row = (_expDraft.coRows || []).find(r => String(r.projId) === String(pid));
+          if (row) row.note = el.value;
+        });
+        document.querySelectorAll('[data-exp-extra-idx]').forEach(el => {
+          const idx = Number(el.dataset.expExtraIdx);
+          const field = el.dataset.expExtraField;
+          if (_expDraft.extraNotes && _expDraft.extraNotes[idx] && field) _expDraft.extraNotes[idx][field] = el.value;
+        });
+      }
+
+      function buildExplainReportPrintableHtml(draft) {
+        const gSel = resolveBudgetGroupSelection(draft.groupKey || 'all');
+        const visRows = (draft.rows || []).filter(r => {
+          if (!((gSel.includeNew && !r.isMaint) || (gSel.includeMaint && r.isMaint))) return false;
+          if (draft.onlyDiff && Math.abs(r.delta) <= 1) return false;
+          return true;
+        });
+        const newR = visRows.filter(r => !r.isMaint);
+        const maintR = visRows.filter(r => r.isMaint);
+        const coR = draft.coRows || [];
+        const sum = list => list.reduce((a, x) => {
+          a.budget += Number(x.budget) || 0;
+          a.deployed += Number(x.deployed) || 0;
+          a.paid += Number(x.paid) || 0;
+          a.submitted += Number(x.submitted) || 0;
+          a.remaining += Number(x.remaining) || 0;
+          a.priorExecuted += Number(x.priorExecuted) || 0;
+          a.priorPaid += Number(x.priorPaid) || 0;
+          a.priorDebtRemaining += Number(x.priorDebtRemaining) || 0;
+          a.paidInTarget += Number(x.paidInTarget) || 0;
+          return a;
+        }, { budget: 0, deployed: 0, paid: 0, submitted: 0, remaining: 0, priorExecuted: 0, priorPaid: 0, priorDebtRemaining: 0, paidInTarget: 0 });
+
+        const tNew = sum(newR), tMaint = sum(maintR), tVis = sum(visRows), tCo = sum(coR);
+        const totDelta = tVis.deployed - tVis.budget;
+        const nl2br = s => esc(s || '').replace(/\n/g, '<br/>');
+
+        return `
+          <div class="rpt-page" style="padding:14mm;background:#fff;margin:0 auto 18px auto;font-family:Inter,Arial,sans-serif;color:#0f172a;font-size:10px;line-height:1.45;">
+            <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #0f172a;margin-bottom:10px;">
+              <tr>
+                <td style="padding-bottom:6px;vertical-align:top;">
+                  <div style="font-size:11px;font-weight:800;color:#1e3a8a;text-transform:uppercase;">${esc(draft.unit)}</div>
+                  <div style="font-size:9.5px;color:#475569;margin-top:2px;">Số: <strong>${esc(draft.docNo)}</strong></div>
+                </td>
+                <td style="padding-bottom:6px;text-align:right;vertical-align:top;">
+                  <div style="font-size:10px;font-weight:700;color:#0f172a;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                  <div style="font-size:9.5px;color:#475569;font-style:italic;margin-top:2px;">${esc(draft.dateLine)}</div>
+                </td>
+              </tr>
+            </table>
+            <div style="text-align:center;margin:8px 0 10px;">
+              <h1 style="font-size:15px;font-weight:900;color:#0f172a;margin:0;text-transform:uppercase;">${esc(draft.title)}</h1>
+              <div style="font-size:10px;color:#334155;margin-top:4px;"><strong>Kính gửi:</strong> ${esc(draft.recipient)}</div>
+            </div>
+
+            <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 4px;">I. Tóm tắt Điều hành &amp; Nhận xét chung</div>
+            <div style="padding:8px 10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:10px;font-size:9.5px;">${nl2br(draft.intro)}</div>
+
+            <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 4px;">II. Tổng quan 5 chỉ số &amp; Phân loại theo Nhóm (${esc(gSel.label)})</div>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:8px;border:1px solid #cbd5e1;">
+              <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:5px;text-align:right;">Ngân sách</th><th style="padding:5px;text-align:right;">Thực hiện</th><th style="padding:5px;text-align:right;">Giải ngân</th><th style="padding:5px;text-align:right;">Công nợ đang trình</th><th style="padding:5px;text-align:right;">Còn lại</th></tr></thead>
+              <tbody>
+                <tr style="font-weight:800;font-size:10.5px;"><td style="padding:6px;text-align:right;">${fmtTy(tVis.budget)}</td><td style="padding:6px;text-align:right;color:#1d4ed8;">${fmtTy(tVis.deployed)}</td><td style="padding:6px;text-align:right;color:#047857;">${fmtTy(tVis.paid)}</td><td style="padding:6px;text-align:right;color:#be123c;">${fmtTy(tVis.submitted)}</td><td style="padding:6px;text-align:right;color:#b45309;">${fmtTy(tVis.remaining)}</td></tr>
+              </tbody>
+            </table>
+            <table style="width:100%;border-collapse:collapse;font-size:8.6px;margin-bottom:10px;border:1px solid #cbd5e1;">
+              <thead><tr style="background:#1e3a8a;color:#fff;"><th style="padding:4.5px;text-align:left;">Nhóm Ngân sách</th><th style="padding:4.5px;text-align:center;">Số DA</th><th style="padding:4.5px;text-align:right;">Ngân sách</th><th style="padding:4.5px;text-align:right;">Thực hiện</th><th style="padding:4.5px;text-align:right;">Tăng / Giảm (TH − NS)</th><th style="padding:4.5px;text-align:right;">Giải ngân</th><th style="padding:4.5px;text-align:right;">Còn lại</th></tr></thead>
+              <tbody>
+                <tr style="background:#fef08a;font-weight:800;border-bottom:2px solid #0f172a;"><td style="padding:5px;">Σ TỔNG CỘNG</td><td style="padding:5px;text-align:center;">${visRows.length}</td><td style="padding:5px;text-align:right;">${fmtTy(tVis.budget)}</td><td style="padding:5px;text-align:right;color:#1d4ed8;">${fmtTy(tVis.deployed)}</td><td style="padding:5px;text-align:right;color:${totDelta > 1 ? '#be123c' : '#047857'};">${totDelta > 1 ? '+' : (totDelta < -1 ? '−' : '')}${fmtTy(Math.abs(totDelta))}</td><td style="padding:5px;text-align:right;color:#047857;">${fmtTy(tVis.paid)}</td><td style="padding:5px;text-align:right;color:#b45309;">${fmtTy(tVis.remaining)}</td></tr>
+                ${gSel.includeNew ? `<tr style="border-bottom:1px solid #e2e8f0;background:#eef2ff;"><td style="padding:4.5px;font-weight:700;color:#1e3a8a;">1. Ngân sách Triển khai mới</td><td style="padding:4.5px;text-align:center;">${newR.length}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tNew.budget)}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tNew.deployed)}</td><td style="padding:4.5px;text-align:right;font-weight:700;color:${tNew.deployed - tNew.budget > 1 ? '#be123c' : '#047857'};">${tNew.deployed - tNew.budget > 1 ? '+' : (tNew.deployed - tNew.budget < -1 ? '−' : '')}${fmtTy(Math.abs(tNew.deployed - tNew.budget))}</td><td style="padding:4.5px;text-align:right;color:#047857;">${fmtTy(tNew.paid)}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tNew.remaining)}</td></tr>` : ''}
+                ${gSel.includeMaint ? `<tr style="border-bottom:1px solid #e2e8f0;background:#f0fdfa;"><td style="padding:4.5px;font-weight:700;color:#115e59;">2. Ngân sách Bảo trì</td><td style="padding:4.5px;text-align:center;">${maintR.length}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tMaint.budget)}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tMaint.deployed)}</td><td style="padding:4.5px;text-align:right;font-weight:700;color:${tMaint.deployed - tMaint.budget > 1 ? '#be123c' : '#047857'};">${tMaint.deployed - tMaint.budget > 1 ? '+' : (tMaint.deployed - tMaint.budget < -1 ? '−' : '')}${fmtTy(Math.abs(tMaint.deployed - tMaint.budget))}</td><td style="padding:4.5px;text-align:right;color:#047857;">${fmtTy(tMaint.paid)}</td><td style="padding:4.5px;text-align:right;">${fmtTy(tMaint.remaining)}</td></tr>` : ''}
+              </tbody>
+            </table>
+
+            <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 4px;">III. Giải trình Chi tiết Ngân sách Tăng / Giảm theo từng Dự án (${visRows.length} dự án)</div>
+            <table style="width:100%;border-collapse:collapse;font-size:8.4px;margin-bottom:10px;border:1px solid #cbd5e1;">
+              <thead>
+                <tr style="background:#0f172a;color:#fff;">
+                  <th style="padding:4.5px;text-align:center;width:4%;">STT</th>
+                  <th style="padding:4.5px;text-align:left;width:20%;">Mã &amp; Tên Dự án</th>
+                  <th style="padding:4.5px;text-align:right;width:12%;">Ngân sách</th>
+                  <th style="padding:4.5px;text-align:right;width:12%;">Thực hiện</th>
+                  <th style="padding:4.5px;text-align:right;width:12%;">Tăng / Giảm</th>
+                  <th style="padding:4.5px;text-align:left;width:23%;">Nội dung giải trình nguyên nhân</th>
+                  <th style="padding:4.5px;text-align:left;width:17%;">Đề xuất / Hướng xử lý</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#fef08a;font-weight:800;border-bottom:2px solid #0f172a;">
+                  <td colspan="2" style="padding:5px;">Σ TỔNG CỘNG (${visRows.length} DỰ ÁN)</td>
+                  <td style="padding:5px;text-align:right;">${fmtTy(tVis.budget)}</td>
+                  <td style="padding:5px;text-align:right;color:#1d4ed8;">${fmtTy(tVis.deployed)}</td>
+                  <td style="padding:5px;text-align:right;color:${totDelta > 1 ? '#be123c' : '#047857'};">${totDelta > 1 ? '+' : (totDelta < -1 ? '−' : '')}${fmtTy(Math.abs(totDelta))}</td>
+                  <td colspan="2" style="padding:5px;"></td>
+                </tr>
+                ${visRows.map((r, i) => `
+                  <tr style="border-bottom:1px solid #e2e8f0;">
+                    <td style="padding:4px;text-align:center;font-weight:700;">${i + 1}</td>
+                    <td style="padding:4px;"><strong>${esc(r.code)}</strong> — ${esc(r.name)}<div style="font-size:7.5px;color:#64748b;">${esc(r.groupName)}</div></td>
+                    <td style="padding:4px;text-align:right;">${fmtTy(r.budget)}</td>
+                    <td style="padding:4px;text-align:right;font-weight:600;">${fmtTy(r.deployed)}</td>
+                    <td style="padding:4px;text-align:right;font-weight:800;color:${r.delta > 1 ? '#be123c' : '#047857'};">${r.delta > 1 ? '▲ +' : (r.delta < -1 ? '▼ −' : '')}${fmtTy(Math.abs(r.delta))}</td>
+                    <td style="padding:4px;">${nl2br(r.explanation)}</td>
+                    <td style="padding:4px;color:#334155;">${nl2br(r.recommendation)}</td>
+                  </tr>`).join('')}
+                ${(draft.extraNotes || []).map((ex, i) => `
+                  <tr style="border-bottom:1px solid #e2e8f0;background:#fffbeb;">
+                    <td style="padding:4px;text-align:center;font-weight:700;">+</td>
+                    <td colspan="4" style="padding:4px;font-weight:700;">${esc(ex.title || 'Mục giải trình bổ sung ' + (i + 1))}</td>
+                    <td style="padding:4px;">${nl2br(ex.detail)}</td>
+                    <td style="padding:4px;">${nl2br(ex.action)}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+
+            ${gSel.includeCo ? `
+              <div style="font-size:10.5px;font-weight:800;color:#92400e;text-transform:uppercase;margin:8px 0 4px;">IV. Công nợ Tồn đọng Kỳ trước chuyển sang (Năm ${draft.coFromYr} → Năm ${draft.coToYr})</div>
+              <table style="width:100%;border-collapse:collapse;font-size:8.4px;margin-bottom:10px;border:1px solid #fcd34d;">
+                <thead>
+                  <tr style="background:#92400e;color:#fff;">
+                    <th style="padding:4.5px;text-align:left;">Dự án &amp; HĐ tồn</th>
+                    <th style="padding:4.5px;text-align:right;">Giá trị thực hiện kỳ trước</th>
+                    <th style="padding:4.5px;text-align:right;">Giá trị đã thanh toán kỳ trước</th>
+                    <th style="padding:4.5px;text-align:right;">Công nợ kỳ trước còn lại</th>
+                    <th style="padding:4.5px;text-align:right;">Đã TT trong kỳ</th>
+                    <th style="padding:4.5px;text-align:right;">Còn lại phải TT</th>
+                    <th style="padding:4.5px;text-align:left;">Giải trình / Kế hoạch TT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${coR.length ? `<tr style="background:#fef3c7;font-weight:800;border-bottom:2px solid #92400e;">
+                    <td style="padding:5px;">Σ TỔNG CỘNG (${coR.length} DA)</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(tCo.priorExecuted)}</td>
+                    <td style="padding:5px;text-align:right;color:#0369a1;">${fmtTy(tCo.priorPaid)}</td>
+                    <td style="padding:5px;text-align:right;color:#92400e;">${fmtTy(tCo.priorDebtRemaining)}</td>
+                    <td style="padding:5px;text-align:right;color:#047857;">${fmtTy(tCo.paidInTarget)}</td>
+                    <td style="padding:5px;text-align:right;color:#be123c;">${fmtTy(tCo.remaining)}</td>
+                    <td></td>
+                  </tr>` + coR.map(c => `
+                    <tr style="border-bottom:1px solid #fde68a;">
+                      <td style="padding:4px;"><strong>${esc(c.code)}</strong> — ${esc(c.name)}<div style="font-size:7.5px;color:#92400e;">HĐ: ${esc(c.contractCodes)}</div></td>
+                      <td style="padding:4px;text-align:right;">${fmtTy(c.priorExecuted)}</td>
+                      <td style="padding:4px;text-align:right;color:#0369a1;">${fmtTy(c.priorPaid)}</td>
+                      <td style="padding:4px;text-align:right;font-weight:700;color:#92400e;">${fmtTy(c.priorDebtRemaining)}</td>
+                      <td style="padding:4px;text-align:right;color:#047857;">${fmtTy(c.paidInTarget)}</td>
+                      <td style="padding:4px;text-align:right;font-weight:700;color:#be123c;">${fmtTy(c.remaining)}</td>
+                      <td style="padding:4px;">${nl2br(c.note)}</td>
+                    </tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Không có công nợ tồn đọng kỳ trước.</td></tr>`}
+                </tbody>
+              </table>` : ''}
+
+            <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 4px;">${gSel.includeCo ? 'V' : 'IV'}. Kiến nghị &amp; Đề xuất Phê duyệt</div>
+            <div style="padding:8px 10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:16px;font-size:9.5px;">${nl2br(draft.conclusion)}</div>
+
+            <table style="width:100%;border-collapse:collapse;text-align:center;font-size:9.5px;margin-top:12px;">
+              <tr>
+                <td style="width:33.3%;vertical-align:top;"><div style="font-weight:800;text-transform:uppercase;">${esc(draft.signerLeft)}</div><div style="height:48px;"></div><div style="font-weight:700;">${esc(draft.signerLeftName)}</div></td>
+                <td style="width:33.3%;vertical-align:top;"><div style="font-weight:800;text-transform:uppercase;">${esc(draft.signerMid)}</div><div style="height:48px;"></div><div style="font-weight:700;">${esc(draft.signerMidName)}</div></td>
+                <td style="width:33.3%;vertical-align:top;"><div style="font-weight:800;text-transform:uppercase;">${esc(draft.signerRight)}</div><div style="height:48px;"></div><div style="font-weight:700;">${esc(draft.signerRightName)}</div></td>
+              </tr>
+            </table>
+          </div>`;
+      }
+
+      function renderExplainReportEditor() {
+        const body = document.getElementById('exp-rpt-body');
+        if (!body || !_expDraft) return;
+        const d = _expDraft;
+        const gSel = resolveBudgetGroupSelection(d.groupKey || 'all');
+        const visRows = (d.rows || []).filter(r => {
+          if (!((gSel.includeNew && !r.isMaint) || (gSel.includeMaint && r.isMaint))) return false;
+          if (d.onlyDiff && Math.abs(r.delta) <= 1) return false;
+          return true;
+        });
+        const sBud = visRows.reduce((s, r) => s + r.budget, 0);
+        const sDep = visRows.reduce((s, r) => s + r.deployed, 0);
+        const sPaid = visRows.reduce((s, r) => s + r.paid, 0);
+        const sSub = visRows.reduce((s, r) => s + r.submitted, 0);
+        const sRem = visRows.reduce((s, r) => s + r.remaining, 0);
+        const sDelta = sDep - sBud;
+        const coR = d.coRows || [];
+        const tCoExec = coR.reduce((s, x) => s + x.priorExecuted, 0);
+        const tCoPaidP = coR.reduce((s, x) => s + x.priorPaid, 0);
+        const tCoOpen = coR.reduce((s, x) => s + x.priorDebtRemaining, 0);
+        const tCoPaidT = coR.reduce((s, x) => s + x.paidInTarget, 0);
+        const tCoRem = coR.reduce((s, x) => s + x.remaining, 0);
+
+        const badge = document.getElementById('exp-rpt-status-badge');
+        if (badge) {
+          badge.textContent = _expActiveId ? `✓ Đã lưu • ${d.updatedAt || 'Vừa lưu'}` : 'Bản nháp chưa lưu';
+        }
+        const fSel = document.getElementById('exp-rpt-fiscal');
+        if (fSel) {
+          fSel.innerHTML = buildFiscalFilterOptions(getAllowedProjects(), d.fiscalFilter || 'all');
+          fSel.value = d.fiscalFilter || 'all';
+        }
+        const gN = document.getElementById('exp-rpt-grp-new'); if (gN) gN.checked = gSel.includeNew;
+        const gM = document.getElementById('exp-rpt-grp-maint'); if (gM) gM.checked = gSel.includeMaint;
+        const gC = document.getElementById('exp-rpt-grp-co'); if (gC) gC.checked = gSel.includeCo;
+        const oD = document.getElementById('exp-rpt-only-diff'); if (oD) oD.checked = Boolean(d.onlyDiff);
+
+        body.innerHTML = `
+          <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-5 text-slate-900">
+            <div class="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200">
+              <label for="exp-inp-savedname" class="text-xs font-bold text-indigo-900 whitespace-nowrap">🏷 Tên bản lưu:</label>
+              <input id="exp-inp-savedname" type="text" value="${esc(d.savedName || '')}" class="flex-1 text-xs font-bold border border-indigo-300 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Đặt tên để mở lại chỉnh sửa sau..." />
+              <span class="text-[11px] text-indigo-700">Bấm <strong>💾 Lưu bản báo cáo</strong> để lưu vào hệ thống &amp; Cloud Sync</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 border-b-2 border-slate-900">
+              <div class="space-y-1.5">
+                <input id="exp-inp-unit" type="text" value="${esc(d.unit)}" class="w-full text-xs font-extrabold text-blue-900 uppercase border border-slate-200 hover:border-indigo-300 focus:border-indigo-500 rounded-lg px-2.5 py-1 bg-slate-50 focus:bg-white" />
+                <div class="flex items-center gap-1.5 text-xs">
+                  <span class="text-slate-500 whitespace-nowrap">Số BC:</span>
+                  <input id="exp-inp-docno" type="text" value="${esc(d.docNo)}" class="w-44 text-xs font-bold border border-slate-200 rounded-lg px-2 py-1 bg-slate-50 focus:bg-white" />
+                </div>
+              </div>
+              <div class="space-y-1.5 md:text-right">
+                <div class="text-xs font-extrabold text-slate-900 uppercase pt-1">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                <input id="exp-inp-dateline" type="text" value="${esc(d.dateLine)}" class="w-full md:w-64 md:ml-auto text-xs italic text-slate-600 border border-slate-200 rounded-lg px-2 py-1 bg-slate-50 focus:bg-white md:text-right" />
+              </div>
+            </div>
+
+            <div class="space-y-2 text-center">
+              <input id="exp-inp-title" type="text" value="${esc(d.title)}" class="w-full text-center text-base sm:text-lg font-black text-slate-900 uppercase border border-slate-200 hover:border-indigo-300 focus:border-indigo-500 rounded-xl px-3 py-2 bg-slate-50/70 focus:bg-white" />
+              <div class="flex items-center justify-center gap-2 max-w-xl mx-auto">
+                <span class="text-xs font-bold text-slate-600 whitespace-nowrap">Kính gửi:</span>
+                <input id="exp-inp-recipient" type="text" value="${esc(d.recipient)}" class="flex-1 text-xs font-semibold border border-slate-200 rounded-lg px-2.5 py-1 bg-slate-50 focus:bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xs font-extrabold text-blue-900 uppercase mb-1.5">I. Tóm tắt Điều hành &amp; Nhận xét chung (Chỉnh sửa trực tiếp)</h3>
+              <textarea id="exp-inp-intro" rows="3" class="w-full text-xs leading-relaxed border border-slate-300 focus:border-indigo-500 rounded-xl p-3 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-200">${esc(d.intro)}</textarea>
+            </div>
+
+            <div>
+              <h3 class="text-xs font-extrabold text-blue-900 uppercase mb-1.5">II. Tổng quan 5 chỉ số (${esc(gSel.label)})</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-xs border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-900 text-white">
+                      <th class="p-2 text-right">Ngân sách</th>
+                      <th class="p-2 text-right">Thực hiện</th>
+                      <th class="p-2 text-right">Giải ngân</th>
+                      <th class="p-2 text-right">Công nợ đang trình</th>
+                      <th class="p-2 text-right">Còn lại</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="font-extrabold text-sm">
+                      <td class="p-2.5 text-right text-slate-900">${fmtTy(sBud)}</td>
+                      <td class="p-2.5 text-right text-blue-700">${fmtTy(sDep)}</td>
+                      <td class="p-2.5 text-right text-emerald-700">${fmtTy(sPaid)}</td>
+                      <td class="p-2.5 text-right text-rose-700">${fmtTy(sSub)}</td>
+                      <td class="p-2.5 text-right text-amber-700">${fmtTy(sRem)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <h3 class="text-xs font-extrabold text-blue-900 uppercase">III. Bảng Giải trình Ngân sách Tăng / Giảm theo từng Dự án (${visRows.length} dự án)</h3>
+                <button id="btn-exp-add-extra" type="button" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300">+ Thêm dòng giải trình bổ sung</button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-xs border border-slate-300">
+                  <thead>
+                    <tr class="bg-slate-900 text-white text-[11px]">
+                      <th class="p-2 text-center w-8">STT</th>
+                      <th class="p-2 text-left min-w-[160px]">Mã &amp; Tên Dự án</th>
+                      <th class="p-2 text-right whitespace-nowrap">Ngân sách</th>
+                      <th class="p-2 text-right whitespace-nowrap">Thực hiện</th>
+                      <th class="p-2 text-right whitespace-nowrap">Tăng / Giảm</th>
+                      <th class="p-2 text-left min-w-[230px]">Nội dung giải trình (Gõ sửa trực tiếp)</th>
+                      <th class="p-2 text-left min-w-[170px]">Đề xuất / Hướng xử lý</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    <tr class="bg-amber-100/90 font-extrabold border-b-2 border-slate-700">
+                      <td colspan="2" class="p-2">Σ TỔNG CỘNG (${visRows.length} DỰ ÁN)</td>
+                      <td class="p-2 text-right whitespace-nowrap">${fmtTy(sBud)}</td>
+                      <td class="p-2 text-right text-blue-700 whitespace-nowrap">${fmtTy(sDep)}</td>
+                      <td class="p-2 text-right whitespace-nowrap ${sDelta > 1 ? 'text-rose-700' : 'text-emerald-700'}">${sDelta > 1 ? '▲ +' : (sDelta < -1 ? '▼ −' : '')}${fmtTy(Math.abs(sDelta))}</td>
+                      <td colspan="2" class="p-2 text-[11px] font-semibold text-slate-600">Chỉnh sửa nội dung từng dự án bên dưới rồi bấm Lưu</td>
+                    </tr>
+                    ${visRows.map((r, i) => `
+                      <tr class="hover:bg-slate-50/70 align-top">
+                        <td class="p-2 text-center font-bold text-slate-600">${i + 1}</td>
+                        <td class="p-2">
+                          <div class="font-bold text-slate-900">${esc(r.code)} — ${esc(r.name)}</div>
+                          <span class="inline-block mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${r.isMaint ? 'bg-teal-100 text-teal-800' : 'bg-indigo-100 text-indigo-800'}">${esc(r.groupName)}</span>
+                        </td>
+                        <td class="p-2 text-right whitespace-nowrap">${fmtTy(r.budget)}</td>
+                        <td class="p-2 text-right font-semibold whitespace-nowrap">${fmtTy(r.deployed)}</td>
+                        <td class="p-2 text-right font-extrabold whitespace-nowrap ${r.delta > 1 ? 'text-rose-700' : 'text-emerald-700'}">${r.delta > 1 ? '▲ +' : (r.delta < -1 ? '▼ −' : '')}${fmtTy(Math.abs(r.delta))}</td>
+                        <td class="p-1.5"><textarea rows="2" data-exp-row-pid="${esc(r.projId)}" data-exp-row-field="explanation" class="w-full text-xs border border-slate-200 focus:border-indigo-500 rounded-lg p-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-300">${esc(r.explanation)}</textarea></td>
+                        <td class="p-1.5"><textarea rows="2" data-exp-row-pid="${esc(r.projId)}" data-exp-row-field="recommendation" class="w-full text-xs border border-slate-200 focus:border-indigo-500 rounded-lg p-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-300">${esc(r.recommendation)}</textarea></td>
+                      </tr>`).join('')}
+                    ${(d.extraNotes || []).map((ex, idx) => `
+                      <tr class="bg-amber-50/40 align-top">
+                        <td class="p-2 text-center"><button type="button" data-exp-del-extra="${idx}" class="text-rose-600 font-bold hover:underline" title="Xóa dòng này">✕</button></td>
+                        <td colspan="4" class="p-1.5"><input type="text" value="${esc(ex.title || '')}" data-exp-extra-idx="${idx}" data-exp-extra-field="title" placeholder="Tiêu đề mục giải trình bổ sung..." class="w-full text-xs font-bold border border-amber-300 rounded-lg px-2 py-1.5 bg-white" /></td>
+                        <td class="p-1.5"><textarea rows="2" data-exp-extra-idx="${idx}" data-exp-extra-field="detail" placeholder="Nội dung giải trình..." class="w-full text-xs border border-amber-300 rounded-lg p-1.5 bg-white">${esc(ex.detail || '')}</textarea></td>
+                        <td class="p-1.5"><textarea rows="2" data-exp-extra-idx="${idx}" data-exp-extra-field="action" placeholder="Đề xuất xử lý..." class="w-full text-xs border border-amber-300 rounded-lg p-1.5 bg-white">${esc(ex.action || '')}</textarea></td>
+                      </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            ${gSel.includeCo ? `
+              <div>
+                <h3 class="text-xs font-extrabold text-amber-900 uppercase mb-1.5">IV. Công nợ Tồn đọng Kỳ trước chuyển sang (Năm ${d.coFromYr} → Năm ${d.coToYr})</h3>
+                <div class="overflow-x-auto">
+                  <table class="w-full border-collapse text-xs border border-amber-300">
+                    <thead>
+                      <tr class="bg-amber-800 text-white text-[11px]">
+                        <th class="p-2 text-left">Dự án &amp; HĐ tồn</th>
+                        <th class="p-2 text-right whitespace-nowrap">Giá trị thực hiện kỳ trước</th>
+                        <th class="p-2 text-right whitespace-nowrap">Giá trị đã thanh toán kỳ trước</th>
+                        <th class="p-2 text-right whitespace-nowrap">Công nợ kỳ trước còn lại</th>
+                        <th class="p-2 text-right whitespace-nowrap">Đã TT trong kỳ</th>
+                        <th class="p-2 text-right whitespace-nowrap">Còn lại phải TT</th>
+                        <th class="p-2 text-left min-w-[200px]">Giải trình / Kế hoạch thanh toán</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-amber-100">
+                      ${coR.length ? `<tr class="bg-amber-100 font-extrabold border-b-2 border-amber-600">
+                        <td class="p-2">Σ TỔNG CỘNG (${coR.length} DA)</td>
+                        <td class="p-2 text-right whitespace-nowrap">${fmtTy(tCoExec)}</td>
+                        <td class="p-2 text-right text-sky-800 whitespace-nowrap">${fmtTy(tCoPaidP)}</td>
+                        <td class="p-2 text-right text-amber-900 whitespace-nowrap">${fmtTy(tCoOpen)}</td>
+                        <td class="p-2 text-right text-emerald-700 whitespace-nowrap">${fmtTy(tCoPaidT)}</td>
+                        <td class="p-2 text-right text-rose-700 whitespace-nowrap">${fmtTy(tCoRem)}</td>
+                        <td></td>
+                      </tr>` + coR.map(c => `
+                        <tr class="align-top">
+                          <td class="p-2"><div class="font-bold">${esc(c.code)} — ${esc(c.name)}</div><div class="text-[10.5px] text-amber-800">HĐ: ${esc(c.contractCodes)}</div></td>
+                          <td class="p-2 text-right whitespace-nowrap">${fmtTy(c.priorExecuted)}</td>
+                          <td class="p-2 text-right text-sky-800 whitespace-nowrap">${fmtTy(c.priorPaid)}</td>
+                          <td class="p-2 text-right font-bold text-amber-900 whitespace-nowrap">${fmtTy(c.priorDebtRemaining)}</td>
+                          <td class="p-2 text-right text-emerald-700 whitespace-nowrap">${fmtTy(c.paidInTarget)}</td>
+                          <td class="p-2 text-right font-bold text-rose-700 whitespace-nowrap">${fmtTy(c.remaining)}</td>
+                          <td class="p-1.5"><textarea rows="2" data-exp-co-pid="${esc(c.projId)}" class="w-full text-xs border border-amber-200 focus:border-amber-500 rounded-lg p-1.5 bg-white">${esc(c.note || '')}</textarea></td>
+                        </tr>`).join('') : `<tr><td colspan="7" class="p-4 text-center text-slate-400">Không có công nợ tồn đọng kỳ trước.</td></tr>`}
+                    </tbody>
+                  </table>
+                </div>
+              </div>` : ''}
+
+            <div>
+              <h3 class="text-xs font-extrabold text-blue-900 uppercase mb-1.5">${gSel.includeCo ? 'V' : 'IV'}. Kiến nghị &amp; Đề xuất Phê duyệt</h3>
+              <textarea id="exp-inp-conclusion" rows="3" class="w-full text-xs leading-relaxed border border-slate-300 focus:border-indigo-500 rounded-xl p-3 bg-slate-50/60 focus:bg-white">${esc(d.conclusion)}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-200 text-center">
+              ${[['left', d.signerLeft, d.signerLeftName], ['mid', d.signerMid, d.signerMidName], ['right', d.signerRight, d.signerRightName]].map(([k, roleTxt, nameTxt]) => `
+                <div class="space-y-1.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <input id="exp-inp-sig-${k}" type="text" value="${esc(roleTxt)}" class="w-full text-center text-xs font-bold uppercase border border-slate-200 rounded-lg px-2 py-1 bg-white" />
+                  <input id="exp-inp-signame-${k}" type="text" value="${esc(nameTxt)}" class="w-full text-center text-xs font-semibold text-slate-700 border border-slate-200 rounded-lg px-2 py-1 bg-white" />
+                </div>`).join('')}
+            </div>
+          </div>`;
+
+        document.getElementById('btn-exp-add-extra')?.addEventListener('click', () => {
+          syncExplainDraftFromDom();
+          _expDraft.extraNotes = _expDraft.extraNotes || [];
+          _expDraft.extraNotes.push({ title: '', detail: '', action: '' });
+          renderExplainReportEditor();
+        });
+        body.querySelectorAll('[data-exp-del-extra]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            syncExplainDraftFromDom();
+            const idx = Number(btn.dataset.expDelExtra);
+            if (_expDraft.extraNotes) _expDraft.extraNotes.splice(idx, 1);
+            renderExplainReportEditor();
+          });
+        });
+      }
+
+      function saveCurrentExplainDraft(forceNew) {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        const list = getSavedExplainReports();
+        const nowStr = new Date().toLocaleString('vi-VN', { hour12: false });
+        const copy = JSON.parse(JSON.stringify(_expDraft));
+        copy.updatedAt = nowStr;
+        if (forceNew || !_expActiveId || !list.some(r => r.id === _expActiveId)) {
+          copy.id = 'exp_' + Date.now();
+          if (forceNew && copy.savedName) copy.savedName = copy.savedName + ' (Bản sao)';
+          list.unshift(copy);
+          _expActiveId = copy.id;
+        } else {
+          copy.id = _expActiveId;
+          const idx = list.findIndex(r => r.id === _expActiveId);
+          if (idx >= 0) list[idx] = copy;
+          else list.unshift(copy);
+        }
+        _expDraft = JSON.parse(JSON.stringify(copy));
+        // Also sync per-project explanation notes back to live projects so they stay consistent everywhere!
+        const mYr = String(copy.fiscalFilter || '').match(/^(?:year|budget|carryover):(\d{4})$/);
+        const yrKey = mYr ? String(mYr[1]) : '';
+        (copy.rows || []).forEach(r => {
+          const liveP = (state.projects || []).find(p => String(p.id) === String(r.projId));
+          if (!liveP || !r.explanation) return;
+          if (yrKey) {
+            liveP.budgetVarianceNoteByYear = liveP.budgetVarianceNoteByYear || {};
+            liveP.budgetVarianceNoteByYear[yrKey] = r.explanation;
+          }
+          if (!yrKey || Number(yrKey) === getProjectBudgetYear(liveP)) {
+            liveP.budgetVarianceNote = r.explanation;
+          }
+        });
+        saveState();
+        populateExplainSavedSelect();
+        renderExplainReportEditor();
+        showToast(forceNew ? `Đã lưu thành bản mới: "${copy.savedName}"!` : `Đã lưu Báo cáo Giải trình "${copy.savedName}"!`);
+      }
+
+      function openExplainReportStudio(initOpts) {
+        const list = getSavedExplainReports();
+        if (initOpts && initOpts.loadId) {
+          const found = list.find(r => r.id === initOpts.loadId);
+          if (found) {
+            _expActiveId = found.id;
+            _expDraft = JSON.parse(JSON.stringify(found));
+          }
+        } else if (initOpts && initOpts.forceNew) {
+          _expActiveId = null;
+          _expDraft = buildNewExplainDraft(initOpts);
+        } else if (list.length && !(initOpts && initOpts.fromQuickReport)) {
+          _expActiveId = list[0].id;
+          _expDraft = JSON.parse(JSON.stringify(list[0]));
+        } else {
+          _expActiveId = null;
+          _expDraft = buildNewExplainDraft(initOpts || {});
+        }
+        populateExplainSavedSelect();
+        renderExplainReportEditor();
+        document.getElementById('explain-report-modal')?.classList.remove('hidden');
+      }
+
+      document.getElementById('btn-open-explain-report')?.addEventListener('click', () => {
+        const curF = (document.getElementById('fin-top-fiscal-filter') || document.getElementById('filter-budget-fiscal') || {}).value || 'all';
+        const projIds = state.viewAllProjects ? getAllowedProjects().map(p => p.id) : [getActiveProject().id];
+        openExplainReportStudio({ fiscalFilter: curF, groupKey: 'all', projIds });
+      });
+      document.getElementById('btn-open-explain-report-from-qrpt')?.addEventListener('click', () => {
+        const curF = (document.getElementById('qrpt-fiscal-filter') || {}).value || 'all';
+        const gVal = (document.getElementById('qrpt-group-filter') || {}).value || 'all';
+        const picked = getQuickRptSelectedProjects().map(p => p.id);
+        openExplainReportStudio({ fiscalFilter: curF, groupKey: gVal, projIds: picked, fromQuickReport: true });
+      });
+      document.getElementById('btn-exp-rpt-close')?.addEventListener('click', () => {
+        document.getElementById('explain-report-modal')?.classList.add('hidden');
+      });
+      document.getElementById('btn-exp-rpt-save')?.addEventListener('click', () => saveCurrentExplainDraft(false));
+      document.getElementById('btn-exp-rpt-save-as')?.addEventListener('click', () => saveCurrentExplainDraft(true));
+      document.getElementById('btn-exp-rpt-delete')?.addEventListener('click', () => {
+        if (!_expActiveId) return;
+        const list = getSavedExplainReports();
+        const target = list.find(r => r.id === _expActiveId);
+        if (!target) return;
+        if (!confirm(`Xóa bản báo cáo giải trình "${target.savedName || target.title}"?`)) return;
+        state.budgetExplainReports = list.filter(r => r.id !== _expActiveId);
+        saveState();
+        _expActiveId = null;
+        _expDraft = buildNewExplainDraft({ fiscalFilter: target.fiscalFilter, groupKey: target.groupKey });
+        populateExplainSavedSelect();
+        renderExplainReportEditor();
+        showToast('Đã xóa bản báo cáo giải trình đã lưu.', 'info');
+      });
+      document.getElementById('exp-rpt-saved-select')?.addEventListener('change', e => {
+        const v = e.target.value;
+        if (v === '__NEW__') {
+          _expActiveId = null;
+          _expDraft = buildNewExplainDraft({ fiscalFilter: (_expDraft && _expDraft.fiscalFilter) || 'all', groupKey: (_expDraft && _expDraft.groupKey) || 'all' });
+        } else {
+          const found = getSavedExplainReports().find(r => r.id === v);
+          if (found) { _expActiveId = found.id; _expDraft = JSON.parse(JSON.stringify(found)); }
+        }
+        populateExplainSavedSelect();
+        renderExplainReportEditor();
+      });
+      const refreshExplainNumbersKeepingNotes = () => {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        const prevRowMap = {};
+        (_expDraft.rows || []).forEach(r => { prevRowMap[String(r.projId)] = r; });
+        const prevCoMap = {};
+        (_expDraft.coRows || []).forEach(r => { prevCoMap[String(r.projId)] = r; });
+        const fresh = computeExplainReportMetrics(_expDraft.projIds, _expDraft.fiscalFilter, _expDraft.groupKey);
+        _expDraft.rows = fresh.rows.map(nr => {
+          const old = prevRowMap[String(nr.projId)];
+          return old ? { ...nr, explanation: old.explanation || nr.explanation, recommendation: old.recommendation || nr.recommendation } : nr;
+        });
+        _expDraft.coRows = fresh.coRows.map(nc => {
+          const old = prevCoMap[String(nc.projId)];
+          return old ? { ...nc, note: old.note || nc.note } : nc;
+        });
+        _expDraft.coFromYr = fresh.coFromYr;
+        _expDraft.coToYr = fresh.coToYr;
+        renderExplainReportEditor();
+      };
+      document.getElementById('btn-exp-rpt-refresh-nums')?.addEventListener('click', () => {
+        refreshExplainNumbersKeepingNotes();
+        showToast('Đã cập nhật số liệu mới nhất (giữ nguyên nội dung giải trình đã chỉnh sửa)!');
+      });
+      document.getElementById('exp-rpt-fiscal')?.addEventListener('change', e => {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        _expDraft.fiscalFilter = e.target.value || 'all';
+        refreshExplainNumbersKeepingNotes();
+      });
+      document.querySelectorAll('.exp-rpt-grp-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const anyOn = Array.from(document.querySelectorAll('.exp-rpt-grp-chk')).some(x => x.checked);
+          if (!anyOn) { chk.checked = true; showToast('Cần chọn ít nhất 1 nhóm ngân sách!', 'info'); return; }
+          syncExplainDraftFromDom();
+          const n = document.getElementById('exp-rpt-grp-new')?.checked;
+          const m = document.getElementById('exp-rpt-grp-maint')?.checked;
+          const c = document.getElementById('exp-rpt-grp-co')?.checked;
+          const parts = [];
+          if (n) parts.push('new'); if (m) parts.push('maintenance'); if (c) parts.push('carryover');
+          _expDraft.groupKey = parts.length === 3 ? 'all' : (parts.length === 2 && n && m ? 'new_maint' : parts.join(','));
+          renderExplainReportEditor();
+        });
+      });
+      document.getElementById('exp-rpt-only-diff')?.addEventListener('change', e => {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        _expDraft.onlyDiff = Boolean(e.target.checked);
+        renderExplainReportEditor();
+      });
+      document.getElementById('btn-exp-rpt-word')?.addEventListener('click', () => {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        const htmlDoc = '<html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;font-size:10pt;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #cbd5e1;}</style></head><body>' + buildExplainReportPrintableHtml(_expDraft) + '</body></html>';
+        const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safeName = String(_expDraft.savedName || 'Bao_cao_Giai_trinh_Ngan_sach').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
+        a.href = url;
+        a.download = safeName + '.doc';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`Đã xuất file Word: ${safeName}.doc!`);
+      });
+      document.getElementById('btn-exp-rpt-print')?.addEventListener('click', () => {
+        if (!_expDraft) return;
+        syncExplainDraftFromDom();
+        const htmlPrint = buildExplainReportPrintableHtml(_expDraft);
+        window._previewPrelimHtml = htmlPrint;
+        window._previewPrelimName = String(_expDraft.savedName || 'Bao_cao_Giai_trinh_Ngan_sach').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
+        _previewPayContext = null;
+        _previewVoContext = null;
+        document.getElementById('explain-report-modal')?.classList.add('hidden');
+        document.getElementById('rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('quick-rpt-mode-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
+        document.getElementById('btn-rpt-export-word')?.classList.remove('hidden');
+        document.getElementById('rpt-pages').innerHTML = htmlPrint;
+        document.getElementById('rpt-preview')?.classList.remove('hidden');
+      });
 
       // Warning Letter
       function renderWarningLetter() {
