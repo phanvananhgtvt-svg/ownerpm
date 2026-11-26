@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.26 • Tự liên kết TMĐT Triển khai từ Bảng phân bổ NS &amp; Phân rã hạng mục</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.27 • Gọn báo cáo NS 3 bảng chuẩn (tách riêng Báo cáo Giải trình)</div>
       </div>
     </aside>
 
@@ -7625,75 +7625,8 @@
             </tbody>
           </table>` : '';
 
-        // BẢNG GIẢI TRÌNH NGÂN SÁCH TĂNG / GIẢM THEO TỪNG DỰ ÁN
-        const varList = [
-          ...(gSel.includeNew ? newList : []),
-          ...(gSel.includeMaint ? maintList : [])
-        ];
-        const sumVarBud = varList.reduce((s, x) => s + x.budget, 0);
-        const sumVarDep = varList.reduce((s, x) => s + x.deployed, 0);
-        const sumVarDelta = sumVarDep - sumVarBud; // > 0: Tăng / Vượt NS; < 0: Giảm / Tiết kiệm NS
-        const overCnt = varList.filter(x => x.deployed - x.budget > 1).length;
-        const saveCnt = varList.filter(x => x.budget - x.deployed > 1).length;
-        const buildAutoVarianceExplain = x => {
-          if (x.customVarNote) return x.customVarNote;
-          const delta = x.deployed - x.budget;
-          const pct = x.budget > 0 ? Math.abs((delta / x.budget) * 100).toFixed(1) : '';
-          if (x.budget <= 0 && x.deployed <= 0) return 'Chưa phát sinh ngân sách & hợp đồng trong kỳ.';
-          if (x.deployed <= 0 && x.budget > 0) return 'Chưa ký hợp đồng triển khai trong kỳ (còn nguyên hạn mức ngân sách duyệt).';
-          if (x.budget <= 0 && x.deployed > 0) return `Phát sinh triển khai ${x.curContractsCnt} HĐ nhưng chưa nhập hạn mức ngân sách duyệt cho kỳ này.`;
-          if (delta > 1) {
-            const voTxt = x.approvedVoSum > 0 ? ` (gồm ${x.approvedVoCnt} phát sinh VO đã duyệt: +${fmtTy(x.approvedVoSum)})` : '';
-            return `Tăng / vượt ngân sách duyệt +${fmtTy(delta)} (+${pct}%) qua ${x.curContractsCnt} HĐ${voTxt}.`;
-          }
-          if (delta < -1) {
-            const settleSave = x.signedValSum > x.deployed ? Math.round(x.signedValSum - x.deployed) : 0;
-            const saveTxt = settleSave > 1 ? ` (trong đó giảm sau quyết toán ${fmtTy(settleSave)})` : '';
-            return `Giảm / còn dư hạn mức ${fmtTy(Math.abs(delta))} (−${pct}%) so với ngân sách duyệt${saveTxt}.`;
-          }
-          return 'Thực hiện khớp đúng 100% hạn mức ngân sách duyệt.';
-        };
-        const varSecNo = gSel.includeCo ? '5' : '4';
-        const tblVariance = varList.length ? `
-          <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;margin:10px 0 4px;text-transform:uppercase;">Bảng ${varSecNo}. Giải trình Ngân sách Tăng / Giảm theo từng Dự án (${varList.length} dự án)</div>
-          <table style="width:100%;border-collapse:collapse;font-size:8.5px;border:1px solid #cbd5e1;">
-            <thead>
-              <tr style="background:#0f172a;color:#fff;">
-                <th style="padding:4.5px 5px;text-align:left;width:24%;">Mã &amp; Tên Dự án</th>
-                <th style="padding:4.5px 5px;text-align:right;width:13%;">Ngân sách duyệt</th>
-                <th style="padding:4.5px 5px;text-align:right;width:13%;">Thực hiện (HĐ/QT)</th>
-                <th style="padding:4.5px 5px;text-align:right;width:15%;">Tăng / Giảm (TH − NS)</th>
-                <th style="padding:4.5px 5px;text-align:left;width:35%;">Giải trình nguyên nhân tăng / giảm</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="background:#fef08a;font-weight:800;border-bottom:2px solid #0f172a;">
-                <td style="padding:5px;">Σ TỔNG CỘNG (${varList.length} DỰ ÁN)</td>
-                <td style="padding:5px;text-align:right;">${fmtTy(sumVarBud)}</td>
-                <td style="padding:5px;text-align:right;color:#1d4ed8;">${fmtTy(sumVarDep)}</td>
-                <td style="padding:5px;text-align:right;color:${sumVarDelta > 1 ? '#be123c' : '#047857'};">${sumVarDelta > 1 ? '▲ +' : (sumVarDelta < -1 ? '▼ −' : '')}${fmtTy(Math.abs(sumVarDelta))}</td>
-                <td style="padding:5px;font-size:8px;color:#334155;">${overCnt} DA tăng/vượt NS • ${saveCnt} DA giảm/trong hạn mức • ${varList.length - overCnt - saveCnt} DA khớp 100%</td>
-              </tr>
-              ${varList.map(x => {
-                const delta = x.deployed - x.budget;
-                const pct = x.budget > 0 ? ((delta / x.budget) * 100).toFixed(1) : '';
-                const badge = delta > 1
-                  ? `<span style="color:#be123c;font-weight:800;">▲ +${fmtTy(delta)}</span>${pct ? `<div style="font-size:7.5px;color:#be123c;">(+${pct}%)</div>` : ''}`
-                  : (delta < -1
-                    ? `<span style="color:#047857;font-weight:800;">▼ −${fmtTy(Math.abs(delta))}</span>${pct ? `<div style="font-size:7.5px;color:#047857;">(${pct}%)</div>` : ''}`
-                    : `<span style="color:#475569;font-weight:700;">0 VNĐ</span>`);
-                return `<tr style="border-bottom:1px solid #e2e8f0;">
-                  <td style="padding:4px 5px;"><strong>${esc(x.proj.code)}</strong> — ${esc(x.proj.name)} <span style="padding:0.5px 4px;border-radius:999px;font-size:7.3px;font-weight:700;${x.isMaint ? 'background:#ccfbf1;color:#115e59;' : 'background:#e0e7ff;color:#1e3a8a;'}">${esc(x.groupName)}</span></td>
-                  <td style="padding:4px 5px;text-align:right;">${fmtTy(x.budget)}</td>
-                  <td style="padding:4px 5px;text-align:right;font-weight:600;">${fmtTy(x.deployed)}</td>
-                  <td style="padding:4px 5px;text-align:right;white-space:nowrap;">${badge}</td>
-                  <td style="padding:4px 5px;color:#334155;">${esc(buildAutoVarianceExplain(x))}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>` : '';
-
-        return tbl1 + tbl2 + tbl3 + tblCarryover + tblVariance;
+        // Bảng Giải trình Ngân sách Tăng / Giảm đã có mục "📝 Báo cáo Giải trình" chuyên biệt nên không chèn trùng vào báo cáo 3 bảng chuẩn
+        return tbl1 + tbl2 + tbl3 + tblCarryover;
       }
 
       async function renderSelectedPdfReport(keepFilterState) {
