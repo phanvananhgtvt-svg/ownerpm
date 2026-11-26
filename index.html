@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.11 • Nhập/Xuất &amp; Báo cáo chọn đúng Năm</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.12 • Tab Ngân sách hiển thị đúng Năm NS</div>
       </div>
     </aside>
 
@@ -5419,18 +5419,32 @@
             return clone;
           });
 
-        // 2) TMĐT strictly scoped to this fiscal period (never bleed another year's TMĐT)
+        // 2) TMĐT strictly scoped to this fiscal year/period (never bleed combined multi-year TMĐT into a single year)
         const slicedBudTotal = getBudgetTotalWithVat(slicedBudgetItems);
+        const allBudTotal = getBudgetTotalWithVat(allItems);
+        const mFilterYr = String(fiscalFilter).match(/^(?:year|budget|carryover):(\d{4})$/);
+        const filterYrKey = mFilterYr ? String(mFilterYr[1]) : '';
+        const yrCoOverride = (filterYrKey && proj.tmdtCompanyByYear && Number(proj.tmdtCompanyByYear[filterYrKey]) > 0) ? Number(proj.tmdtCompanyByYear[filterYrKey]) : 0;
+        const yrDepOverride = (filterYrKey && proj.tmdtDeployByYear && Number(proj.tmdtDeployByYear[filterYrKey]) > 0) ? Number(proj.tmdtDeployByYear[filterYrKey]) : 0;
         const projBudgetMatches = matchesBudgetFiscalFilter({ fiscalKind: 'budget', fiscalYear: getProjectBudgetYear(proj) }, proj, fiscalFilter);
         let slicedTmdtCo, slicedTmdtDep;
-        if (projBudgetMatches) {
-          const origCo = Number(proj.tmdtCompany) || Number(proj.tmdt) || slicedBudTotal || 0;
-          const origDep = slicedBudTotal || Number(proj.tmdtDeploy) || Number(proj.tmdt) || 0;
-          slicedTmdtCo = Math.round(origCo);
-          slicedTmdtDep = Math.round(origDep);
-        } else {
-          slicedTmdtCo = Math.round(slicedBudTotal);
+        if (yrDepOverride > 0) {
+          slicedTmdtDep = Math.round(yrDepOverride);
+        } else if (slicedBudTotal > 0) {
           slicedTmdtDep = Math.round(slicedBudTotal);
+        } else if (projBudgetMatches && allItems.length === 0) {
+          slicedTmdtDep = Math.round(Number(proj.tmdtDeploy) || Number(proj.tmdt) || 0);
+        } else {
+          slicedTmdtDep = 0;
+        }
+        if (yrCoOverride > 0) {
+          slicedTmdtCo = Math.round(yrCoOverride);
+        } else if (projBudgetMatches) {
+          const rawCo = Number(proj.tmdtCompany) || 0;
+          const isStaleCombinedCo = allBudTotal > 0 && slicedBudTotal !== allBudTotal && Math.abs(rawCo - allBudTotal) <= 1;
+          slicedTmdtCo = (rawCo > 0 && !isStaleCombinedCo) ? Math.round(rawCo) : slicedTmdtDep;
+        } else {
+          slicedTmdtCo = slicedTmdtDep;
         }
 
         // 3) Contracts, rounds, advances & VOs strictly scoped to this fiscal period
@@ -5517,33 +5531,64 @@
       }
 
       function renderFinanceTab(proj, totalContracted, totalRem) {
-        const totalBudgetPreVat = getBudgetTotalPreVat(proj.budgetItems);
-        const totalBudgetWithVat = getBudgetTotalWithVat(proj.budgetItems);
-        const tmdtCmp = getProjectTmdtCompare(proj);
+        const projBudYr = getProjectBudgetYear(proj);
+        const finFilterKey = state.viewAllProjects ? '__ALL__' : String(proj.id || '__ACTIVE__');
+        window._finFiscalFilterByProj = window._finFiscalFilterByProj || {};
+        // Default strictly to the project's Budget Year (chỉ hiển thị tại Năm Ngân sách) unless user explicitly picks another year or 'all'
+        if (!window._finFiscalFilterByProj[finFilterKey]) {
+          window._finFiscalFilterByProj[finFilterKey] = `year:${projBudYr}`;
+        }
+        const activeFinFiscal = window._finFiscalFilterByProj[finFilterKey];
+        const budFiscalSelTop = document.getElementById('filter-budget-fiscal');
+        const roundFiscalSelTop = document.getElementById('filter-fiscal-rounds');
+        if (budFiscalSelTop) {
+          budFiscalSelTop.innerHTML = buildFiscalFilterOptions([proj], activeFinFiscal);
+          budFiscalSelTop.value = activeFinFiscal;
+        }
+        if (roundFiscalSelTop) {
+          roundFiscalSelTop.innerHTML = buildFiscalFilterOptions([proj], activeFinFiscal);
+          roundFiscalSelTop.value = activeFinFiscal;
+        }
+
+        // Slice entire Finance view (TMĐT, KPIs, Contracts, Submitted Debt) strictly to activeFinFiscal
+        const finSlice = (activeFinFiscal && activeFinFiscal !== 'all') ? projectSliceForFiscal(proj, activeFinFiscal) : proj;
+        const finFiscalLbl = getFiscalFilterLabel(activeFinFiscal);
+        const finYearMatch = String(activeFinFiscal).match(/^(?:year|budget|carryover):(\d{4})$/);
+        const finActiveYrKey = finYearMatch ? String(finYearMatch[1]) : '';
+        const finCMetrics = (finSlice.contracts || []).map(calcContract);
+        const finContracted = finCMetrics.reduce((s, c) => s + c.base, 0);
+        const finRem = finCMetrics.reduce((s, c) => s + c.rem, 0);
+
+        const totalBudgetPreVat = getBudgetTotalPreVat(finSlice.budgetItems);
+        const totalBudgetWithVat = getBudgetTotalWithVat(finSlice.budgetItems);
+        const tmdtCmp = getProjectTmdtCompare(finSlice);
         const effBudgetWithVat = tmdtCmp.deploy;
         document.getElementById('fin-budget-total').textContent = fmtTy(effBudgetWithVat);
-        document.getElementById('fin-contracted').textContent = fmtTy(totalContracted);
-        document.getElementById('fin-contingency').textContent = fmtTy(effBudgetWithVat - totalContracted);
-        document.getElementById('fin-pending-pay').textContent = fmtTy(totalRem);
-        const subDebt = calcProjectSubmittedDebt(proj);
+        document.getElementById('fin-contracted').textContent = fmtTy(finContracted);
+        document.getElementById('fin-contingency').textContent = fmtTy(effBudgetWithVat - finContracted);
+        document.getElementById('fin-pending-pay').textContent = fmtTy(finRem);
+        const subDebt = calcProjectSubmittedDebt(finSlice);
         document.getElementById('fin-submitted-debt').textContent = fmtTy(subDebt.total);
-        document.getElementById('fin-submitted-debt-sub').textContent = `${subDebt.count} đợt/hồ sơ đã xuất HĐ chưa TT`;
+        document.getElementById('fin-submitted-debt-sub').textContent = `${subDebt.count} đợt/hồ sơ đã xuất HĐ chưa TT (${finFiscalLbl})`;
 
         // Render Dual TMĐT Comparison Panel (TMĐT Ngân sách Công ty vs TMĐT Triển khai Dự án)
         const cmpPanel = document.getElementById('fin-tmdt-compare-panel');
         if (cmpPanel) {
           const canEditFin = !state.viewAllProjects && isAdminUser();
           const ratioCo = tmdtCmp.company > 0 ? Math.min(130, (tmdtCmp.deploy / tmdtCmp.company) * 100) : 0;
-          const pctCtrVsDep = tmdtCmp.deploy > 0 ? ((totalContracted / tmdtCmp.deploy) * 100).toFixed(1) : '0.0';
-          const pctCtrVsCo = tmdtCmp.company > 0 ? ((totalContracted / tmdtCmp.company) * 100).toFixed(1) : '0.0';
+          const pctCtrVsDep = tmdtCmp.deploy > 0 ? ((finContracted / tmdtCmp.deploy) * 100).toFixed(1) : '0.0';
+          const pctCtrVsCo = tmdtCmp.company > 0 ? ((finContracted / tmdtCmp.company) * 100).toFixed(1) : '0.0';
           const isOver = tmdtCmp.company > 0 && tmdtCmp.deploy > tmdtCmp.company;
           cmpPanel.innerHTML = `
             <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
               <div class="flex items-center gap-2">
                 <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">⚖</span>
                 <div>
-                  <h3 class="text-sm font-bold text-slate-900">Đối chiếu Tổng mức đầu tư (TMĐT): Ngân sách Công ty vs Triển khai Dự án</h3>
-                  <p class="text-[11px] text-slate-500">So sánh trực tiếp hạn mức TMĐT Công ty phê duyệt với TMĐT lập/cập nhật khi triển khai thực tế &amp; giá trị HĐ đã ký</p>
+                  <h3 class="text-sm font-bold text-slate-900 flex flex-wrap items-center gap-2">
+                    <span>Đối chiếu Tổng mức đầu tư (TMĐT): Ngân sách Công ty vs Triển khai Dự án</span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">📆 ${esc(finFiscalLbl)}</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500">Hiển thị toàn bộ Ngân sách, TMĐT, Hợp đồng &amp; Công nợ riêng theo <strong>${esc(finFiscalLbl)}</strong></p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -5555,18 +5600,18 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-stretch">
               <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                <div class="text-[11px] font-semibold text-slate-600">1. TMĐT theo Ngân sách Công ty</div>
+                <div class="text-[11px] font-semibold text-slate-600">1. TMĐT theo Ngân sách Công ty (${esc(finFiscalLbl)})</div>
                 ${canEditFin
                   ? `<input id="inp-fin-tmdt-company" type="text" inputmode="numeric" value="${fmtVndInput(tmdtCmp.company)}" class="mt-1.5 w-full text-sm font-bold text-slate-900 border border-slate-300 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 bg-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-200" />`
                   : `<div class="mt-1.5 text-base font-bold text-slate-900">${fmtTy(tmdtCmp.company)}</div>`}
                 <div class="text-[10.5px] text-slate-500 mt-1">Hạn mức ngân sách Công ty duyệt</div>
               </div>
               <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
-                <div class="text-[11px] font-semibold text-indigo-800">2. TMĐT khi Triển khai Dự án</div>
+                <div class="text-[11px] font-semibold text-indigo-800">2. TMĐT khi Triển khai Dự án (${esc(finFiscalLbl)})</div>
                 ${canEditFin
                   ? `<input id="inp-fin-tmdt-deploy" type="text" inputmode="numeric" value="${fmtVndInput(tmdtCmp.deploy)}" class="mt-1.5 w-full text-sm font-bold text-indigo-900 border border-indigo-300 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 bg-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-200" />`
                   : `<div class="mt-1.5 text-base font-bold text-indigo-700">${fmtTy(tmdtCmp.deploy)}</div>`}
-                <div class="text-[10.5px] text-indigo-700/80 mt-1">Tổng bảng phân bổ NS: ${fmtTy(totalBudgetWithVat)}</div>
+                <div class="text-[10.5px] text-indigo-700/80 mt-1">Tổng bảng phân bổ NS (${esc(finFiscalLbl)}): ${fmtTy(totalBudgetWithVat)}</div>
               </div>
               <div class="p-3 rounded-xl ${isOver ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'} border flex flex-col justify-between">
                 <div class="text-[11px] font-semibold ${isOver ? 'text-rose-800' : 'text-emerald-800'}">Chênh lệch (NS Công ty − Triển khai)</div>
@@ -5579,11 +5624,11 @@
                 </div>
               </div>
               <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
-                <div class="text-[11px] font-semibold text-amber-900">Đối chiếu Giá trị HĐ / Quyết toán</div>
-                <div class="mt-1.5 text-base font-bold text-slate-900">${fmtTy(totalContracted)}</div>
+                <div class="text-[11px] font-semibold text-amber-900">Đối chiếu Giá trị HĐ / Quyết toán (${esc(finFiscalLbl)})</div>
+                <div class="mt-1.5 text-base font-bold text-slate-900">${fmtTy(finContracted)}</div>
                 <div class="text-[10.5px] text-slate-600 mt-1 space-y-0.5">
-                  <div>• So TMĐT Triển khai: <strong class="text-indigo-700">${pctCtrVsDep}%</strong> (còn ${fmtTy(tmdtCmp.deploy - totalContracted)})</div>
-                  <div>• So TMĐT NS Công ty: <strong class="text-slate-800">${pctCtrVsCo}%</strong> (còn ${fmtTy(tmdtCmp.company - totalContracted)})</div>
+                  <div>• So TMĐT Triển khai: <strong class="text-indigo-700">${pctCtrVsDep}%</strong> (còn ${fmtTy(tmdtCmp.deploy - finContracted)})</div>
+                  <div>• So TMĐT NS Công ty: <strong class="text-slate-800">${pctCtrVsCo}%</strong> (còn ${fmtTy(tmdtCmp.company - finContracted)})</div>
                 </div>
               </div>
             </div>
@@ -5594,29 +5639,49 @@
             const syncBtn = document.getElementById('btn-sync-tmdt-deploy-from-budget');
             coInp?.addEventListener('change', () => {
               const liveP = getActiveProject();
-              liveP.tmdtCompany = parseVnd(coInp.value);
+              const v = parseVnd(coInp.value);
+              if (finActiveYrKey) {
+                liveP.tmdtCompanyByYear = liveP.tmdtCompanyByYear || {};
+                liveP.tmdtCompanyByYear[finActiveYrKey] = v;
+              }
+              if (!finActiveYrKey || Number(finActiveYrKey) === getProjectBudgetYear(liveP)) {
+                liveP.tmdtCompany = v;
+              }
               saveState(); renderAll();
-              showToast('Đã cập nhật TMĐT theo Ngân sách Công ty');
+              showToast(`Đã cập nhật TMĐT theo Ngân sách Công ty (${finFiscalLbl})`);
             });
             depInp?.addEventListener('change', () => {
               const liveP = getActiveProject();
-              liveP.tmdtDeploy = parseVnd(depInp.value);
-              liveP.tmdt = liveP.tmdtDeploy || liveP.tmdtCompany || 0;
+              const v = parseVnd(depInp.value);
+              if (finActiveYrKey) {
+                liveP.tmdtDeployByYear = liveP.tmdtDeployByYear || {};
+                liveP.tmdtDeployByYear[finActiveYrKey] = v;
+              }
+              if (!finActiveYrKey || Number(finActiveYrKey) === getProjectBudgetYear(liveP)) {
+                liveP.tmdtDeploy = v;
+                liveP.tmdt = v || liveP.tmdtCompany || 0;
+              }
               saveState(); renderAll();
-              showToast('Đã cập nhật TMĐT khi Triển khai Dự án');
+              showToast(`Đã cập nhật TMĐT khi Triển khai Dự án (${finFiscalLbl})`);
             });
             syncBtn?.addEventListener('click', () => {
               const liveP = getActiveProject();
-              liveP.tmdtDeploy = totalBudgetWithVat;
-              liveP.tmdt = totalBudgetWithVat;
+              if (finActiveYrKey) {
+                liveP.tmdtDeployByYear = liveP.tmdtDeployByYear || {};
+                liveP.tmdtDeployByYear[finActiveYrKey] = totalBudgetWithVat;
+              }
+              if (!finActiveYrKey || Number(finActiveYrKey) === getProjectBudgetYear(liveP)) {
+                liveP.tmdtDeploy = totalBudgetWithVat;
+                liveP.tmdt = totalBudgetWithVat;
+              }
               saveState(); renderAll();
-              showToast('Đã đồng bộ TMĐT Triển khai theo tổng Bảng phân bổ Ngân sách!');
+              showToast(`Đã đồng bộ TMĐT Triển khai theo Bảng phân bổ NS (${finFiscalLbl})!`);
             });
           }
         }
 
-        // Contracts Table
-        document.getElementById('contract-table-body').innerHTML = proj.contracts.map(c => {
+        // Contracts Table (strictly filtered to activeFinFiscal)
+        document.getElementById('contract-table-body').innerHTML = finSlice.contracts.length ? finSlice.contracts.map(c => {
           const m = calcContract(c);
           return `<tr class="hover:bg-slate-50/80">
             <td class="py-3 px-3">
@@ -5678,22 +5743,16 @@
             }).join('');
             return baseRow + voRows;
           })();
-        }).join('');
+        }).join('') : `<tr><td colspan="10" class="py-6 text-center text-slate-400 text-sm">Không có hợp đồng thuộc <strong>${esc(finFiscalLbl)}</strong> (chọn năm khác hoặc "Tất cả các năm" để xem).</td></tr>`;
 
-        // Budget Year selector & Fiscal Summary Bar (Tồn đọng 2026 vs Ngân sách 2027 & các năm sau)
+        // Budget Year selector & Fiscal Summary Bar
         const budYrSel = document.getElementById('sel-proj-budget-year');
-        const projBudYr = getProjectBudgetYear(proj);
         if (budYrSel) {
           budYrSel.value = String(projBudYr);
           budYrSel.disabled = state.viewAllProjects || !isAdminUser();
         }
         const fiscalBar = document.getElementById('fin-fiscal-summary-bar');
-        const fiscalFilterSel = document.getElementById('filter-fiscal-rounds');
-        let curFiscalFilter = (fiscalFilterSel && fiscalFilterSel.value) || 'all';
-        if (fiscalFilterSel) {
-          fiscalFilterSel.innerHTML = buildFiscalFilterOptions([proj], curFiscalFilter);
-          fiscalFilterSel.value = curFiscalFilter;
-        }
+        let curFiscalFilter = activeFinFiscal;
         if (fiscalBar) {
           const fb = calcProjectFiscalBreakdown(proj, curFiscalFilter);
           const prevKey = `year:${projBudYr - 1}`;
@@ -5701,7 +5760,8 @@
           const bPrev = fb.byBucket[prevKey] || { key: prevKey, year: projBudYr - 1, label: `Năm ${projBudYr - 1}`, total: 0, paid: 0, submitted: 0, unpaid: 0, count: 0 };
           const bCur = fb.byBucket[curKey] || { key: curKey, year: projBudYr, label: `Năm ${projBudYr}`, total: 0, paid: 0, submitted: 0, unpaid: 0, count: 0 };
           const extraBuckets = fb.buckets.filter(b => b.key !== prevKey && b.key !== curKey);
-          const remBudCur = effBudgetWithVat - bCur.paid;
+          const budYrSliceTotal = getBudgetTotalWithVat(projectSliceForFiscal(proj, curKey).budgetItems);
+          const remBudCur = budYrSliceTotal - bCur.paid;
           fiscalBar.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div>
@@ -5850,7 +5910,7 @@
         });
         document.getElementById('payment-rounds-body').innerHTML = roundRows.length ? roundRows.join('') : `<tr><td colspan="9" class="py-6 text-center text-slate-400 text-sm">Không có đợt thanh toán nào khớp bộ lọc.</td></tr>`;
 
-        const payStats = calcContractPayStats(proj, getReportMs());
+        const payStats = calcContractPayStats(finSlice, getReportMs());
         const delaySumBody = document.getElementById('payment-delay-summary-body');
         if (delaySumBody) {
           delaySumBody.innerHTML = payStats.contractStats.length ? payStats.contractStats.map(s => `
@@ -5877,15 +5937,10 @@
             : `<tr><td colspan="4" class="py-5 text-center text-slate-400">Không có công nợ đang trình chưa thanh toán.</td></tr>`;
         }
 
-        // Budget Items Table (hierarchical parent/child sub-allocation + Fiscal Period + Admin-only editing + VAT + linked contracts)
+        // Budget Items Table (hierarchical parent/child sub-allocation + Fiscal Year + Admin-only editing + VAT + linked contracts)
         window._collapsedBudgetIds = window._collapsedBudgetIds || new Set();
         const canEditBudget = !state.viewAllProjects && isAdminUser();
-        const budFiscalSel = document.getElementById('filter-budget-fiscal');
-        let curBudFiscal = (budFiscalSel && budFiscalSel.value) || 'all';
-        if (budFiscalSel) {
-          budFiscalSel.innerHTML = buildFiscalFilterOptions([proj], curBudFiscal);
-          budFiscalSel.value = curBudFiscal;
-        }
+        let curBudFiscal = activeFinFiscal;
         const allBudgetTree = getBudgetTreeRows(proj.budgetItems);
         const matchedBudIds = new Set();
         if (curBudFiscal === 'all') {
@@ -10251,27 +10306,37 @@
           }, 80);
         });
       }
-      document.getElementById('filter-contract-rounds').addEventListener('change', () => { const p = getViewProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); applyUserPermissions(); });
-      document.getElementById('filter-fiscal-rounds')?.addEventListener('change', () => { const p = getViewProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); applyUserPermissions(); });
-      document.getElementById('filter-budget-fiscal')?.addEventListener('change', () => { const p = getViewProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); applyUserPermissions(); });
-      document.getElementById('fin-fiscal-summary-bar')?.addEventListener('click', e => {
-        const btn = e.target.closest('[data-fiscal-quick]');
-        if (!btn) return;
-        const sel = document.getElementById('filter-fiscal-rounds');
-        if (!sel) return;
-        const target = btn.dataset.fiscalQuick;
-        sel.value = (sel.value === target && target !== 'all') ? 'all' : target;
+      const setFinFiscalFilterAndRender = (val) => {
         const p = getViewProject();
+        const k = state.viewAllProjects ? '__ALL__' : String(p.id || '__ACTIVE__');
+        window._finFiscalFilterByProj = window._finFiscalFilterByProj || {};
+        window._finFiscalFilterByProj[k] = val || 'all';
         const cm = p.contracts.map(calcContract);
         renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0));
         applyUserPermissions();
+      };
+      document.getElementById('filter-contract-rounds').addEventListener('change', () => { const p = getViewProject(); const cm = p.contracts.map(calcContract); renderFinanceTab(p, cm.reduce((s, c) => s + c.base, 0), cm.reduce((s, c) => s + c.rem, 0)); applyUserPermissions(); });
+      document.getElementById('filter-fiscal-rounds')?.addEventListener('change', e => setFinFiscalFilterAndRender(e.target.value));
+      document.getElementById('filter-budget-fiscal')?.addEventListener('change', e => setFinFiscalFilterAndRender(e.target.value));
+      document.getElementById('fin-fiscal-summary-bar')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-fiscal-quick]');
+        if (!btn) return;
+        const p = getViewProject();
+        const k = state.viewAllProjects ? '__ALL__' : String(p.id || '__ACTIVE__');
+        window._finFiscalFilterByProj = window._finFiscalFilterByProj || {};
+        const curV = window._finFiscalFilterByProj[k] || `year:${getProjectBudgetYear(p)}`;
+        const target = btn.dataset.fiscalQuick;
+        setFinFiscalFilterAndRender((curV === target && target !== 'all') ? 'all' : target);
       });
       document.getElementById('sel-proj-budget-year')?.addEventListener('change', e => {
         if (!isAdminUser()) { showToast('Chỉ Admin mới được đổi Năm Ngân sách dự án', 'error'); renderAll(); return; }
         const liveP = getActiveProject();
-        liveP.budgetYear = Number(e.target.value) || 2027;
+        const newY = Math.max(2020, Math.min(2099, Number(e.target.value) || 2027));
+        liveP.budgetYear = newY;
+        window._finFiscalFilterByProj = window._finFiscalFilterByProj || {};
+        window._finFiscalFilterByProj[String(liveP.id || '__ACTIVE__')] = `year:${newY}`;
         saveState(); renderAll();
-        showToast(`Đã đặt Năm Ngân sách của ${liveP.code} bắt đầu từ năm ${liveP.budgetYear} (các khoản trước ${liveP.budgetYear} tự phân vào Tồn đọng)`);
+        showToast(`Đã chuyển Năm Ngân sách của ${liveP.code} sang Năm ${newY}`);
       });
 
       document.getElementById('project-select').addEventListener('change', e => {
