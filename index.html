@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.18 • Danh sách DA 2 hàng ngang &amp; Báo cáo NS Tồn đọng năm trước</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.20 • Tích chọn nhóm NS (Triển khai • Bảo trì • Tồn đọng)</div>
       </div>
     </aside>
 
@@ -2034,25 +2034,24 @@
       </div>
     </div>
     <div id="quick-rpt-filter-bar" class="hidden bg-slate-800 text-slate-100 px-4 py-2 space-y-1.5 border-b border-slate-700 text-xs">
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-1.5">
         <span class="font-semibold text-sky-300 whitespace-nowrap">Phạm vi:</span>
-        <button id="btn-qrpt-proj-active" type="button" class="allow-readonly px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-semibold transition">Chỉ DA hiện tại</button>
-        <button id="btn-qrpt-proj-all" type="button" class="allow-readonly px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold transition">🌐 Toàn bộ dự án</button>
-        <button id="btn-qrpt-proj-new" type="button" class="allow-readonly px-2.5 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] font-semibold transition" title="Chọn nhanh toàn bộ dự án Ngân sách Triển khai mới">🏗️ Chỉ Triển khai</button>
-        <button id="btn-qrpt-proj-maint" type="button" class="allow-readonly px-2.5 py-1 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-semibold transition" title="Chọn nhanh toàn bộ dự án Ngân sách Bảo trì">🔧 Chỉ Bảo trì</button>
-        <button id="btn-qrpt-proj-carryover" type="button" class="allow-readonly px-2.5 py-1 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-[11px] font-semibold transition" title="Xem riêng báo cáo Ngân sách & Công nợ Tồn đọng từ năm trước">🔄 Chỉ Tồn đọng</button>
-        <label class="inline-flex items-center gap-1.5 cursor-pointer text-amber-200 font-medium whitespace-nowrap bg-slate-900/70 border border-slate-700 px-2 py-1 rounded-lg">
+        <button id="btn-qrpt-proj-active" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-semibold transition">Chỉ DA hiện tại</button>
+        <button id="btn-qrpt-proj-all" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold transition">🌐 Toàn bộ</button>
+        <button id="btn-qrpt-proj-new-maint" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-[11px] font-semibold transition" title="Chọn đồng thời cả Ngân sách Triển khai mới & Ngân sách Bảo trì">📋 Triển khai + Bảo trì</button>
+        <button id="btn-qrpt-proj-new" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white text-[11px] font-semibold transition" title="Chỉ chọn dự án Ngân sách Triển khai mới">🏗️ Triển khai</button>
+        <button id="btn-qrpt-proj-maint" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-semibold transition" title="Chỉ chọn dự án Ngân sách Bảo trì">🔧 Bảo trì</button>
+        <button id="btn-qrpt-proj-carryover" type="button" class="allow-readonly px-2 py-1 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-[11px] font-semibold transition" title="Chỉ xem báo cáo Ngân sách Tồn đọng từ năm trước">🔄 Tồn đọng</button>
+        <label class="inline-flex items-center gap-1 cursor-pointer text-amber-200 font-medium whitespace-nowrap bg-slate-900/70 border border-slate-700 px-2 py-1 rounded-lg">
           <input id="qrpt-show-portfolio" type="checkbox" checked class="accent-amber-400 w-3.5 h-3.5" />
-          <span>Bảng Tổng hợp 3 cấp</span>
+          <span>Bảng 3 cấp</span>
         </label>
-        <div class="inline-flex items-center gap-1.5 bg-slate-900/80 border border-indigo-400/60 px-2 py-0.5 rounded-lg">
+        <div class="inline-flex flex-wrap items-center gap-2 bg-slate-900/80 border border-indigo-400/60 px-2.5 py-1 rounded-lg">
           <span class="text-indigo-300 font-semibold whitespace-nowrap">📂 Nhóm NS:</span>
-          <select id="qrpt-group-filter" class="bg-slate-900 text-indigo-200 font-bold text-[11px] focus:outline-none py-0.5">
-            <option value="all">📊 Tất cả (Triển khai + Bảo trì + Tồn đọng)</option>
-            <option value="new">🏗️ Ngân sách Triển khai mới</option>
-            <option value="maintenance">🔧 Ngân sách Bảo trì</option>
-            <option value="carryover">🔄 Ngân sách Tồn đọng từ năm trước</option>
-          </select>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-indigo-200 font-bold text-[11px] whitespace-nowrap"><input id="qrpt-grp-new" type="checkbox" checked class="qrpt-grp-chk accent-indigo-400 w-3.5 h-3.5" value="new" /><span>🏗️ Triển khai</span></label>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-teal-200 font-bold text-[11px] whitespace-nowrap"><input id="qrpt-grp-maint" type="checkbox" checked class="qrpt-grp-chk accent-teal-400 w-3.5 h-3.5" value="maintenance" /><span>🔧 Bảo trì</span></label>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-amber-200 font-bold text-[11px] whitespace-nowrap"><input id="qrpt-grp-co" type="checkbox" checked class="qrpt-grp-chk accent-amber-400 w-3.5 h-3.5" value="carryover" /><span>🔄 Tồn đọng</span></label>
+          <input id="qrpt-group-filter" type="hidden" value="all" />
         </div>
         <div class="inline-flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/60 px-2 py-0.5 rounded-lg">
           <span class="text-amber-300 font-semibold whitespace-nowrap">📆 Năm:</span>
@@ -2086,14 +2085,12 @@
             <option value="finance">3. Báo cáo Ngân sách &amp; Thanh toán</option>
           </select>
         </div>
-        <div class="flex items-center gap-1.5">
-          <label for="rpt-group-filter" class="font-semibold text-indigo-300 whitespace-nowrap">📂 Nhóm NS:</label>
-          <select id="rpt-group-filter" class="bg-slate-900 border border-indigo-400/70 text-indigo-200 rounded-lg px-2 py-1 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-indigo-400">
-            <option value="all">📊 Tất cả (Triển khai + Bảo trì + Tồn đọng)</option>
-            <option value="new">🏗️ Ngân sách Triển khai mới</option>
-            <option value="maintenance">🔧 Ngân sách Bảo trì</option>
-            <option value="carryover">🔄 Ngân sách Tồn đọng từ năm trước</option>
-          </select>
+        <div class="inline-flex flex-wrap items-center gap-2 bg-slate-900/80 border border-indigo-400/70 px-2.5 py-1 rounded-lg">
+          <span class="font-semibold text-indigo-300 whitespace-nowrap">📂 Nhóm NS:</span>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-indigo-200 font-bold text-[11px] whitespace-nowrap"><input id="rpt-grp-new" type="checkbox" checked class="rpt-grp-chk accent-indigo-400 w-3.5 h-3.5" value="new" /><span>🏗️ Triển khai</span></label>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-teal-200 font-bold text-[11px] whitespace-nowrap"><input id="rpt-grp-maint" type="checkbox" checked class="rpt-grp-chk accent-teal-400 w-3.5 h-3.5" value="maintenance" /><span>🔧 Bảo trì</span></label>
+          <label class="inline-flex items-center gap-1 cursor-pointer text-amber-200 font-bold text-[11px] whitespace-nowrap"><input id="rpt-grp-co" type="checkbox" checked class="rpt-grp-chk accent-amber-400 w-3.5 h-3.5" value="carryover" /><span>🔄 Tồn đọng</span></label>
+          <input id="rpt-group-filter" type="hidden" value="all" />
         </div>
         <div class="flex items-center gap-1.5">
           <label for="rpt-fiscal-filter" class="font-semibold text-emerald-300 whitespace-nowrap">📆 Năm:</label>
@@ -2104,6 +2101,7 @@
         <div class="h-4 w-px bg-slate-600 hidden sm:block"></div>
         <div class="flex flex-wrap items-center gap-1.5">
           <button id="btn-rpt-select-all" type="button" class="allow-readonly px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-[11px] font-medium">Chọn tất cả</button>
+          <button id="btn-rpt-select-new-maint" type="button" class="allow-readonly px-2 py-1 rounded bg-sky-700 hover:bg-sky-600 text-[11px] font-medium">📋 Triển khai + Bảo trì</button>
           <button id="btn-rpt-select-new" type="button" class="allow-readonly px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-600 text-[11px] font-medium">🏗️ Triển khai</button>
           <button id="btn-rpt-select-maint" type="button" class="allow-readonly px-2 py-1 rounded bg-teal-700 hover:bg-teal-600 text-[11px] font-medium">🔧 Bảo trì</button>
           <button id="btn-rpt-select-carryover" type="button" class="allow-readonly px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[11px] font-medium">🔄 Tồn đọng</button>
@@ -7060,16 +7058,69 @@
         return /bảo\s*trì|bao\s*tri/i.test(String(p.code || '') + ' ' + String(p.name || ''));
       }
 
+      function resolveBudgetGroupSelection(groupKey) {
+        const s = String(groupKey || 'all').trim();
+        let includeNew = true, includeMaint = true, includeCo = true;
+        if (s === 'new') { includeNew = true; includeMaint = false; includeCo = false; }
+        else if (s === 'maintenance') { includeNew = false; includeMaint = true; includeCo = false; }
+        else if (s === 'carryover') { includeNew = false; includeMaint = false; includeCo = true; }
+        else if (s === 'new_maint') { includeNew = true; includeMaint = true; includeCo = false; }
+        else if (s !== 'all' && s.includes(',')) {
+          const parts = new Set(s.split(',').map(x => x.trim()));
+          includeNew = parts.has('new');
+          includeMaint = parts.has('maintenance');
+          includeCo = parts.has('carryover');
+          if (!includeNew && !includeMaint && !includeCo) { includeNew = true; includeMaint = true; includeCo = true; }
+        }
+        const activeParts = [];
+        if (includeNew) activeParts.push('Triển khai mới');
+        if (includeMaint) activeParts.push('Bảo trì');
+        if (includeCo) activeParts.push('Tồn đọng năm trước');
+        const label = activeParts.length === 3
+          ? 'Tổng hợp (Triển khai, Bảo trì & Tồn đọng)'
+          : (activeParts.length === 1
+            ? ('Ngân sách ' + (includeCo ? 'Tồn đọng từ năm trước' : activeParts[0]))
+            : ('Ngân sách ' + activeParts.join(' & ')));
+        const isAll = includeNew && includeMaint && includeCo;
+        const isOnlyCo = !includeNew && !includeMaint && includeCo;
+        return { includeNew, includeMaint, includeCo, isAll, isOnlyCo, label };
+      }
+
       function getBudgetGroupLabel(groupKey) {
-        if (groupKey === 'new') return 'Ngân sách Triển khai mới';
-        if (groupKey === 'maintenance') return 'Ngân sách Bảo trì';
-        if (groupKey === 'carryover') return 'Ngân sách Tồn đọng từ năm trước';
-        return 'Tổng hợp (Triển khai, Bảo trì & Tồn đọng)';
+        return resolveBudgetGroupSelection(groupKey).label;
+      }
+
+      function syncBudgetGroupCheckboxesToValue(prefix) {
+        const n = document.getElementById(prefix + '-grp-new');
+        const m = document.getElementById(prefix + '-grp-maint');
+        const c = document.getElementById(prefix + '-grp-co');
+        const hid = document.getElementById(prefix + '-group-filter');
+        if (!n || !m || !c || !hid) return hid ? (hid.value || 'all') : 'all';
+        const parts = [];
+        if (n.checked) parts.push('new');
+        if (m.checked) parts.push('maintenance');
+        if (c.checked) parts.push('carryover');
+        let val = 'all';
+        if (parts.length === 3 || parts.length === 0) val = 'all';
+        else if (parts.length === 2 && n.checked && m.checked) val = 'new_maint';
+        else if (parts.length === 1) val = parts[0];
+        else val = parts.join(',');
+        hid.value = val;
+        return val;
+      }
+
+      function setBudgetGroupSelection(prefix, val) {
+        const sel = resolveBudgetGroupSelection(val);
+        const n = document.getElementById(prefix + '-grp-new'); if (n) n.checked = sel.includeNew;
+        const m = document.getElementById(prefix + '-grp-maint'); if (m) m.checked = sel.includeMaint;
+        const c = document.getElementById(prefix + '-grp-co'); if (c) c.checked = sel.includeCo;
+        const hid = document.getElementById(prefix + '-group-filter'); if (hid) hid.value = val;
       }
 
       function buildExecutiveBudget3TablesHtml(entries, opts) {
         const o = opts || {};
         const groupFilter = o.groupFilter || 'all';
+        const gSel = resolveBudgetGroupSelection(groupFilter);
         const fiscalFilter = o.fiscalFilter || 'all';
         const mYr = String(fiscalFilter).match(/^(?:year|budget|carryover):(\d{4})$/);
         const isYearScoped = Boolean(mYr);
@@ -7183,25 +7234,26 @@
         const totMaint = sumGrp(maintList);
         const totCo = sumGrp(carryoverList);
 
-        // Grand total (mathematically exact without double-counting)
+        // Grand total (mathematically exact without double-counting across any checkbox combination)
         const totAll = (() => {
-          if (groupFilter === 'carryover') return totCo;
-          if (groupFilter === 'new') return totNew;
-          if (groupFilter === 'maintenance') return totMaint;
-          // groupFilter === 'all'
-          const addCo = isYearScoped;
-          const b = totNew.budget + totMaint.budget + (addCo ? totCo.budget : 0);
-          const d = totNew.deployed + totMaint.deployed + (addCo ? totCo.deployed : 0);
+          if (gSel.isOnlyCo) return totCo;
+          const addCo = gSel.includeCo && isYearScoped;
+          const b = (gSel.includeNew ? totNew.budget : 0) + (gSel.includeMaint ? totMaint.budget : 0) + (addCo ? totCo.budget : 0);
+          const d = (gSel.includeNew ? totNew.deployed : 0) + (gSel.includeMaint ? totMaint.deployed : 0) + (addCo ? totCo.deployed : 0);
+          const cntSet = new Set();
+          if (gSel.includeNew) newList.forEach(x => cntSet.add(x.proj.id || x.proj.code));
+          if (gSel.includeMaint) maintList.forEach(x => cntSet.add(x.proj.id || x.proj.code));
+          if (addCo) carryoverList.forEach(x => cntSet.add(x.proj.id || x.proj.code));
           return {
-            count: norm.length,
-            contracts: totCo.contracts,
+            count: cntSet.size,
+            contracts: gSel.includeCo ? totCo.contracts : 0,
             budget: b,
             deployed: d,
             diffNs: b - d,
-            paid: totNew.paid + totMaint.paid + (addCo ? totCo.paid : 0),
-            submitted: totNew.submitted + totMaint.submitted + (addCo ? totCo.submitted : 0),
-            subCnt: totNew.subCnt + totMaint.subCnt + (addCo ? totCo.subCnt : 0),
-            remaining: totNew.remaining + totMaint.remaining + (addCo ? totCo.remaining : 0)
+            paid: (gSel.includeNew ? totNew.paid : 0) + (gSel.includeMaint ? totMaint.paid : 0) + (addCo ? totCo.paid : 0),
+            submitted: (gSel.includeNew ? totNew.submitted : 0) + (gSel.includeMaint ? totMaint.submitted : 0) + (addCo ? totCo.submitted : 0),
+            subCnt: (gSel.includeNew ? totNew.subCnt : 0) + (gSel.includeMaint ? totMaint.subCnt : 0) + (addCo ? totCo.subCnt : 0),
+            remaining: (gSel.includeNew ? totNew.remaining : 0) + (gSel.includeMaint ? totMaint.remaining : 0) + (addCo ? totCo.remaining : 0)
           };
         })();
 
@@ -7209,7 +7261,7 @@
 
         // BẢNG 1: TỔNG QUAN CÁC CHỈ SỐ (Ngân sách | Thực hiện | Giải ngân | Công nợ đang trình | Còn lại)
         const tbl1 = `
-          <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;margin:6px 0 4px;text-transform:uppercase;">Bảng 1. Tổng quan các chỉ số Ngân sách &amp; Thanh toán (${esc(getBudgetGroupLabel(groupFilter))})</div>
+          <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;margin:6px 0 4px;text-transform:uppercase;">Bảng 1. Tổng quan các chỉ số Ngân sách &amp; Thanh toán (${esc(gSel.label)})</div>
           <table style="width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:10px;border:1px solid #cbd5e1;">
             <thead>
               <tr style="background:#0f172a;color:#fff;">
@@ -7230,7 +7282,7 @@
               </tr>
               <tr style="background:#f8fafc;font-size:8.3px;color:#475569;">
                 <td style="padding:4.5px 6px;text-align:right;">Chênh lệch NS − TH: <strong style="color:${totAll.diffNs < 0 ? '#be123c' : '#047857'};">${totAll.diffNs >= 0 ? '+' : ''}${fmtTy(totAll.diffNs)}</strong></td>
-                <td style="padding:4.5px 6px;text-align:right;">Đạt <strong>${pctStr(totAll.deployed, totAll.budget)}</strong> Ngân sách (${totAll.count} DA${groupFilter === 'carryover' ? ` • ${totCo.contracts} HĐ tồn` : ''})</td>
+                <td style="padding:4.5px 6px;text-align:right;">Đạt <strong>${pctStr(totAll.deployed, totAll.budget)}</strong> Ngân sách (${totAll.count} DA${gSel.isOnlyCo ? ` • ${totCo.contracts} HĐ tồn` : ''})</td>
                 <td style="padding:4.5px 6px;text-align:right;">Đạt <strong>${pctStr(totAll.paid, totAll.deployed)}</strong> Thực hiện • <strong>${pctStr(totAll.paid, totAll.budget)}</strong> NS</td>
                 <td style="padding:4.5px 6px;text-align:right;"><strong>${totAll.subCnt}</strong> đợt đã XHĐ chưa TT</td>
                 <td style="padding:4.5px 6px;text-align:right;"><strong>${pctStr(totAll.remaining, totAll.deployed)}</strong> Thực hiện còn phải TT</td>
@@ -7240,7 +7292,7 @@
 
         // BẢNG 2: PHÂN LOẠI THEO NHÓM (1. Triển khai mới | 2. Bảo trì | 3. Tồn đọng từ năm trước) — HÀNG TỔNG Ở TRÊN
         const groupRows = [];
-        if (groupFilter === 'all' || groupFilter === 'new') {
+        if (gSel.includeNew) {
           groupRows.push(`
             <tr style="border-bottom:1px solid #e2e8f0;background:#eef2ff;">
               <td style="padding:5px;font-weight:700;color:#1e3a8a;">🏗️ 1. Ngân sách Triển khai mới</td>
@@ -7253,7 +7305,7 @@
               <td style="padding:5px;text-align:right;font-weight:700;color:#b45309;">${fmtTy(totNew.remaining)}</td>
             </tr>`);
         }
-        if (groupFilter === 'all' || groupFilter === 'maintenance') {
+        if (gSel.includeMaint) {
           groupRows.push(`
             <tr style="border-bottom:1px solid #e2e8f0;background:#f0fdfa;">
               <td style="padding:5px;font-weight:700;color:#115e59;">🔧 2. Ngân sách Bảo trì</td>
@@ -7266,8 +7318,8 @@
               <td style="padding:5px;text-align:right;font-weight:700;color:#b45309;">${fmtTy(totMaint.remaining)}</td>
             </tr>`);
         }
-        if (groupFilter === 'all' || groupFilter === 'carryover') {
-          const coNote = (!isYearScoped && groupFilter === 'all')
+        if (gSel.includeCo) {
+          const coNote = (!isYearScoped && !gSel.isOnlyCo)
             ? `<div style="font-size:7.6px;font-weight:500;color:#92400e;">Theo dõi riêng HĐ tồn ${coFromYr}→${coToYr} (${totCo.contracts} HĐ, không cộng trùng vào tổng toàn bộ)</div>`
             : `<div style="font-size:7.6px;font-weight:500;color:#92400e;">HĐ ký từ Năm ${coFromYr} trở về trước chuyển sang TT tiếp Năm ${coToYr} (${totCo.contracts} HĐ)</div>`;
           groupRows.push(`
@@ -7283,7 +7335,7 @@
             </tr>`);
         }
         const tbl2 = `
-          <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;margin:8px 0 4px;text-transform:uppercase;">Bảng 2. Phân loại theo Nhóm Ngân sách (Triển khai mới • Bảo trì • Tồn đọng từ năm trước)</div>
+          <div style="font-size:10.5px;font-weight:800;color:#1e3a8a;margin:8px 0 4px;text-transform:uppercase;">Bảng 2. Phân loại theo Nhóm Ngân sách (${esc(gSel.label)})</div>
           <table style="width:100%;border-collapse:collapse;font-size:8.8px;margin-bottom:10px;border:1px solid #cbd5e1;">
             <thead>
               <tr style="background:#1e3a8a;color:#fff;">
@@ -7299,7 +7351,7 @@
             </thead>
             <tbody>
               <tr style="background:#fef08a;font-weight:800;border-bottom:2px solid #0f172a;">
-                <td style="padding:5px;">Σ TỔNG CỘNG (${groupFilter === 'carryover' ? `TỒN ĐỌNG ${coFromYr}→${coToYr}` : 'TOÀN BỘ'})</td>
+                <td style="padding:5px;">Σ TỔNG CỘNG (${gSel.isOnlyCo ? `TỒN ĐỌNG ${coFromYr}→${coToYr}` : 'CÁC NHÓM ĐÃ CHỌN'})</td>
                 <td style="padding:5px;text-align:center;">${totAll.count}</td>
                 <td style="padding:5px;text-align:right;">${fmtTy(totAll.budget)}</td>
                 <td style="padding:5px;text-align:right;color:#1d4ed8;">${fmtTy(totAll.deployed)}</td>
@@ -7326,7 +7378,7 @@
           </tr>`;
 
         const detailSections = [];
-        if ((groupFilter === 'all' || groupFilter === 'new') && newList.length) {
+        if (gSel.includeNew && newList.length) {
           detailSections.push(`
             <tr style="background:#e0e7ff;font-weight:800;color:#1e3a8a;border-top:1.5px solid #4338ca;border-bottom:1px solid #a5b4fc;">
               <td style="padding:4.5px 5px;" colspan="2">🏗️ NHÓM I. NGÂN SÁCH TRIỂN KHAI MỚI (${newList.length} DA)</td>
@@ -7338,7 +7390,7 @@
               <td style="padding:4.5px 5px;text-align:right;color:#b45309;">${fmtTy(totNew.remaining)}</td>
             </tr>` + newList.map(renderProjRow).join(''));
         }
-        if ((groupFilter === 'all' || groupFilter === 'maintenance') && maintList.length) {
+        if (gSel.includeMaint && maintList.length) {
           detailSections.push(`
             <tr style="background:#ccfbf1;font-weight:800;color:#115e59;border-top:1.5px solid #0f766e;border-bottom:1px solid #5eead4;">
               <td style="padding:4.5px 5px;" colspan="2">🔧 NHÓM II. NGÂN SÁCH BẢO TRÌ (${maintList.length} DA)</td>
@@ -7350,7 +7402,7 @@
               <td style="padding:4.5px 5px;text-align:right;color:#b45309;">${fmtTy(totMaint.remaining)}</td>
             </tr>` + maintList.map(renderProjRow).join(''));
         }
-        if ((groupFilter === 'all' || groupFilter === 'carryover') && carryoverList.length) {
+        if (gSel.includeCo && carryoverList.length) {
           detailSections.push(`
             <tr style="background:#fef3c7;font-weight:800;color:#92400e;border-top:1.5px solid #d97706;border-bottom:1px solid #fcd34d;">
               <td style="padding:4.5px 5px;" colspan="2">🔄 NHÓM III. NGÂN SÁCH TỒN ĐỌNG TỪ NĂM TRƯỚC (${coFromYr}→${coToYr} • ${carryoverList.length} DA / ${totCo.contracts} HĐ)</td>
@@ -7386,7 +7438,7 @@
                 <td style="padding:5px;text-align:right;color:#047857;">${fmtTy(totAll.paid)}</td>
                 <td style="padding:5px;text-align:right;color:#be123c;">${fmtTy(totAll.submitted)}</td>
                 <td style="padding:5px;text-align:right;color:#b45309;">${fmtTy(totAll.remaining)}</td>
-              </tr>` : `<tr><td colspan="8" style="padding:8px;text-align:center;color:#64748b;">${groupFilter === 'carryover' ? `✓ Không có khoản ngân sách/hợp đồng tồn đọng từ Năm ${coFromYr} sang Năm ${coToYr}.` : 'Không có dự án nào thuộc nhóm đã chọn.'}</td></tr>`}
+              </tr>` : `<tr><td colspan="8" style="padding:8px;text-align:center;color:#64748b;">${gSel.isOnlyCo ? `✓ Không có khoản ngân sách/hợp đồng tồn đọng từ Năm ${coFromYr} sang Năm ${coToYr}.` : 'Không có dự án nào thuộc nhóm đã chọn.'}</td></tr>`}
               ${detailSections.join('')}
             </tbody>
           </table>`;
@@ -7897,14 +7949,21 @@
 
       document.getElementById('rpt-type-select').addEventListener('change', () => renderSelectedPdfReport(true));
       document.getElementById('rpt-fiscal-filter')?.addEventListener('change', () => renderSelectedPdfReport(true));
-      document.getElementById('rpt-group-filter')?.addEventListener('change', e => {
-        const gVal = e.target.value || 'all';
-        const allowed = getAllowedProjects();
-        const matchSet = new Set(allowed.filter(p => (gVal === 'all' || gVal === 'carryover') ? true : (gVal === 'maintenance' ? isMaintenanceProject(p) : !isMaintenanceProject(p))).map(p => p.id));
-        if (matchSet.size) {
-          document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = matchSet.has(el.value); });
-        }
-        renderSelectedPdfReport(true);
+      document.querySelectorAll('.rpt-grp-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const anyOn = Array.from(document.querySelectorAll('.rpt-grp-chk')).some(x => x.checked);
+          if (!anyOn) { chk.checked = true; showToast('Cần chọn ít nhất 1 nhóm ngân sách!', 'info'); return; }
+          const gVal = syncBudgetGroupCheckboxesToValue('rpt');
+          const gSel = resolveBudgetGroupSelection(gVal);
+          const allowed = getAllowedProjects();
+          if (!gSel.includeCo && !(gSel.includeNew && gSel.includeMaint)) {
+            const matchSet = new Set(allowed.filter(p => gSel.includeMaint ? isMaintenanceProject(p) : !isMaintenanceProject(p)).map(p => p.id));
+            if (matchSet.size) document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = matchSet.has(el.value); });
+          } else {
+            document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = true; });
+          }
+          renderSelectedPdfReport(true);
+        });
       });
       document.getElementById('chk-rpt-toc')?.addEventListener('change', () => renderSelectedPdfReport(true));
       document.getElementById('chk-rpt-backcover')?.addEventListener('change', () => renderSelectedPdfReport(true));
@@ -7913,31 +7972,36 @@
       document.getElementById('chk-rpt-include-bim').addEventListener('change', () => renderSelectedPdfReport(true));
       document.getElementById('rpt-project-checks').addEventListener('change', () => renderSelectedPdfReport(true));
       document.getElementById('btn-rpt-select-all').addEventListener('click', () => {
-        const gEl = document.getElementById('rpt-group-filter'); if (gEl) gEl.value = 'all';
+        setBudgetGroupSelection('rpt', 'all');
+        document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = true; });
+        renderSelectedPdfReport(true);
+      });
+      document.getElementById('btn-rpt-select-new-maint')?.addEventListener('click', () => {
+        setBudgetGroupSelection('rpt', 'new_maint');
         document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = true; });
         renderSelectedPdfReport(true);
       });
       document.getElementById('btn-rpt-select-new')?.addEventListener('click', () => {
         const newIds = new Set(getAllowedProjects().filter(p => !isMaintenanceProject(p)).map(p => p.id));
         if (!newIds.size) { showToast('Chưa có dự án thuộc nhóm Ngân sách Triển khai mới.', 'info'); return; }
-        const gEl = document.getElementById('rpt-group-filter'); if (gEl) gEl.value = 'new';
+        setBudgetGroupSelection('rpt', 'new');
         document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = newIds.has(el.value); });
         renderSelectedPdfReport(true);
       });
       document.getElementById('btn-rpt-select-maint')?.addEventListener('click', () => {
         const mIds = new Set(getAllowedProjects().filter(p => isMaintenanceProject(p)).map(p => p.id));
         if (!mIds.size) { showToast('Chưa có dự án thuộc nhóm Ngân sách Bảo trì.', 'info'); return; }
-        const gEl = document.getElementById('rpt-group-filter'); if (gEl) gEl.value = 'maintenance';
+        setBudgetGroupSelection('rpt', 'maintenance');
         document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = mIds.has(el.value); });
         renderSelectedPdfReport(true);
       });
       document.getElementById('btn-rpt-select-carryover')?.addEventListener('click', () => {
-        const gEl = document.getElementById('rpt-group-filter'); if (gEl) gEl.value = 'carryover';
+        setBudgetGroupSelection('rpt', 'carryover');
         document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = true; });
         renderSelectedPdfReport(true);
       });
       document.getElementById('btn-rpt-select-active').addEventListener('click', () => {
-        const gEl = document.getElementById('rpt-group-filter'); if (gEl) gEl.value = 'all';
+        setBudgetGroupSelection('rpt', 'all');
         const aid = getActiveProject().id;
         document.querySelectorAll('.rpt-proj-chk').forEach(el => { el.checked = (el.value === aid); });
         renderSelectedPdfReport(true);
@@ -8322,30 +8386,45 @@
       document.getElementById('qrpt-project-checks')?.addEventListener('change', () => renderQuickExecReportBody());
       document.getElementById('qrpt-show-portfolio')?.addEventListener('change', () => renderQuickExecReportBody());
       document.getElementById('qrpt-fiscal-filter')?.addEventListener('change', () => renderQuickExecReportBody());
-      document.getElementById('qrpt-group-filter')?.addEventListener('change', e => {
-        const gVal = e.target.value || 'all';
-        const allowed = getAllowedProjects();
-        const matchIds = allowed.filter(p => (gVal === 'all' || gVal === 'carryover') ? true : (gVal === 'maintenance' ? isMaintenanceProject(p) : !isMaintenanceProject(p))).map(p => p.id);
-        if (matchIds.length) {
-          _quickRptSelectedIds = matchIds;
-          const mSet = new Set(matchIds);
-          document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = mSet.has(el.value); });
-        }
-        renderQuickExecReportBody();
+      document.querySelectorAll('.qrpt-grp-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const anyOn = Array.from(document.querySelectorAll('.qrpt-grp-chk')).some(x => x.checked);
+          if (!anyOn) { chk.checked = true; showToast('Cần chọn ít nhất 1 nhóm ngân sách!', 'info'); return; }
+          const gVal = syncBudgetGroupCheckboxesToValue('qrpt');
+          const gSel = resolveBudgetGroupSelection(gVal);
+          const allowed = getAllowedProjects();
+          const matchIds = (!gSel.includeCo && !(gSel.includeNew && gSel.includeMaint))
+            ? allowed.filter(p => gSel.includeMaint ? isMaintenanceProject(p) : !isMaintenanceProject(p)).map(p => p.id)
+            : allowed.map(p => p.id);
+          if (matchIds.length) {
+            _quickRptSelectedIds = matchIds;
+            const mSet = new Set(matchIds);
+            document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = mSet.has(el.value); });
+          }
+          renderQuickExecReportBody();
+        });
       });
       document.querySelectorAll('.qrpt-sec-chk').forEach(el => {
         el.addEventListener('change', () => renderQuickExecReportBody());
       });
       document.getElementById('btn-qrpt-proj-active')?.addEventListener('click', () => {
-        const gEl = document.getElementById('qrpt-group-filter'); if (gEl) gEl.value = 'all';
+        setBudgetGroupSelection('qrpt', 'all');
         const aid = getActiveProject().id;
         _quickRptSelectedIds = [aid];
         document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = (el.value === aid); });
         renderQuickExecReportBody();
       });
       document.getElementById('btn-qrpt-proj-all')?.addEventListener('click', () => {
-        const gEl = document.getElementById('qrpt-group-filter'); if (gEl) gEl.value = 'all';
+        setBudgetGroupSelection('qrpt', 'all');
         const allIds = getAllowedProjects().map(p => p.id);
+        _quickRptSelectedIds = allIds;
+        document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = true; });
+        renderQuickExecReportBody();
+      });
+      document.getElementById('btn-qrpt-proj-new-maint')?.addEventListener('click', () => {
+        const allIds = getAllowedProjects().map(p => p.id);
+        setBudgetGroupSelection('qrpt', 'new_maint');
+        const pChk = document.getElementById('qrpt-show-portfolio'); if (pChk) pChk.checked = true;
         _quickRptSelectedIds = allIds;
         document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = true; });
         renderQuickExecReportBody();
@@ -8353,7 +8432,7 @@
       document.getElementById('btn-qrpt-proj-new')?.addEventListener('click', () => {
         const newIds = getAllowedProjects().filter(p => !isMaintenanceProject(p)).map(p => p.id);
         if (!newIds.length) { showToast('Chưa có dự án thuộc nhóm Ngân sách Triển khai mới.', 'info'); return; }
-        const gEl = document.getElementById('qrpt-group-filter'); if (gEl) gEl.value = 'new';
+        setBudgetGroupSelection('qrpt', 'new');
         const pChk = document.getElementById('qrpt-show-portfolio'); if (pChk) pChk.checked = true;
         _quickRptSelectedIds = newIds;
         const nSet = new Set(newIds);
@@ -8363,7 +8442,7 @@
       document.getElementById('btn-qrpt-proj-maint')?.addEventListener('click', () => {
         const mIds = getAllowedProjects().filter(p => isMaintenanceProject(p)).map(p => p.id);
         if (!mIds.length) { showToast('Chưa có dự án thuộc nhóm Ngân sách Bảo trì.', 'info'); return; }
-        const gEl = document.getElementById('qrpt-group-filter'); if (gEl) gEl.value = 'maintenance';
+        setBudgetGroupSelection('qrpt', 'maintenance');
         const pChk = document.getElementById('qrpt-show-portfolio'); if (pChk) pChk.checked = true;
         _quickRptSelectedIds = mIds;
         const mSet = new Set(mIds);
@@ -8372,7 +8451,7 @@
       });
       document.getElementById('btn-qrpt-proj-carryover')?.addEventListener('click', () => {
         const allIds = getAllowedProjects().map(p => p.id);
-        const gEl = document.getElementById('qrpt-group-filter'); if (gEl) gEl.value = 'carryover';
+        setBudgetGroupSelection('qrpt', 'carryover');
         const pChk = document.getElementById('qrpt-show-portfolio'); if (pChk) pChk.checked = true;
         _quickRptSelectedIds = allIds;
         document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = true; });
@@ -13833,11 +13912,19 @@
                       <p class="text-[11px] text-amber-800">Ngân sách, Hợp đồng và Đợt thanh toán từ file Excel sẽ được gán đúng vào năm đã chọn (giữ nguyên dữ liệu các năm khác).</p>
                     </div>
                     <div class="max-h-56 overflow-y-auto space-y-1.5 pr-1">${previewHtml}</div>
-                    <div class="p-3 rounded-xl border border-slate-200 bg-white space-y-1.5">
+                    <div class="p-3 rounded-xl border border-slate-200 bg-white space-y-2">
                       <div class="text-xs font-bold text-slate-800">Chế độ nhập danh mục dự án:</div>
                       <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
                         <input type="radio" name="allpImpMode" value="upsert" checked class="mt-0.5 text-brand-600" />
                         <span><strong>Cập nhật dự án trùng mã/tên &amp; thêm dự án mới (Khuyên dùng):</strong> Giữ nguyên các dự án hiện có không nằm trong file.</span>
+                      </label>
+                      <label class="flex items-start gap-2 text-xs text-amber-900 bg-amber-50/70 border border-amber-200 rounded-lg p-2 cursor-pointer">
+                        <input type="radio" name="allpImpMode" value="replace_year" class="mt-0.5 text-amber-600" />
+                        <span><strong>🔄 Cập nhật mới toàn bộ dữ liệu Năm đã chọn theo file:</strong> Ghi đè mới hoàn toàn Ngân sách, TMĐT &amp; Hợp đồng của năm đang chọn theo file Excel (giữ nguyên dữ liệu các năm khác).</span>
+                      </label>
+                      <label class="flex items-start gap-2 text-xs text-rose-900 bg-rose-50/70 border border-rose-200 rounded-lg p-2 cursor-pointer">
+                        <input type="radio" name="allpImpMode" value="replace_all" class="mt-0.5 text-rose-600" />
+                        <span><strong>⚡ Cập nhật &amp; thay thế TOÀN BỘ dữ liệu mới 100% theo file:</strong> Thay mới hoàn toàn danh mục dự án, loại dự án, ngân sách, TMĐT &amp; hợp đồng khớp đúng 100% theo file Excel (gỡ các dự án cũ không có trong file; tự động lưu sao lưu dự phòng).</span>
                       </label>
                       <label class="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
                         <input type="radio" name="allpImpMode" value="add_only" class="mt-0.5 text-brand-600" />
@@ -13853,49 +13940,96 @@
                   const mode = document.querySelector('#modal-form input[name="allpImpMode"]:checked')?.value || 'upsert';
                   const syncContracts = Boolean(document.querySelector('#modal-form input[name="allpSyncContracts"]')?.checked);
                   const impYear = parseFiscalTag(document.querySelector('#modal-form select[name="allpImpYear"]')?.value, getProjectBudgetYear(getActiveProject())).year;
-                  const impDate = String(state.reportDate || '').startsWith(String(impYear) + '-') ? state.reportDate : `${impYear}-01-01`;
-                  let created = 0, updated = 0, skipped = 0, syncedCtr = 0;
+                  const impYrKey = String(impYear);
+                  const impDate = String(state.reportDate || '').startsWith(impYrKey + '-') ? state.reportDate : `${impYear}-01-01`;
+                  let created = 0, updated = 0, skipped = 0, syncedCtr = 0, removed = 0;
 
                   try {
+                  if (mode === 'replace_all') {
+                    try {
+                      localStorage.setItem('ownerpm_backup_before_replace_all', JSON.stringify({
+                        savedAt: new Date().toISOString(),
+                        file: file.name,
+                        year: impYear,
+                        projects: state.projects
+                      }));
+                    } catch (bkErr) {}
+                  }
+                  const prevProjectsSnapshot = [...existing];
+                  const freshReplacedList = [];
+                  const usedMatchIds = new Set();
+
                   parsed.projects.forEach((pItem, idx) => {
-                    let targetP = findMatch(pItem);
+                    const candidate = findMatch(pItem);
+                    let targetP = (candidate && !usedMatchIds.has(candidate.id)) ? candidate : null;
                     if (targetP && mode === 'add_only') { skipped++; return; }
 
-                    if (!targetP) {
-                      const autoCode = pItem.code || ((pItem.name.replace(/[^A-Za-z0-9\u00C0-\u1EF9]+/g, ' ').trim().split(/\s+/).slice(0, 3).map(w => w[0] || '').join('').toUpperCase() || 'DA') + '-' + (state.projects.length + 1));
-                      targetP = {
-                        id: 'p_xl_' + Date.now() + '_' + idx,
+                    const newComp = pItem.tmdtCompany || pItem.tmdt || 0;
+                    const newDep = pItem.tmdtDeploy || pItem.tmdt || 0;
+                    const isMaintType = pItem.projectType === 'maintenance';
+
+                    if (!targetP || mode === 'replace_all') {
+                      const prevP = targetP;
+                      const autoCode = pItem.code || (prevP && prevP.code) || ((pItem.name.replace(/[^A-Za-z0-9\u00C0-\u1EF9]+/g, ' ').trim().split(/\s+/).slice(0, 3).map(w => w[0] || '').join('').toUpperCase() || 'DA') + '-' + ((mode === 'replace_all' ? freshReplacedList.length : state.projects.length) + 1));
+                      const nextP = {
+                        id: (prevP && prevP.id) ? prevP.id : ('p_xl_' + Date.now() + '_' + idx),
                         code: autoCode,
                         name: pItem.name,
                         budgetYear: impYear,
-                        projectType: pItem.projectType || 'new',
-                        visibleModules: pItem.projectType === 'maintenance' ? [...DEFAULT_MAINTENANCE_MODULES] : [...ALL_PROJECT_MODULES],
-                        visibleSubModules: pItem.projectType === 'maintenance' ? [...DEFAULT_MAINTENANCE_SUBMODULES] : [...ALL_PROJECT_SUBMODULES],
-                        ownerMasterItems: [],
-                        contractorRevisions: {},
-                        owner: pItem.owner || 'KIMTIN GROUP',
-                        pmBoard: pItem.pmBoard || 'Ban QLDA Đầu tư Xây dựng',
-                        pmName: pItem.pmName || '',
-                        approver: pItem.approver || 'Ban Tổng Giám đốc',
-                        weekLabel: pItem.weekLabel || 'Tuần 01',
-                        location: pItem.location || '',
-                        timeline: pItem.timeline || '',
-                        status: pItem.status || 'Đang triển khai',
-                        tmdtCompany: pItem.tmdtCompany || pItem.tmdt || 0,
-                        tmdtDeploy: pItem.tmdtDeploy || pItem.tmdt || 0,
-                        tmdt: pItem.tmdtDeploy || pItem.tmdt || 0,
+                        projectType: pItem.projectType || (prevP && prevP.projectType) || 'new',
+                        visibleModules: isMaintType ? [...DEFAULT_MAINTENANCE_MODULES] : [...ALL_PROJECT_MODULES],
+                        visibleSubModules: isMaintType ? [...DEFAULT_MAINTENANCE_SUBMODULES] : [...ALL_PROJECT_SUBMODULES],
+                        ownerMasterItems: (prevP && Array.isArray(prevP.ownerMasterItems)) ? prevP.ownerMasterItems : [],
+                        contractorRevisions: (prevP && prevP.contractorRevisions) ? prevP.contractorRevisions : {},
+                        owner: pItem.owner || (prevP && prevP.owner) || 'KIMTIN GROUP',
+                        pmBoard: pItem.pmBoard || (prevP && prevP.pmBoard) || 'Ban QLDA Đầu tư Xây dựng',
+                        pmName: pItem.pmName || (prevP && prevP.pmName) || '',
+                        approver: pItem.approver || (prevP && prevP.approver) || 'Ban Tổng Giám đốc',
+                        weekLabel: pItem.weekLabel || (prevP && prevP.weekLabel) || 'Tuần 01',
+                        location: pItem.location || (prevP && prevP.location) || '',
+                        timeline: pItem.timeline || (prevP && prevP.timeline) || '',
+                        status: pItem.status || (prevP && prevP.status) || 'Đang triển khai',
+                        tmdtCompany: newComp,
+                        tmdtDeploy: newDep,
+                        tmdt: newDep,
+                        tmdtCompanyByYear: newComp > 0 ? { [impYrKey]: newComp } : {},
+                        tmdtDeployByYear: newDep > 0 ? { [impYrKey]: newDep } : {},
                         contingency: 0,
-                        nextWeekPlan: '',
-                        budgetItems: pItem.tmdt > 0 ? [{ id: 'bi_xl_' + Date.now() + '_' + idx, name: `Tổng ngân sách dự án (Nhập Excel - Năm ${impYear})`, category: 'Tổng mức đầu tư', budget: pItem.tmdt, vatRate: 0, actual: 0, fiscalKind: 'budget', fiscalYear: impYear, _fromSummaryExcel: true }] : [],
-                        contracts: [], vos: [], payments: [], tasks: [], inspections: [],
-                        legalDocs: [], risks: [], weeklyTasks: [], sitePhotos: [], snaps: [],
-                        progressLogs: [], scheduleVersions: [], holidays: [], weeklyArchive: [], documents: []
+                        nextWeekPlan: (prevP && prevP.nextWeekPlan) || '',
+                        budgetItems: newDep > 0 ? [{ id: 'bi_xl_' + Date.now() + '_' + idx, name: `Tổng ngân sách dự án (Nhập Excel - Năm ${impYear})`, category: isMaintType ? 'Bảo trì dự án' : 'Tổng mức đầu tư', budget: newDep, vatRate: 0, actual: 0, fiscalKind: 'budget', fiscalYear: impYear, _fromSummaryExcel: true }] : [],
+                        contracts: [],
+                        vos: [],
+                        payments: [],
+                        tasks: (prevP && Array.isArray(prevP.tasks)) ? prevP.tasks : [],
+                        inspections: (prevP && Array.isArray(prevP.inspections)) ? prevP.inspections : [],
+                        legalDocs: (prevP && Array.isArray(prevP.legalDocs)) ? prevP.legalDocs : [],
+                        risks: (prevP && Array.isArray(prevP.risks)) ? prevP.risks : [],
+                        weeklyTasks: (prevP && Array.isArray(prevP.weeklyTasks)) ? prevP.weeklyTasks : [],
+                        sitePhotos: (prevP && Array.isArray(prevP.sitePhotos)) ? prevP.sitePhotos : [],
+                        snaps: (prevP && Array.isArray(prevP.snaps)) ? prevP.snaps : [],
+                        progressLogs: (prevP && Array.isArray(prevP.progressLogs)) ? prevP.progressLogs : [],
+                        scheduleVersions: (prevP && Array.isArray(prevP.scheduleVersions)) ? prevP.scheduleVersions : [],
+                        holidays: (prevP && Array.isArray(prevP.holidays)) ? prevP.holidays : [],
+                        weeklyArchive: (prevP && Array.isArray(prevP.weeklyArchive)) ? prevP.weeklyArchive : [],
+                        documents: (prevP && Array.isArray(prevP.documents)) ? prevP.documents : []
                       };
-                      state.projects.push(targetP);
-                      created++;
+                      targetP = nextP;
+                      if (mode === 'replace_all') {
+                        freshReplacedList.push(targetP);
+                        if (prevP) { usedMatchIds.add(prevP.id); updated++; } else created++;
+                      } else {
+                        state.projects.push(targetP);
+                        created++;
+                      }
                     } else {
+                      usedMatchIds.add(targetP.id);
                       if (pItem.name) targetP.name = pItem.name;
                       if (pItem.code) targetP.code = pItem.code;
+                      if (pItem.projectType) {
+                        targetP.projectType = pItem.projectType;
+                        targetP.visibleModules = isMaintType ? [...DEFAULT_MAINTENANCE_MODULES] : [...ALL_PROJECT_MODULES];
+                        targetP.visibleSubModules = isMaintType ? [...DEFAULT_MAINTENANCE_SUBMODULES] : [...ALL_PROJECT_SUBMODULES];
+                      }
                       if (pItem.owner) targetP.owner = pItem.owner;
                       if (pItem.pmBoard) targetP.pmBoard = pItem.pmBoard;
                       if (pItem.pmName) targetP.pmName = pItem.pmName;
@@ -13904,21 +14038,44 @@
                       if (pItem.timeline) targetP.timeline = pItem.timeline;
                       if (pItem.weekLabel) targetP.weekLabel = pItem.weekLabel;
                       if (pItem.status) targetP.status = pItem.status;
-                      if (pItem.tmdtCompany > 0 && impYear >= getProjectBudgetYear(targetP)) targetP.tmdtCompany = pItem.tmdtCompany;
-                      if (pItem.tmdtDeploy > 0 || pItem.tmdt > 0) {
-                        const newDep = pItem.tmdtDeploy || pItem.tmdt;
-                        if (impYear >= getProjectBudgetYear(targetP) || !targetP.tmdt) {
+                      targetP.tmdtCompanyByYear = targetP.tmdtCompanyByYear || {};
+                      targetP.tmdtDeployByYear = targetP.tmdtDeployByYear || {};
+                      if (newComp > 0 || mode === 'replace_year') {
+                        targetP.tmdtCompanyByYear[impYrKey] = newComp;
+                        if (impYear >= getProjectBudgetYear(targetP) || mode === 'replace_year') targetP.tmdtCompany = newComp;
+                      }
+                      if (newDep > 0 || mode === 'replace_year') {
+                        targetP.tmdtDeployByYear[impYrKey] = newDep;
+                        if (impYear >= getProjectBudgetYear(targetP) || !targetP.tmdt || mode === 'replace_year') {
                           targetP.tmdtDeploy = newDep;
                           targetP.tmdt = newDep;
                         }
                         if (!Array.isArray(targetP.budgetItems)) targetP.budgetItems = [];
-                        const yrItems = targetP.budgetItems.filter(b => getBudgetItemFiscalMeta(b, targetP).year === impYear);
-                        if (!yrItems.length) {
-                          targetP.budgetItems.push({ id: 'bi_xl_' + Date.now() + '_' + idx, name: `Tổng ngân sách dự án (Nhập Excel - Năm ${impYear})`, category: 'Tổng mức đầu tư', budget: newDep, vatRate: 0, actual: 0, fiscalKind: 'budget', fiscalYear: impYear, _fromSummaryExcel: true });
-                        } else if (yrItems.length === 1 && yrItems[0]._fromSummaryExcel) {
-                          yrItems[0].budget = newDep;
-                          yrItems[0].fiscalKind = 'budget';
-                          yrItems[0].fiscalYear = impYear;
+                        if (mode === 'replace_year') {
+                          targetP.budgetItems = targetP.budgetItems.filter(b => getBudgetItemFiscalMeta(b, targetP).year !== impYear);
+                          if (newDep > 0) {
+                            targetP.budgetItems.push({ id: 'bi_xl_' + Date.now() + '_' + idx, name: `Tổng ngân sách dự án (Nhập Excel - Năm ${impYear})`, category: isMaintType ? 'Bảo trì dự án' : 'Tổng mức đầu tư', budget: newDep, vatRate: 0, actual: 0, fiscalKind: 'budget', fiscalYear: impYear, _fromSummaryExcel: true });
+                          }
+                        } else if (newDep > 0) {
+                          const yrItems = targetP.budgetItems.filter(b => getBudgetItemFiscalMeta(b, targetP).year === impYear);
+                          if (!yrItems.length) {
+                            targetP.budgetItems.push({ id: 'bi_xl_' + Date.now() + '_' + idx, name: `Tổng ngân sách dự án (Nhập Excel - Năm ${impYear})`, category: isMaintType ? 'Bảo trì dự án' : 'Tổng mức đầu tư', budget: newDep, vatRate: 0, actual: 0, fiscalKind: 'budget', fiscalYear: impYear, _fromSummaryExcel: true });
+                          } else if (yrItems.length === 1 && yrItems[0]._fromSummaryExcel) {
+                            yrItems[0].budget = newDep;
+                            yrItems[0].fiscalKind = 'budget';
+                            yrItems[0].fiscalYear = impYear;
+                          }
+                        }
+                      }
+                      if (mode === 'replace_year' && syncContracts && Array.isArray(targetP.contracts)) {
+                        const removedCids = new Set();
+                        targetP.contracts = targetP.contracts.filter(ec => {
+                          const keep = getContractOriginYear(ec, targetP) !== impYear;
+                          if (!keep) removedCids.add(String(ec.id));
+                          return keep;
+                        });
+                        if (removedCids.size && Array.isArray(targetP.vos)) {
+                          targetP.vos = targetP.vos.filter(v => !removedCids.has(String(v.contractId)));
                         }
                       }
                       updated++;
@@ -13977,11 +14134,20 @@
                     }
                   });
 
+                  if (mode === 'replace_all' && freshReplacedList.length) {
+                    removed = Math.max(0, prevProjectsSnapshot.length - usedMatchIds.size);
+                    state.projects = freshReplacedList;
+                    if (!state.projects.some(p => p.id === state.activeProjectId)) {
+                      state.activeProjectId = state.projects[0].id;
+                    }
+                  }
+
                   saveState();
-                  if (latestNotifRef) latestNotifRef.location = `Toàn bộ dự án → Nhập Excel Năm ${impYear} (${created} mới, ${updated} cập nhật)`;
+                  const modeTxt = mode === 'replace_all' ? 'Thay thế toàn bộ 100%' : (mode === 'replace_year' ? `Cập nhật toàn bộ Năm ${impYear}` : `Cập nhật Năm ${impYear}`);
+                  if (latestNotifRef) latestNotifRef.location = `Toàn bộ dự án → Nhập Excel (${modeTxt}: ${created} mới, ${updated} cập nhật${removed ? ', gỡ ' + removed + ' cũ' : ''})`;
                   closeModal();
                   renderAll();
-                  showToast(`Đã nhập Excel Toàn bộ Dự án (Năm ${impYear}): ${created} dự án mới, ${updated} cập nhật${skipped ? ', ' + skipped + ' bỏ qua' : ''}${syncedCtr ? ', ' + syncedCtr + ' HĐ' : ''}!`);
+                  showToast(`Đã nhập Excel (${modeTxt}): ${created} dự án mới, ${updated} cập nhật${removed ? ', gỡ bỏ ' + removed + ' DA ngoài file' : ''}${skipped ? ', ' + skipped + ' bỏ qua' : ''}${syncedCtr ? ', ' + syncedCtr + ' HĐ' : ''}!`);
                   } catch (impErr) {
                     console.error('Import All Projects error:', impErr);
                     showToast('Lỗi khi lưu dữ liệu nhập Excel: ' + impErr.message, 'error');
