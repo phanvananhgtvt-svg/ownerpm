@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.20 • Tích chọn nhóm NS (Triển khai • Bảo trì • Tồn đọng)</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.22 • Giữ trọn Quyết toán, Đã TT &amp; Còn lại cho các dòng PLHĐ khi nhập Excel</div>
       </div>
     </aside>
 
@@ -3746,8 +3746,13 @@
             allContracts.push({ ...c, _projId: p.id, _projCode: p.code, _projName: p.name });
           });
         });
+        const tagBudget = (arr, p) => (arr || []).map(x => {
+          const fm = typeof getBudgetItemFiscalMeta === 'function' ? getBudgetItemFiscalMeta(x, p) : { kind: 'budget', year: getProjectBudgetYear(p) };
+          return { ...x, fiscalKind: x.fiscalKind || fm.kind, fiscalYear: Number(x.fiscalYear) || fm.year, _projId: p.id, _projCode: p.code, _projName: p.name };
+        });
         return {
           id: '__ALL__',
+          _sourceProjects: allowed,
           code: 'ALL',
           name: `Tổng hợp Toàn bộ Dự án (${allowed.length} dự án)`,
           status: 'Đang xem tất cả',
@@ -3758,7 +3763,7 @@
           tmdt: allowed.reduce((s, p) => s + getProjectTmdtCompare(p).deploy, 0),
           tmdtCompany: allowed.reduce((s, p) => s + getProjectTmdtCompare(p).company, 0),
           tmdtDeploy: allowed.reduce((s, p) => s + getProjectTmdtCompare(p).deploy, 0),
-          budgetItems: allowed.flatMap(p => tag(p.budgetItems, p)),
+          budgetItems: allowed.flatMap(p => tagBudget(p.budgetItems, p)),
           tasks: allTasks,
           ownerMasterItems: allowed.flatMap(p => tag(p.ownerMasterItems, p)),
           contracts: allContracts,
@@ -5547,6 +5552,26 @@
       // Any record outside the selected fiscalFilter is excluded so all reports, KPIs, charts & Excel sheets reflect ONLY that period.
       function projectSliceForFiscal(proj, fiscalFilter) {
         if (!proj || !fiscalFilter || fiscalFilter === 'all') return proj;
+        // Combined __ALL__ view: slice EACH source project independently against its own budgetYear & per-year TMĐT, then aggregate!
+        if (proj.id === '__ALL__' && Array.isArray(proj._sourceProjects)) {
+          const tag = (arr, p) => (arr || []).map(x => ({ ...x, _projId: p.id, _projCode: p.code, _projName: p.name }));
+          const slicedList = proj._sourceProjects.map(p => ({ raw: p, sp: projectSliceForFiscal(p, fiscalFilter) }));
+          const sumCo = slicedList.reduce((s, x) => s + (Number(x.sp.tmdtCompany) || 0), 0);
+          const sumDep = slicedList.reduce((s, x) => s + (Number(x.sp.tmdtDeploy) || 0), 0);
+          const activeYrProjCount = slicedList.filter(x => (Number(x.sp.tmdtCompany) || 0) > 0 || (Number(x.sp.tmdtDeploy) || 0) > 0 || (x.sp.budgetItems || []).length > 0).length;
+          return {
+            ...proj,
+            tmdtCompany: Math.round(sumCo),
+            tmdtDeploy: Math.round(sumDep),
+            tmdt: Math.round(sumDep),
+            budgetItems: slicedList.flatMap(x => tag(x.sp.budgetItems, x.raw)),
+            contracts: slicedList.flatMap(x => tag(x.sp.contracts, x.raw)),
+            payments: slicedList.flatMap(x => tag(x.sp.payments, x.raw)),
+            vos: slicedList.flatMap(x => tag(x.sp.vos, x.raw)),
+            _activeFiscalProjCount: activeYrProjCount,
+            _fiscalFilter: fiscalFilter
+          };
+        }
         const allItems = Array.isArray(proj.budgetItems) ? proj.budgetItems : [];
         const byId = {};
         allItems.forEach(b => { byId[String(b.id)] = b; });
@@ -5609,9 +5634,14 @@
         if (yrCoOverride > 0) {
           slicedTmdtCo = Math.round(yrCoOverride);
         } else if (projBudgetMatches) {
-          const rawCo = Number(proj.tmdtCompany) || 0;
-          const isStaleCombinedCo = allBudTotal > 0 && slicedBudTotal !== allBudTotal && Math.abs(rawCo - allBudTotal) <= 1;
-          slicedTmdtCo = (rawCo > 0 && !isStaleCombinedCo) ? Math.round(rawCo) : slicedTmdtDep;
+          // If this project already has budgetItems in other years and ZERO in this year, do not bleed multi-year tmdtCompany into this empty year
+          if (allItems.length > 0 && slicedBudTotal === 0) {
+            slicedTmdtCo = 0;
+          } else {
+            const rawCo = Number(proj.tmdtCompany) || 0;
+            const isStaleCombinedCo = allBudTotal > 0 && slicedBudTotal !== allBudTotal && Math.abs(rawCo - allBudTotal) <= 1;
+            slicedTmdtCo = (rawCo > 0 && !isStaleCombinedCo) ? Math.round(rawCo) : slicedTmdtDep;
+          }
         } else {
           slicedTmdtCo = slicedTmdtDep;
         }
@@ -5975,7 +6005,7 @@
                 ${canEditFin
                   ? `<input id="inp-fin-tmdt-company" type="text" inputmode="numeric" value="${fmtVndInput(tmdtCmp.company)}" class="mt-1.5 w-full text-sm font-bold text-slate-900 border border-slate-300 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 bg-white text-right focus:outline-none focus:ring-2 focus:ring-indigo-200" />`
                   : `<div class="mt-1.5 text-base font-bold text-slate-900">${fmtTy(tmdtCmp.company)}</div>`}
-                <div class="text-[10.5px] text-slate-500 mt-1">Hạn mức ngân sách Công ty duyệt</div>
+                <div class="text-[10.5px] text-slate-500 mt-1">${state.viewAllProjects && finSlice._activeFiscalProjCount !== undefined ? `Tổng hạn mức NS Công ty của ${finSlice._activeFiscalProjCount} DA có NS (${esc(finFiscalLbl)})` : 'Hạn mức ngân sách Công ty duyệt'}</div>
               </div>
               <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
                 <div class="text-[11px] font-semibold text-indigo-800">2. TMĐT khi Triển khai Dự án (${esc(finFiscalLbl)})</div>
@@ -9663,6 +9693,7 @@
           const settleVal = parseExcelMoney(settleRaw);
           const paidVal = parseExcelMoney(row[colMap.paid]);
           const debtVal = parseExcelMoney(row[colMap.debt]);
+          const remVal = parseExcelMoney(row[colMap.rem]);
 
           // Skip blank or grand total / ratio rows
           if (!pName && !cName && !budgetVal && !contractVal && !settleVal && !paidVal && !debtVal) continue;
@@ -9706,7 +9737,10 @@
               curProj = { name: ap ? ap.name : 'Dự án hiện tại', budget: 0, contracts: [], isImplicitActive: true };
               projects.push(curProj);
             }
-            if (isPlhd && curContract) {
+            // Only merge PLHĐ/VO into parent contract's VOs when it is a pure sub-row with NO independent Quyết toán / Đã TT / Công nợ / Còn lại
+            // and the parent contract is NOT already settled; otherwise keep as an independent addendum line so totals match Excel 100%!
+            const hasIndependentPlhdFigures = settleVal > 0 || paidVal > 0 || debtVal > 0 || Math.abs(remVal) > 1 || (curContract && Number(curContract.settle) > 0);
+            if (isPlhd && curContract && !hasIndependentPlhdFigures) {
               const isPending = /chờ duyệt|cho duyet/i.test(cName);
               const cleanTitle = cName.replace(/\s*\(chờ duyệt\)\s*$/i, '').trim();
               const codeM = cleanTitle.match(/^(PL\s*H[ĐD]\s*[A-Za-z0-9._-]+|VO[\s-]*[A-Za-z0-9._-]+)/i);
