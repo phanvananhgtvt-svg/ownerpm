@@ -246,7 +246,7 @@
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
           <span>Thư viện Hồ sơ</span>
         </button>
-        <div class="pt-3 mt-2 border-t border-slate-800">
+        <div id="nav-shared-tools-header" class="pt-3 mt-2 border-t border-slate-800">
           <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Công cụ dùng chung</div>
         </div>
         <button type="button" data-tab="tmdt" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition text-left text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -2671,10 +2671,10 @@
       let lastLocalMutationAt = 0;
       let lastCloudSyncedTs = 0;
       function saveState(skipAutoPush) {
-        lastLocalMutationAt = Date.now();
-        state.lastUpdated = lastLocalMutationAt;
-        state.syncId = genSyncId();
         if (!skipAutoPush) {
+          lastLocalMutationAt = Date.now();
+          state.lastUpdated = lastLocalMutationAt;
+          state.syncId = genSyncId();
           latestNotifRef = pushAdminNotif('Cập nhật dữ liệu dự án', 'Chỉnh sửa');
           clearTimeout(latestNotifTimer);
           latestNotifTimer = setTimeout(() => { latestNotifRef = null; }, 80);
@@ -3283,6 +3283,14 @@
       sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
 
       function switchTab(tabId) {
+        if (typeof canViewModule === 'function' && typeof getActiveProject === 'function') {
+          const ap = getActiveProject();
+          if (!canViewModule(tabId) || !isModuleEnabledForProject(ap, tabId)) {
+            const fallback = (typeof PERM_MODULES !== 'undefined' ? PERM_MODULES : []).find(m => canViewModule(m.key) && isModuleEnabledForProject(ap, m.key));
+            if (fallback && fallback.key !== tabId) tabId = fallback.key;
+            else return;
+          }
+        }
         activeTab = tabId;
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
         const target = document.getElementById(`tab-${tabId}`);
@@ -8730,16 +8738,16 @@
         if (val === '__ALL__') {
           state.viewAllProjects = true;
           resetProjectViewFilters();
-          saveState();
+          saveLocalViewState();
           renderAll();
-          switchTab('projects');
+          if (canViewModule('projects')) switchTab('projects');
           showToast('Đang hiển thị danh sách tất cả dự án', 'info');
           return;
         }
         state.viewAllProjects = false;
         state.activeProjectId = val;
         resetProjectViewFilters();
-        saveState();
+        saveLocalViewState();
         renderAll();
         showToast('Đã chuyển dự án: ' + getActiveProject().name, 'info');
       });
@@ -9089,7 +9097,7 @@
         const action = btn.dataset.action, id = btn.dataset.id, proj = getActiveProject();
 
         if (action === 'select-project') {
-          state.viewAllProjects = false; state.activeProjectId = id; resetProjectViewFilters(); saveState(); renderAll(); switchTab('overview'); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
+          state.viewAllProjects = false; state.activeProjectId = id; resetProjectViewFilters(); saveLocalViewState(); renderAll(); switchTab(canViewModule('overview') ? 'overview' : (PERM_MODULES.find(m => canViewModule(m.key) && isModuleEnabledForProject(getActiveProject(), m.key))?.key || 'overview')); showToast('Đã chọn theo dõi dự án: ' + getActiveProject().name, 'info');
         } else if (action === 'edit-project') {
           const p = state.projects.find(x => x.id === id); if (!p) return;
           const tc = getProjectTmdtCompare(p);
@@ -13911,6 +13919,30 @@ function doPost(e) {
         return /firebasedatabase\.app|firebaseio\.com/i.test(url || '');
       }
 
+      const LOCAL_VIEW_KEY = STORAGE_KEY + '_local_view_v1';
+      function saveLocalViewState() {
+        try {
+          const uname = (typeof getSessionUsername === 'function' ? getSessionUsername() : '') || '_anon';
+          const allViews = JSON.parse(localStorage.getItem(LOCAL_VIEW_KEY) || '{}');
+          allViews[uname] = { activeProjectId: state.activeProjectId || '', viewAllProjects: Boolean(state.viewAllProjects) };
+          localStorage.setItem(LOCAL_VIEW_KEY, JSON.stringify(allViews));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+      }
+      function loadLocalViewState() {
+        try {
+          const uname = (typeof getSessionUsername === 'function' ? getSessionUsername() : '') || '_anon';
+          const allViews = JSON.parse(localStorage.getItem(LOCAL_VIEW_KEY) || '{}');
+          const mine = allViews[uname];
+          if (mine && typeof mine === 'object') {
+            if (mine.activeProjectId && (state.projects || []).some(p => p.id === mine.activeProjectId)) {
+              state.activeProjectId = mine.activeProjectId;
+            }
+            if (typeof mine.viewAllProjects === 'boolean') state.viewAllProjects = mine.viewAllProjects;
+          }
+        } catch (e) {}
+      }
+
       function applyCloudState(data, url, silent) {
         if (!data || !Array.isArray(data.projects) || data.projects.length === 0) return false;
         if (silent && lastLocalMutationAt > 0 && (Date.now() - lastLocalMutationAt) < 8000) return false;
@@ -13921,6 +13953,10 @@ function doPost(e) {
         const incomingId = data.syncId || String(incomingTs);
         const currentId = state.syncId || String(currentTs);
         if (!silent || incomingId !== currentId) {
+          // Preserve THIS device/user's own active project, viewAllProjects & role so other users switching projects NEVER yank this user!
+          const localActiveProjectId = state.activeProjectId;
+          const localViewAllProjects = Boolean(state.viewAllProjects);
+          const localRole = state.role;
           const prevVersByProj = {};
           (state.projects || []).forEach(pr => {
             if (pr && pr.id) prevVersByProj[pr.id] = toVersArray(pr.scheduleVersions);
@@ -13936,11 +13972,24 @@ function doPost(e) {
               p.scheduleVersions = prevVersByProj[p.id];
             }
           });
+          // Restore local user's own project selection & role
+          if (localActiveProjectId && (state.projects || []).some(p => p.id === localActiveProjectId)) {
+            state.activeProjectId = localActiveProjectId;
+          }
+          state.viewAllProjects = localViewAllProjects;
+          loadLocalViewState();
+          checkAuthSession();
+          const curLocalUser = getCurrentUser();
+          if (curLocalUser) {
+            state.role = isAdminAccount(curLocalUser) ? (localRole === 'viewer' ? 'viewer' : 'admin') : (curLocalUser.role || 'viewer');
+          } else if (localRole) {
+            state.role = localRole;
+          }
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
             localStorage.setItem(STORAGE_KEY + '_cloud_ts', String(Number(data.lastUpdated) || 0));
+            lastCloudSyncedTs = Math.max(lastCloudSyncedTs, Number(data.lastUpdated) || 0);
           } catch (e) {}
-          checkAuthSession();
           if (isAdminUser() && Array.isArray(state.adminNotifications)) {
             const cur = getCurrentUser();
             const curU = cur ? cur.username : '';
@@ -14651,6 +14700,7 @@ function setupDailyBackupTrigger() {
         return 'h_' + (h >>> 0).toString(16);
       }
       const PERM_MODULES = [
+        { key: 'projects', label: 'Danh mục Toàn bộ Dự án' },
         { key: 'overview', label: 'Tổng quan điều hành (KPI, EVM, S-Curve)' },
         { key: 'schedule', label: 'Tiến độ Nhà thầu & Tổng (WBS, Gantt, CPM)' },
         { key: 'finance', label: 'Ngân sách & Đợt Thanh toán / Hợp đồng' },
@@ -14688,10 +14738,19 @@ function setupDailyBackupTrigger() {
         if (!u) return defaultPermsForRole('viewer');
         const effRole = isAdminAccount(u) ? 'admin' : u.role;
         if (!u.permissions || typeof u.permissions !== 'object') u.permissions = defaultPermsForRole(effRole);
+        if (u.permissions.projectIds && !Array.isArray(u.permissions.projectIds) && typeof u.permissions.projectIds === 'object') {
+          u.permissions.projectIds = Object.values(u.permissions.projectIds);
+        }
         if (!Array.isArray(u.permissions.projectIds)) u.permissions.projectIds = [];
-        if (!u.permissions.modules) u.permissions.modules = defaultPermsForRole(effRole).modules;
+        if (!u.permissions.modules || typeof u.permissions.modules !== 'object') u.permissions.modules = defaultPermsForRole(effRole).modules;
         PERM_MODULES.forEach(m => {
-          if (!u.permissions.modules[m.key]) u.permissions.modules[m.key] = { view: true, edit: isAdminAccount(u) };
+          const existing = u.permissions.modules[m.key];
+          if (!existing || typeof existing !== 'object') {
+            u.permissions.modules[m.key] = { view: true, edit: isAdminAccount(u) };
+          } else {
+            // Preserve explicit false from Firebase or Admin settings strictly
+            u.permissions.modules[m.key] = { view: Boolean(existing.view), edit: Boolean(existing.edit) && Boolean(existing.view) };
+          }
         });
         return u.permissions;
       }
@@ -14708,11 +14767,10 @@ function setupDailyBackupTrigger() {
         return state.projects.filter(pr => p.projectIds.includes(pr.id));
       }
       function canViewModule(modKey) {
-        if (modKey === 'projects' || modKey === 'tmdt' || modKey === 'dongia' || modKey === 'shared_proposals' || modKey === 'shared_payments') return true;
         const cur = getCurrentUser();
         if (!state.authEnabled || !cur || isAdminAccount(cur)) return true;
         const p = ensureUserPerms(cur);
-        return Boolean(p.modules[modKey] && p.modules[modKey].view);
+        return Boolean(p.modules[modKey] && p.modules[modKey].view === true);
       }
       function canEditModule(modKey) {
         const cur = getCurrentUser();
@@ -14781,6 +14839,18 @@ function setupDailyBackupTrigger() {
           const t = btn.dataset.tab;
           const visible = canViewModule(t) && isModuleEnabledForProject(activeProjObj, t);
           btn.classList.toggle('hidden', !visible);
+        });
+        const sharedHdr = document.getElementById('nav-shared-tools-header');
+        if (sharedHdr) {
+          const anySharedVisible = ['tmdt', 'dongia', 'shared_proposals', 'shared_payments'].some(k => canViewModule(k) && isModuleEnabledForProject(activeProjObj, k));
+          sharedHdr.classList.toggle('hidden', !anySharedVisible);
+        }
+        // Hide any disallowed tab panel immediately & redirect to first allowed tab
+        PERM_MODULES.forEach(m => {
+          const sec = document.getElementById('tab-' + m.key);
+          if (sec && (!canViewModule(m.key) || !isModuleEnabledForProject(activeProjObj, m.key))) {
+            sec.classList.add('hidden');
+          }
         });
         if (!canViewModule(activeTab) || !isModuleEnabledForProject(activeProjObj, activeTab)) {
           const firstAllowed = PERM_MODULES.find(m => canViewModule(m.key) && isModuleEnabledForProject(activeProjObj, m.key));
@@ -15017,18 +15087,37 @@ function setupDailyBackupTrigger() {
           errEl.textContent = 'Tài khoản này đã bị quản trị viên khóa.';
           errEl.classList.remove('hidden');
           recordAuthLog(u.username, u.fullName, u.role, 'Tài khoản bị khóa');
-          saveState();
+          saveState(true);
           return;
         }
         errEl.classList.add('hidden');
         document.getElementById('login-password').value = '';
         setSessionUsername(u.username);
+        if (state.cloudUrl || DEFAULT_FIREBASE_URL) {
+          try { await pullFromCloud(true, true); } catch (err) {}
+          ensureAuthDefaults();
+          const freshU = state.users.find(x => String(x.username || '').trim().toLowerCase() === uname.toLowerCase());
+          if (freshU) u = freshU;
+          if (!u.active) {
+            setSessionUsername('');
+            errEl.textContent = 'Tài khoản này đã bị quản trị viên khóa.';
+            errEl.classList.remove('hidden');
+            checkAuthSession();
+            return;
+          }
+        }
         state.role = isAdminAccount(u) ? 'admin' : (u.role || 'viewer');
         u.lastLogin = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
-        if (!cloudPullCompleted && (state.cloudUrl || DEFAULT_FIREBASE_URL)) { try { await pullFromCloud(true, true); } catch (err) {} }
         recordAuthLog(u.username, u.fullName, u.role, 'Thành công');
         saveState(true);
+        loadLocalViewState();
         checkAuthSession();
+        const allowedOnLogin = getAllowedProjects();
+        if (allowedOnLogin.length && !allowedOnLogin.some(p => p.id === state.activeProjectId)) {
+          state.activeProjectId = allowedOnLogin[0].id;
+          state.viewAllProjects = false;
+        }
+        saveLocalViewState();
         renderAll();
         showToast(`Chào mừng ${u.fullName} đăng nhập!`);
       });
@@ -15306,9 +15395,14 @@ function setupDailyBackupTrigger() {
         });
         u.permissions = { allProjects: allP, projectIds: pIds, modules: mods };
         saveState();
+        if (state.autoSync !== false && (state.cloudUrl || DEFAULT_FIREBASE_URL)) {
+          clearTimeout(autoPushTimer);
+          autoPushTimer = null;
+          pushToCloud(true);
+        }
         applyUserPermissions();
         document.getElementById('sec-user-perm-panel').classList.add('hidden');
-        showToast(`Đã lưu phân quyền cho ${u.fullName}`);
+        showToast(`Đã lưu phân quyền cho ${u.fullName} & đồng bộ lên Cloud`);
       });
 
       document.getElementById('btn-clear-auth-logs').addEventListener('click', () => {
@@ -15320,7 +15414,7 @@ function setupDailyBackupTrigger() {
       document.querySelectorAll('[data-set-role]').forEach(btn => {
         btn.addEventListener('click', () => {
           state.role = btn.dataset.setRole;
-          saveState(); renderAll();
+          saveLocalViewState(); renderAll();
           document.getElementById('security-modal').classList.add('hidden');
           showToast('Đã chuyển chế độ: ' + btn.querySelector('.font-bold').textContent, 'info');
         });
@@ -18871,6 +18965,7 @@ function setupDailyBackupTrigger() {
         syncScaleButtons();
       })();
 
+      loadLocalViewState();
       checkAuthSession();
       renderAll();
     })();
