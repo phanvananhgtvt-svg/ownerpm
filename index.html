@@ -54,7 +54,7 @@
     @media print {
       @page { size: A4 portrait; margin: 0; }
       body { background: #fff !important; }
-      #app-shell, #modal-backdrop, #toast-container, #rpt-toolbar, #rpt-filter-bar, #letter-modal, #cloud-modal, #security-modal, #file-export-preview-modal { display: none !important; }
+      #app-shell, #modal-backdrop, #toast-container, #rpt-toolbar, #rpt-filter-bar, #quick-rpt-filter-bar, #letter-modal, #cloud-modal, #security-modal, #file-export-preview-modal { display: none !important; }
       #rpt-preview { position: static !important; background: #fff !important; padding: 0 !important; display: block !important; overflow: visible !important; }
       #rpt-scroll { padding: 0 !important; overflow: visible !important; }
       .rpt-page { margin: 0 !important; box-shadow: none !important; width: 210mm !important; min-height: 297mm !important; }
@@ -346,7 +346,7 @@
         <button id="btn-reset-demo" type="button" class="w-full text-xs text-slate-400 hover:text-rose-300 py-1 px-3 rounded-lg transition text-center">
           Khôi phục dữ liệu mẫu
         </button>
-        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.3 • Xem trước file &amp; Phân quyền</div>
+        <div class="text-[10px] text-slate-500 text-center pt-0.5 select-none">OwnerPM v2.9.4 • Báo cáo nhanh &amp; Quyền xem</div>
       </div>
     </aside>
 
@@ -1972,14 +1972,40 @@
         <div class="text-xs text-slate-400">Chọn loại báo cáo (Tổng thể / Tiến độ / Ngân sách &amp; Thanh toán) và chọn 1 hoặc nhiều dự án để xuất PDF</div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <div id="quick-rpt-mode-bar" class="hidden flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
-          <button type="button" data-qrpt-mode="schedule" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition">1. Báo cáo Tiến độ</button>
-          <button type="button" data-qrpt-mode="payment" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">2. Báo cáo Thanh toán</button>
-          <button type="button" data-qrpt-mode="both" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Cả 2 (Tổng hợp)</button>
+        <div id="quick-rpt-mode-bar" class="hidden flex flex-wrap items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <button type="button" data-qrpt-mode="budget" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Ngân sách &amp; TMĐT</button>
+          <button type="button" data-qrpt-mode="payment" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Thanh toán &amp; Công nợ</button>
+          <button type="button" data-qrpt-mode="finance" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Ngân sách &amp; TT</button>
+          <button type="button" data-qrpt-mode="schedule" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition">Tiến độ</button>
+          <button type="button" data-qrpt-mode="risks_vo" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">VO &amp; Rủi ro</button>
+          <button type="button" data-qrpt-mode="both" class="px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-300 hover:bg-slate-700 transition">Tổng hợp</button>
         </div>
+        <button id="btn-qrpt-export-excel" type="button" class="hidden px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-teal-600 hover:bg-teal-700 text-white transition">📊 Xuất Excel</button>
         <button id="btn-rpt-export-word" type="button" class="hidden px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition">📝 Xuất file Word</button>
         <button id="btn-print-rpt" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition">🖨 In / Lưu thành PDF</button>
         <button id="btn-close-rpt" type="button" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-slate-700 hover:bg-slate-600 text-white transition">✕ Đóng</button>
+      </div>
+    </div>
+    <div id="quick-rpt-filter-bar" class="hidden bg-slate-800 text-slate-100 px-4 py-2.5 space-y-2 border-b border-slate-700 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-semibold text-sky-300 whitespace-nowrap">Phạm vi dự án:</span>
+        <button id="btn-qrpt-proj-active" type="button" class="px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-semibold transition">Chỉ DA hiện tại</button>
+        <button id="btn-qrpt-proj-all" type="button" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-semibold transition">🌐 Toàn bộ dự án</button>
+        <div id="qrpt-project-checks" class="flex flex-wrap items-center gap-1.5 flex-1"></div>
+        <label class="inline-flex items-center gap-1.5 cursor-pointer text-amber-200 font-medium whitespace-nowrap bg-slate-900/70 border border-slate-700 px-2 py-1 rounded-lg">
+          <input id="qrpt-show-portfolio" type="checkbox" checked class="accent-amber-400 w-3.5 h-3.5" />
+          <span>Bảng Tổng hợp nhiều DA</span>
+        </label>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-700/80">
+        <span class="font-semibold text-emerald-300 whitespace-nowrap">Thông tin cần báo cáo:</span>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="kpi" checked /><span>KPI &amp; So sánh TMĐT</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="budget" /><span>Ngân sách (Hạng mục cha/con)</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="contracts" /><span>Hợp đồng &amp; Quyết toán</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="rounds" /><span>Đợt TT &amp; Công nợ đang trình</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="schedK" checked /><span>Tiến độ theo Nhà thầu</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="schedTasks" checked /><span>Chi tiết WBS &amp; Đường găng</span></label>
+        <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/60 hover:bg-slate-700/80 border border-slate-700 px-2 py-1 rounded-lg"><input type="checkbox" class="qrpt-sec-chk accent-emerald-400 w-3.5 h-3.5" value="risksVo" /><span>Phát sinh (VO) &amp; Rủi ro / Pháp lý</span></label>
       </div>
     </div>
     <div id="rpt-filter-bar" class="bg-slate-800 text-slate-100 px-4 py-2.5 flex flex-wrap items-center gap-3 border-b border-slate-700 text-xs">
@@ -4493,6 +4519,8 @@
         window._previewPrelimHtml = innerHtml;
         window._previewPrelimName = `Bao_cao_tien_do_so_bo_${c.code}`;
         document.getElementById('rpt-filter-bar').classList.add('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
         document.getElementById('btn-rpt-export-word').classList.remove('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
         document.getElementById('rpt-pages').innerHTML = `<div class="rpt-page" style="padding:16mm 16mm;">${innerHtml}</div>`;
@@ -6237,6 +6265,8 @@
       async function openWeeklyPdfPreview() {
         _previewPayContext = null; _previewVoContext = null;
         document.getElementById('rpt-filter-bar').classList.remove('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
         document.getElementById('btn-rpt-export-word').classList.add('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
         await renderSelectedPdfReport(false);
@@ -6255,156 +6285,420 @@
         renderSelectedPdfReport(true);
       });
 
-      let _quickRptMode = 'schedule';
-      function openQuickExecReport(modeOverride) {
-        if (typeof modeOverride === 'string') _quickRptMode = modeOverride;
-        const proj = getActiveProject(), atMs = getReportMs();
-        const cp = computeCPM(proj.tasks || []);
-        const critSet = cp && cp.critSet ? cp.critSet : new Set();
+      let _quickRptMode = 'finance';
+      let _quickRptSelectedIds = null;
+      const QRPT_PRESETS = {
+        budget:   { label: 'BÁO CÁO NHANH NGÂN SÁCH & TMĐT', secs: { kpi: true, budget: true, contracts: false, rounds: false, schedK: false, schedTasks: false, risksVo: false } },
+        payment:  { label: 'BÁO CÁO NHANH THANH TOÁN & CÔNG NỢ', secs: { kpi: true, budget: false, contracts: true, rounds: true, schedK: false, schedTasks: false, risksVo: false } },
+        finance:  { label: 'BÁO CÁO NHANH NGÂN SÁCH & THANH TOÁN', secs: { kpi: true, budget: true, contracts: true, rounds: true, schedK: false, schedTasks: false, risksVo: false } },
+        schedule: { label: 'BÁO CÁO NHANH TIẾN ĐỘ', secs: { kpi: true, budget: false, contracts: false, rounds: false, schedK: true, schedTasks: true, risksVo: false } },
+        risks_vo: { label: 'BÁO CÁO NHANH PHÁT SINH (VO) & RỦI RO / PHÁP LÝ', secs: { kpi: true, budget: false, contracts: false, rounds: false, schedK: false, schedTasks: false, risksVo: true } },
+        both:     { label: 'BÁO CÁO NHANH TỔNG HỢP TOÀN DIỆN', secs: { kpi: true, budget: true, contracts: true, rounds: true, schedK: true, schedTasks: true, risksVo: true } }
+      };
+
+      function getQuickRptSections() {
+        const secs = {};
+        document.querySelectorAll('.qrpt-sec-chk').forEach(el => { secs[el.value] = el.checked; });
+        return secs;
+      }
+
+      function applyQuickRptPresetChecks(modeKey) {
+        const preset = QRPT_PRESETS[modeKey] || QRPT_PRESETS.finance;
+        document.querySelectorAll('.qrpt-sec-chk').forEach(el => {
+          el.checked = Boolean(preset.secs[el.value]);
+        });
+      }
+
+      function populateQuickRptProjectChecks(keepCurrentSelection) {
+        const allowed = getAllowedProjects();
+        const wrap = document.getElementById('qrpt-project-checks');
+        if (!wrap) return;
+        const activeId = getActiveProject().id;
+        let selectedSet;
+        if (keepCurrentSelection && Array.isArray(_quickRptSelectedIds) && _quickRptSelectedIds.length) {
+          selectedSet = new Set(_quickRptSelectedIds.filter(id => allowed.some(p => p.id === id)));
+          if (!selectedSet.size) selectedSet = new Set([activeId]);
+        } else if (state.viewAllProjects) {
+          selectedSet = new Set(allowed.map(p => p.id));
+        } else {
+          selectedSet = new Set([activeId]);
+        }
+        _quickRptSelectedIds = [...selectedSet];
+        wrap.innerHTML = allowed.map(p => `
+          <label class="inline-flex items-center gap-1 cursor-pointer bg-slate-900/70 hover:bg-slate-700 border border-slate-600 px-2 py-1 rounded-lg text-[11px]">
+            <input type="checkbox" class="qrpt-proj-chk accent-sky-400 w-3.5 h-3.5" value="${esc(p.id)}" ${selectedSet.has(p.id) ? 'checked' : ''} />
+            <span class="font-semibold text-white">${esc(p.code)}</span>
+          </label>`).join('');
+      }
+
+      function getQuickRptSelectedProjects() {
+        const allowed = getAllowedProjects();
+        const checkedIds = Array.from(document.querySelectorAll('.qrpt-proj-chk:checked')).map(el => el.value);
+        if (checkedIds.length) {
+          _quickRptSelectedIds = checkedIds;
+          return allowed.filter(p => checkedIds.includes(p.id));
+        }
+        return [getActiveProject()].filter(Boolean);
+      }
+
+      function buildQuickRptProjectStats(proj, atMs) {
         const leaves = getLeafTasks(proj.tasks || []).slice().sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true }));
         const g = aggTasks(leaves, atMs);
-        const byK = {};
-        leaves.forEach(t => {
-          const k = (t.contractor || '').trim() || 'Chưa phân công';
-          if (!byK[k]) byK[k] = [];
-          byK[k].push(t);
-        });
-        const kRows = Object.entries(byK).map(([k, kl]) => {
-          const ag = aggTasks(kl, atMs);
-          const diff = ag.a - ag.p;
-          const statusTxt = ag.a >= 99.5 ? 'Hoàn thành' : (diff >= 3 ? `Nhanh +${diff.toFixed(1)}%` : (diff >= -3 ? 'Đúng tiến độ' : `Chậm ${diff.toFixed(1)}%`));
-          return { k, count: kl.length, weight: (kl.reduce((s, t) => s + (Number(t.weight) || 1), 0) / (leaves.reduce((s, x) => s + (Number(x.weight) || 1), 0) || 1)) * 100, p: ag.p, a: ag.a, diff, statusTxt };
-        }).sort((a, b) => b.diff - a.diff);
-
-        const allSortedForRpt = [...(proj.tasks || [])].sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true }));
-        const taskDetailRows = allSortedForRpt.map(t => {
-          const leaf = isLeafTask(proj.tasks, t);
-          const m = getTaskMetrics(proj.tasks, t, atMs);
-          const depth = Math.max(0, String(t.c || '').split('.').length - 1);
-          let actAs = '', actAe = '';
-          if (leaf) {
-            const pct = Number(t.progress) || 0;
-            actAs = t.as || (pct > 0 ? t.ps : '');
-            actAe = pct >= 99.5 ? (t.ae || state.reportDate) : '';
-          } else {
-            const kids = (proj.tasks || []).filter(x => x && String(x.c || '').startsWith(String(t.c) + '.') && isLeafTask(proj.tasks, x));
-            const asList = kids.map(k => k.as || ((Number(k.progress) || 0) > 0 ? k.ps : '')).filter(Boolean).sort();
-            actAs = asList[0] || '';
-            const allDone = kids.length > 0 && kids.every(k => (Number(k.progress) || 0) >= 99.5);
-            if (allDone) {
-              const aeList = kids.map(k => k.ae || state.reportDate).filter(Boolean).sort();
-              actAe = aeList[aeList.length - 1] || '';
-            }
-          }
-          const diff = m.a - m.p;
-          const stTxt = m.a >= 99.5 ? 'Hoàn thành' : (diff >= 3 ? `Nhanh +${diff.toFixed(1)}%` : (diff >= -3 ? 'Đúng tiến độ' : (diff >= -10 ? `Chậm nhẹ ${diff.toFixed(1)}%` : `Trễ ${diff.toFixed(1)}%`)));
-          return { c: t.c, name: t.name, isParent: !leaf, depth, contractor: t.contractor || (leaf ? '—' : 'Tổng hợp'), ps: m.ps, pe: m.pe, as: actAs, ae: actAe, p: m.p, a: m.a, diff, stTxt, isCrit: leaf && critSet.has(t.c), note: t.note || '' };
-        });
-
-        const totalBudget = (proj.budgetItems || []).reduce((s, b) => s + (Number(b.budget) || 0), 0) || (Number(proj.tmdt) || 0);
+        const tc = getProjectTmdtCompare(proj);
+        const totalBudget = getBudgetTotalWithVat(proj.budgetItems || []) || tc.deploy || tc.company || 0;
         const cMetrics = (proj.contracts || []).map(c => ({ c, m: calcContract(c) }));
         const totalContracted = cMetrics.reduce((s, x) => s + (Number(x.c.value) || 0), 0);
         const totalSettled = cMetrics.reduce((s, x) => s + (x.c.settle !== '' && x.c.settle != null && Number(x.c.settle) > 0 ? Number(x.c.settle) : 0), 0);
         const totalPaid = cMetrics.reduce((s, x) => s + x.m.paid, 0);
         const totalRem = cMetrics.reduce((s, x) => s + x.m.rem, 0);
         const subDebt = calcProjectSubmittedDebt(proj);
+        return { proj, leaves, g, tc, totalBudget, cMetrics, totalContracted, totalSettled, totalPaid, totalRem, subDebt };
+      }
 
-        const roundDetailRows = [];
-        (proj.contracts || []).forEach(c => {
-          if ((Number(c.adv) || 0) > 0) {
-            roundDetailRows.push({ code: c.code, contractor: c.contractor, label: 'Tạm ứng hợp đồng', amt: Number(c.adv) || 0, paid: c.advDate ? Number(c.adv) : 0, invDate: c.advInvDate || '', payDate: c.advDate || '', st: c.advDate ? 'Đã thanh toán' : (c.advInvDate ? 'Đang trình' : 'Chưa XHĐ') });
-          }
-          (c.rounds || []).forEach((r, idx) => {
-            const rm = getRoundPaidAndSubmitted(r);
-            const lbl = /^đợt\s*\d+/i.test(String(r.label || '').trim()) ? r.label : `Đợt ${idx + 1} — ${r.label || ''}`;
-            roundDetailRows.push({ code: c.code, contractor: c.contractor, label: lbl + (rm.hasSplits ? ` (Chia ${r.splits.length} lần)` : ''), amt: rm.total, paid: rm.paid, invDate: r.invDate || '', payDate: rm.lastPayDate, st: getRoundStatus(r) });
-          });
-        });
-
-        const showSched = (_quickRptMode === 'schedule' || _quickRptMode === 'both');
-        const showPay = (_quickRptMode === 'payment' || _quickRptMode === 'both');
-        const modeTitle = _quickRptMode === 'schedule' ? '1. BÁO CÁO NHANH TIẾN ĐỘ' : (_quickRptMode === 'payment' ? '2. BÁO CÁO NHANH THANH TOÁN' : 'BÁO CÁO NHANH TIẾN ĐỘ & THANH TOÁN');
+      function renderQuickExecReportBody() {
+        const atMs = getReportMs();
+        const selectedProjs = getQuickRptSelectedProjects();
+        const secs = getQuickRptSections();
+        const showPortfolio = Boolean(document.getElementById('qrpt-show-portfolio')?.checked);
+        const preset = QRPT_PRESETS[_quickRptMode] || { label: 'BÁO CÁO NHANH TÙY CHỌN' };
+        const modeTitle = preset.label;
+        const anySec = Object.values(secs).some(Boolean);
 
         document.querySelectorAll('[data-qrpt-mode]').forEach(b => {
           const on = b.dataset.qrptMode === _quickRptMode;
-          b.className = `px-2.5 py-1 text-xs font-semibold rounded-lg transition ${on ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700'}`;
+          b.className = `px-2.5 py-1 text-xs font-semibold rounded-lg transition ${on ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-700'}`;
         });
+
+        const allStats = selectedProjs.map(p => buildQuickRptProjectStats(p, atMs));
+        let pagesHtml = '';
+
+        // Portfolio Summary Page when >= 2 projects selected & enabled
+        if (selectedProjs.length >= 2 && showPortfolio) {
+          const sumCty = allStats.reduce((s, x) => s + x.tc.company, 0);
+          const sumDep = allStats.reduce((s, x) => s + x.tc.deploy, 0);
+          const sumDiffTmdt = sumDep - sumCty;
+          const sumBud = allStats.reduce((s, x) => s + x.totalBudget, 0);
+          const sumCon = allStats.reduce((s, x) => s + x.totalContracted, 0);
+          const sumSet = allStats.reduce((s, x) => s + x.totalSettled, 0);
+          const sumPaid = allStats.reduce((s, x) => s + x.totalPaid, 0);
+          const sumRem = allStats.reduce((s, x) => s + x.totalRem, 0);
+          const sumSub = allStats.reduce((s, x) => s + x.subDebt.total, 0);
+          const sumSubCnt = allStats.reduce((s, x) => s + x.subDebt.count, 0);
+          const avgP = allStats.length ? (allStats.reduce((s, x) => s + x.g.p, 0) / allStats.length) : 0;
+          const avgA = allStats.length ? (allStats.reduce((s, x) => s + x.g.a, 0) / allStats.length) : 0;
+          const avgSpi = avgP > 0 ? (avgA / avgP) : 1;
+
+          pagesHtml += `
+            <div class="rpt-page" style="padding:13mm;background:#fff;margin:0 auto 18px auto;font-family:Inter,Arial,sans-serif;color:#0f172a;font-size:10.5px;line-height:1.4;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.5px;">KIMTIN GROUP — ${esc(modeTitle)} (TỔNG HỢP ${selectedProjs.length} DỰ ÁN)</div>
+                  <h1 style="font-size:17px;font-weight:800;margin:3px 0;">Báo cáo Tổng hợp Danh mục Dự án</h1>
+                  <div style="font-size:10px;color:#475569;">Phạm vi: ${selectedProjs.map(p => esc(p.code)).join(', ')}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:9.5px;color:#64748b;">Thời điểm báo cáo</div>
+                  <div style="font-size:13.5px;font-weight:800;color:#b91c1c;">${fmtDateVN(atMs)}</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px;">
+                <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty</div><div style="font-size:12.5px;font-weight:800;">${fmtTy(sumCty)}</div><div style="font-size:8.5px;color:#64748b;">Triển khai: ${fmtTy(sumDep)}</div></div>
+                <div style="padding:7px 9px;border:1px solid ${sumDiffTmdt > 0 ? '#fecdd3' : '#a7f3d0'};background:${sumDiffTmdt > 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch TMĐT</div><div style="font-size:12.5px;font-weight:800;color:${sumDiffTmdt > 0 ? '#be123c' : '#047857'};">${sumDiffTmdt > 0 ? '+' : ''}${fmtTy(sumDiffTmdt)}</div><div style="font-size:8.5px;color:#64748b;">Tổng NS duyệt: ${fmtTy(sumBud)}</div></div>
+                <div style="padding:7px 9px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9px;color:#047857;">Đã TT / Tổng HĐ</div><div style="font-size:12.5px;font-weight:800;color:#047857;">${fmtTy(sumPaid)}</div><div style="font-size:8.5px;color:#475569;">HĐ: ${fmtTy(sumCon)} (${sumCon > 0 ? ((sumPaid / sumCon) * 100).toFixed(1) : '0.0'}%)</div></div>
+                <div style="padding:7px 9px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9px;color:#be123c;">Công nợ trình / Còn lại</div><div style="font-size:12.5px;font-weight:800;color:#be123c;">${fmtTy(sumSub)} (${sumSubCnt} đợt)</div><div style="font-size:8.5px;color:#b45309;">Còn lại: ${fmtTy(sumRem)} • SPI TB ${avgSpi.toFixed(2)}</div></div>
+              </div>
+              <div style="font-size:10.5px;font-weight:700;color:#1e3a8a;margin:6px 0 4px;text-transform:uppercase;">Bảng đối chiếu tổng hợp ${selectedProjs.length} dự án</div>
+              <table style="width:100%;border-collapse:collapse;font-size:8.8px;">
+                <thead>
+                  <tr style="background:#1e3a8a;color:#fff;">
+                    <th style="padding:4.5px 5px;text-align:left;">Mã &amp; Tên Dự án</th>
+                    <th style="padding:4.5px 5px;text-align:right;">TMĐT Cty</th>
+                    <th style="padding:4.5px 5px;text-align:right;">TMĐT Triển khai</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Tổng Ngân sách</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Đã TT</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Đang trình</th>
+                    <th style="padding:4.5px 5px;text-align:right;">Còn lại</th>
+                    <th style="padding:4.5px 5px;text-align:center;">Tiến độ KH / TT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${allStats.map(x => `
+                    <tr style="border-bottom:1px solid #e2e8f0;">
+                      <td style="padding:4px 5px;"><strong>${esc(x.proj.code)}</strong> — ${esc(x.proj.name)}</td>
+                      <td style="padding:4px 5px;text-align:right;">${fmtTy(x.tc.company)}</td>
+                      <td style="padding:4px 5px;text-align:right;font-weight:700;color:${x.tc.diff > 0 ? '#be123c' : '#0f172a'};">${fmtTy(x.tc.deploy)}</td>
+                      <td style="padding:4px 5px;text-align:right;font-weight:600;">${fmtTy(x.totalBudget)}</td>
+                      <td style="padding:4px 5px;text-align:right;">${fmtTy(x.totalContracted)}</td>
+                      <td style="padding:4px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(x.totalPaid)}</td>
+                      <td style="padding:4px 5px;text-align:right;color:${x.subDebt.total > 0 ? '#be123c' : '#64748b'};font-weight:${x.subDebt.total > 0 ? '700' : '400'};">${x.subDebt.total > 0 ? fmtTy(x.subDebt.total) : '—'}</td>
+                      <td style="padding:4px 5px;text-align:right;">${fmtTy(x.totalRem)}</td>
+                      <td style="padding:4px 5px;text-align:center;font-weight:600;">${x.g.p.toFixed(1)}% / <span style="color:${x.g.a - x.g.p < -3 ? '#be123c' : '#047857'};">${x.g.a.toFixed(1)}%</span></td>
+                    </tr>`).join('')}
+                  <tr style="background:#fef08a;font-weight:800;border-top:2px solid #0f172a;">
+                    <td style="padding:5px;">TỔNG CỘNG (${selectedProjs.length} DỰ ÁN)</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(sumCty)}</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(sumDep)}</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(sumBud)}</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(sumCon)}</td>
+                    <td style="padding:5px;text-align:right;color:#047857;">${fmtTy(sumPaid)}</td>
+                    <td style="padding:5px;text-align:right;color:#be123c;">${fmtTy(sumSub)}</td>
+                    <td style="padding:5px;text-align:right;">${fmtTy(sumRem)}</td>
+                    <td style="padding:5px;text-align:center;">TB ${avgP.toFixed(1)}% / ${avgA.toFixed(1)}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>`;
+        }
+
+        // Individual project detail pages
+        allStats.forEach(st => {
+          const { proj, leaves, g, tc, totalBudget, cMetrics, totalContracted, totalSettled, totalPaid, totalRem, subDebt } = st;
+          const cp = computeCPM(proj.tasks || []);
+          const critSet = cp && cp.critSet ? cp.critSet : new Set();
+
+          const byK = {};
+          leaves.forEach(t => {
+            const k = (t.contractor || '').trim() || 'Chưa phân công';
+            if (!byK[k]) byK[k] = [];
+            byK[k].push(t);
+          });
+          const kRows = Object.entries(byK).map(([k, kl]) => {
+            const ag = aggTasks(kl, atMs);
+            const diff = ag.a - ag.p;
+            const statusTxt = ag.a >= 99.5 ? 'Hoàn thành' : (diff >= 3 ? `Nhanh +${diff.toFixed(1)}%` : (diff >= -3 ? 'Đúng tiến độ' : `Chậm ${diff.toFixed(1)}%`));
+            return { k, count: kl.length, weight: (kl.reduce((s, t) => s + (Number(t.weight) || 1), 0) / (leaves.reduce((s, x) => s + (Number(x.weight) || 1), 0) || 1)) * 100, p: ag.p, a: ag.a, diff, statusTxt };
+          }).sort((a, b) => b.diff - a.diff);
+
+          const allSortedForRpt = [...(proj.tasks || [])].sort((a, b) => String(a.c || '').localeCompare(String(b.c || ''), undefined, { numeric: true }));
+          const taskDetailRows = allSortedForRpt.map(t => {
+            const leaf = isLeafTask(proj.tasks, t);
+            const m = getTaskMetrics(proj.tasks, t, atMs);
+            const depth = Math.max(0, String(t.c || '').split('.').length - 1);
+            let actAs = '', actAe = '';
+            if (leaf) {
+              const pct = Number(t.progress) || 0;
+              actAs = t.as || (pct > 0 ? t.ps : '');
+              actAe = pct >= 99.5 ? (t.ae || state.reportDate) : '';
+            } else {
+              const kids = (proj.tasks || []).filter(x => x && String(x.c || '').startsWith(String(t.c) + '.') && isLeafTask(proj.tasks, x));
+              const asList = kids.map(k => k.as || ((Number(k.progress) || 0) > 0 ? k.ps : '')).filter(Boolean).sort();
+              actAs = asList[0] || '';
+              const allDone = kids.length > 0 && kids.every(k => (Number(k.progress) || 0) >= 99.5);
+              if (allDone) {
+                const aeList = kids.map(k => k.ae || state.reportDate).filter(Boolean).sort();
+                actAe = aeList[aeList.length - 1] || '';
+              }
+            }
+            const diff = m.a - m.p;
+            const stTxt = m.a >= 99.5 ? 'Hoàn thành' : (diff >= 3 ? `Nhanh +${diff.toFixed(1)}%` : (diff >= -3 ? 'Đúng tiến độ' : (diff >= -10 ? `Chậm nhẹ ${diff.toFixed(1)}%` : `Trễ ${diff.toFixed(1)}%`)));
+            return { c: t.c, name: t.name, isParent: !leaf, depth, contractor: t.contractor || (leaf ? '—' : 'Tổng hợp'), ps: m.ps, pe: m.pe, as: actAs, ae: actAe, p: m.p, a: m.a, diff, stTxt, isCrit: leaf && critSet.has(t.c), note: t.note || '' };
+          });
+
+          const roundDetailRows = [];
+          (proj.contracts || []).forEach(c => {
+            if ((Number(c.adv) || 0) > 0) {
+              roundDetailRows.push({ code: c.code, contractor: c.contractor, label: 'Tạm ứng hợp đồng', amt: Number(c.adv) || 0, paid: c.advDate ? Number(c.adv) : 0, invDate: c.advInvDate || '', payDate: c.advDate || '', st: c.advDate ? 'Đã thanh toán' : (c.advInvDate ? 'Đang trình' : 'Chưa XHĐ') });
+            }
+            (c.rounds || []).forEach((r, idx) => {
+              const rm = getRoundPaidAndSubmitted(r);
+              const lbl = /^đợt\s*\d+/i.test(String(r.label || '').trim()) ? r.label : `Đợt ${idx + 1} — ${r.label || ''}`;
+              roundDetailRows.push({ code: c.code, contractor: c.contractor, label: lbl + (rm.hasSplits ? ` (Chia ${r.splits.length} lần)` : ''), amt: rm.total, paid: rm.paid, invDate: r.invDate || '', payDate: rm.lastPayDate, st: getRoundStatus(r) });
+            });
+          });
+
+          let secNo = 0;
+          const nextRom = () => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][secNo++] || String(secNo);
+
+          const kpiHtml = secs.kpi ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:6px 0 6px;">${nextRom()}. Tổng quan KPI &amp; Đối chiếu TMĐT</h2>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px;">
+              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">TMĐT NS Công ty</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(tc.company)}</div></div>
+              <div style="padding:7px 9px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9px;color:#0369a1;">TMĐT Triển khai DA</div><div style="font-size:12.5px;font-weight:800;color:#0369a1;">${fmtTy(tc.deploy)}</div></div>
+              <div style="padding:7px 9px;border:1px solid ${tc.diff > 0 ? '#fecdd3' : '#a7f3d0'};background:${tc.diff > 0 ? '#fff1f2' : '#ecfdf5'};border-radius:8px;"><div style="font-size:9px;color:#475569;">Chênh lệch TMĐT</div><div style="font-size:12.5px;font-weight:800;color:${tc.diff > 0 ? '#be123c' : '#047857'};">${tc.diff > 0 ? '+' : ''}${fmtTy(tc.diff)} (${tc.diffPct >= 0 ? '+' : ''}${tc.diffPct.toFixed(1)}%)</div></div>
+              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">Tổng Ngân sách duyệt</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(totalBudget)}</div></div>
+              <div style="padding:7px 9px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9px;color:#475569;">Tổng HĐ đã ký</div><div style="font-size:12.5px;font-weight:800;color:#0f172a;">${fmtTy(totalContracted)}</div></div>
+              <div style="padding:7px 9px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9px;color:#047857;">Đã thanh toán</div><div style="font-size:12.5px;font-weight:800;color:#047857;">${fmtTy(totalPaid)} (${totalContracted > 0 ? ((totalPaid / totalContracted) * 100).toFixed(1) : '0.0'}%)</div></div>
+              <div style="padding:7px 9px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9px;color:#be123c;">Công nợ đang trình / Còn lại</div><div style="font-size:11.5px;font-weight:800;color:#be123c;">${fmtTy(subDebt.total)} (${subDebt.count} đợt)</div><div style="font-size:8.5px;color:#b45309;">Còn lại: ${fmtTy(totalRem)}</div></div>
+              <div style="padding:7px 9px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9px;color:#0369a1;">Tiến độ KH / TT</div><div style="font-size:12px;font-weight:800;color:${g.a - g.p < -3 ? '#be123c' : '#047857'};">${g.p.toFixed(1)}% / ${g.a.toFixed(1)}%</div><div style="font-size:8.5px;color:#475569;">SPI ${g.spi.toFixed(2)}</div></div>
+            </div>` : '';
+
+          const budFlat = typeof flattenBudgetTree === 'function' ? flattenBudgetTree(proj.budgetItems || []) : (proj.budgetItems || []).map(b => ({ item: b, depth: 0, isParent: false }));
+          const budgetRowsHtml = budFlat.map(({ item: b, depth, isParent }) => {
+            const pre = typeof getBudgetPreVatEffective === 'function' ? getBudgetPreVatEffective(proj.budgetItems, b) : (Number(b.budgetPreVat) || Number(b.budget) || 0);
+            const withVat = typeof getBudgetWithVatEffective === 'function' ? getBudgetWithVatEffective(proj.budgetItems, b) : (Number(b.budget) || 0);
+            const act = getBudgetActual(proj, b);
+            const df = withVat - act;
+            let row = `<tr style="border-bottom:1px solid #e2e8f0;${isParent ? 'background:#f1f5f9;font-weight:700;' : ''}">
+              <td style="padding:3.5px 5px;padding-left:${5 + depth * 12}px;">${depth > 0 ? '↳ ' : ''}${esc(b.name)}${isParent ? ' <span style="color:#4338ca;font-size:8px;">[MỤC CHA]</span>' : ''}</td>
+              <td style="padding:3.5px 5px;">${esc(b.category)}</td>
+              <td style="padding:3.5px 5px;text-align:right;">${fmtTy(pre)}</td>
+              <td style="padding:3.5px 5px;text-align:right;font-weight:700;">${fmtTy(withVat)}</td>
+              <td style="padding:3.5px 5px;text-align:right;">${fmtTy(act)}</td>
+              <td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${df < 0 ? '#be123c' : '#047857'};">${fmtTy(df)}</td>
+            </tr>`;
+            if (isParent && typeof getBudgetUnallocated === 'function') {
+              const unalloc = getBudgetUnallocated(proj.budgetItems, b);
+              if (unalloc.pre > 0.5 || unalloc.withVat > 0.5) {
+                row += `<tr style="border-bottom:1px dashed #cbd5e1;background:#fffbeb;font-style:italic;color:#92400e;">
+                  <td style="padding:3px 5px;padding-left:${5 + (depth + 1) * 12}px;">↳ Phần còn lại chưa phân bổ (${esc(b.name)})</td>
+                  <td style="padding:3px 5px;">Chưa phân bổ</td>
+                  <td style="padding:3px 5px;text-align:right;">${fmtTy(unalloc.pre)}</td>
+                  <td style="padding:3px 5px;text-align:right;">${fmtTy(unalloc.withVat)}</td>
+                  <td style="padding:3px 5px;text-align:right;">—</td>
+                  <td style="padding:3px 5px;text-align:right;">${fmtTy(unalloc.withVat)}</td>
+                </tr>`;
+              }
+            }
+            return row;
+          }).join('');
+          const budTotPre = typeof getBudgetTotalPreVat === 'function' ? getBudgetTotalPreVat(proj.budgetItems || []) : 0;
+          const budTotVat = typeof getBudgetTotalWithVat === 'function' ? getBudgetTotalWithVat(proj.budgetItems || []) : totalBudget;
+          const budTotAct = (proj.budgetItems || []).filter(b => !b.parentId).reduce((s, b) => s + getBudgetActual(proj, b), 0);
+
+          const budgetHtml = secs.budget ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Bảng phân bổ Ngân sách theo Hạng mục Chi phí (Cha / Con)</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;">
+              <thead><tr style="background:#334155;color:#fff;"><th style="padding:4px 5px;text-align:left;">Hạng mục chi phí</th><th style="padding:4px 5px;text-align:left;">Nhóm</th><th style="padding:4px 5px;text-align:right;">NS chưa VAT</th><th style="padding:4px 5px;text-align:right;">NS có VAT</th><th style="padding:4px 5px;text-align:right;">Thực tế / HĐ</th><th style="padding:4px 5px;text-align:right;">Chênh lệch</th></tr></thead>
+              <tbody>
+                ${budgetRowsHtml || `<tr><td colspan="6" style="padding:6px;text-align:center;color:#64748b;">Chưa có hạng mục ngân sách chi tiết.</td></tr>`}
+                ${budFlat.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="2" style="padding:4.5px 5px;">TỔNG NGÂN SÁCH (Mục cấp 1)</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotPre)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotVat)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(budTotAct)}</td><td style="padding:4.5px 5px;text-align:right;color:${budTotVat - budTotAct < 0 ? '#be123c' : '#047857'};">${fmtTy(budTotVat - budTotAct)}</td></tr>` : ''}
+              </tbody>
+            </table>` : '';
+
+          const contractsHtml = secs.contracts ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Chi tiết Hợp đồng &amp; Quyết toán (${cMetrics.length} HĐ)</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;">
+              <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4.5px 5px;text-align:left;">Gói thầu / Hợp đồng</th><th style="padding:4.5px 5px;text-align:left;">Nhà thầu</th><th style="padding:4.5px 5px;text-align:right;">Giá trị HĐ</th><th style="padding:4.5px 5px;text-align:right;">Quyết toán</th><th style="padding:4.5px 5px;text-align:right;">Đã thanh toán</th><th style="padding:4.5px 5px;text-align:right;">Còn lại</th><th style="padding:4.5px 5px;text-align:right;">Đang trình chưa TT</th></tr></thead>
+              <tbody>
+                ${cMetrics.length ? cMetrics.map(({ c, m }) => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(c.code)}</strong> — ${esc(c.name)}</td><td style="padding:3.5px 5px;">${esc(c.contractor)}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(c.value)}</td><td style="padding:3.5px 5px;text-align:right;">${c.settle ? fmtTy(c.settle) : '—'}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(m.paid)} (${m.pct.toFixed(0)}%)</td><td style="padding:3.5px 5px;text-align:right;font-weight:600;">${fmtTy(m.rem)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${m.submitted > 0 ? '#be123c' : '#64748b'};">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td></tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có hợp đồng.</td></tr>`}
+                ${cMetrics.length ? `<tr style="background:#fef08a;font-weight:800;border-top:1.5px solid #0f172a;"><td colspan="2" style="padding:4.5px 5px;">TỔNG CỘNG HỢP ĐỒNG</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalContracted)}</td><td style="padding:4.5px 5px;text-align:right;">${totalSettled > 0 ? fmtTy(totalSettled) : '—'}</td><td style="padding:4.5px 5px;text-align:right;color:#047857;">${fmtTy(totalPaid)}</td><td style="padding:4.5px 5px;text-align:right;">${fmtTy(totalRem)}</td><td style="padding:4.5px 5px;text-align:right;color:#be123c;">${fmtTy(subDebt.total)}</td></tr>` : ''}
+              </tbody>
+            </table>` : '';
+
+          const roundsHtml = secs.rounds ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Chi tiết Đợt Thanh toán &amp; Công nợ Đang trình</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:8.8px;margin-bottom:10px;">
+              <thead><tr style="background:#334155;color:#fff;"><th style="padding:4px 5px;text-align:left;">HĐ &amp; Nhà thầu</th><th style="padding:4px 5px;text-align:left;">Đợt thanh toán</th><th style="padding:4px 5px;text-align:right;">Giá trị đợt</th><th style="padding:4px 5px;text-align:right;">Đã chi</th><th style="padding:4px 5px;text-align:center;">Ngày XHĐ</th><th style="padding:4px 5px;text-align:center;">Ngày TT</th><th style="padding:4px 5px;text-align:center;">Trạng thái</th></tr></thead>
+              <tbody>${roundDetailRows.length ? roundDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(r.code)}</strong> — ${esc(r.contractor)}</td><td style="padding:3.5px 5px;">${esc(r.label)}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(r.amt)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(r.paid)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.invDate)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.payDate)}</td><td style="padding:3.5px 5px;text-align:center;font-weight:600;">${esc(r.st)}</td></tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có đợt thanh toán nào.</td></tr>`}</tbody>
+            </table>` : '';
+
+          const schedKHtml = secs.schedK ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Tiến độ Nhanh / Chậm theo Nhà thầu &amp; CĐT</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:10px;">
+              <thead><tr style="background:#1e3a8a;color:#fff;"><th style="padding:4.5px 5px;text-align:left;">Đơn vị / Nhà thầu</th><th style="padding:4.5px 5px;text-align:center;">Số việc</th><th style="padding:4.5px 5px;text-align:center;">Trọng số</th><th style="padding:4.5px 5px;text-align:right;">% KH</th><th style="padding:4.5px 5px;text-align:right;">% TT</th><th style="padding:4.5px 5px;text-align:right;">Chênh lệch</th><th style="padding:4.5px 5px;text-align:center;">Đánh giá</th></tr></thead>
+              <tbody>${kRows.length ? kRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;font-weight:700;">${esc(r.k)}</td><td style="padding:3.5px 5px;text-align:center;">${r.count}</td><td style="padding:3.5px 5px;text-align:center;">${r.weight.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${r.diff >= 0 ? '#047857' : '#be123c'};">${r.diff >= 0 ? '+' : ''}${r.diff.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.statusTxt)}</td></tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có dữ liệu tiến độ.</td></tr>`}</tbody>
+            </table>` : '';
+
+          const schedTasksHtml = secs.schedTasks ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Bảng Chi tiết Công việc WBS &amp; Đường găng</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:8.8px;margin-bottom:10px;">
+              <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4px 5px;text-align:left;">Mã &amp; Tên công việc</th><th style="padding:4px 5px;text-align:left;">Nhà thầu</th><th style="padding:4px 5px;text-align:center;">KH (BĐ→KT)</th><th style="padding:4px 5px;text-align:center;">TT (BĐ→KT)</th><th style="padding:4px 5px;text-align:right;">% KH</th><th style="padding:4px 5px;text-align:right;">% TT</th><th style="padding:4px 5px;text-align:center;">Đánh giá</th><th style="padding:4px 5px;text-align:left;">Ghi chú</th></tr></thead>
+              <tbody>${taskDetailRows.length ? taskDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;${r.isParent ? 'background:#f1f5f9;font-weight:700;' : ''}"><td style="padding:3px 5px;padding-left:${5 + r.depth * 10}px;"><strong>${esc(r.c)}</strong> ${esc(r.name)} ${r.isParent ? '<span style="color:#1d4ed8;font-size:7.5px;font-weight:700;">[CHA]</span>' : ''} ${r.isCrit ? '<span style="color:#be123c;font-weight:700;">[GĂNG]</span>' : ''}</td><td style="padding:3px 5px;">${esc(r.contractor)}</td><td style="padding:3px 5px;text-align:center;">${fmtDateVN(r.ps)}→${fmtDateVN(r.pe)}</td><td style="padding:3px 5px;text-align:center;">${r.as ? fmtDateVN(r.as) : '—'}→${r.ae ? fmtDateVN(r.ae) : (r.as ? 'Đang TH' : '—')}</td><td style="padding:3px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:3px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:3px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.stTxt)}</td><td style="padding:3px 5px;color:#475569;">${esc(r.note || '—')}</td></tr>`).join('') : `<tr><td colspan="8" style="padding:6px;text-align:center;color:#64748b;">Chưa có công việc WBS.</td></tr>`}</tbody>
+            </table>` : '';
+
+          const vos = proj.vos || [];
+          const risks = proj.risks || [];
+          const legals = proj.legalDocs || [];
+          const risksVoHtml = secs.risksVo ? `
+            <h2 style="font-size:11.5px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 5px;">${nextRom()}. Phát sinh (VO), Rủi ro &amp; Hồ sơ Pháp lý</h2>
+            <div style="font-size:9.5px;font-weight:700;color:#334155;margin:4px 0 3px;">Phát sinh / Đề xuất VO (${vos.length})</div>
+            <table style="width:100%;border-collapse:collapse;font-size:8.8px;margin-bottom:8px;">
+              <thead><tr style="background:#475569;color:#fff;"><th style="padding:3.5px 5px;text-align:left;">Mã VO / Đề xuất</th><th style="padding:3.5px 5px;text-align:left;">Nội dung</th><th style="padding:3.5px 5px;text-align:right;">Giá trị</th><th style="padding:3.5px 5px;text-align:center;">Trạng thái</th></tr></thead>
+              <tbody>${vos.length ? vos.map(v => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3px 5px;font-weight:700;">${esc(v.code || v.proposalNo || '—')}</td><td style="padding:3px 5px;">${esc(v.title || v.reason || '')}</td><td style="padding:3px 5px;text-align:right;font-weight:600;">${fmtTy(Number(v.costImpact || v.amount) || 0)}</td><td style="padding:3px 5px;text-align:center;">${esc(v.status || 'Chờ duyệt')}</td></tr>`).join('') : `<tr><td colspan="4" style="padding:5px;text-align:center;color:#64748b;">Không có phát sinh VO.</td></tr>`}</tbody>
+            </table>
+            <div style="font-size:9.5px;font-weight:700;color:#334155;margin:4px 0 3px;">Rủi ro &amp; Vướng mắc (${risks.length}) • Hồ sơ Pháp lý (${legals.length})</div>
+            <table style="width:100%;border-collapse:collapse;font-size:8.8px;margin-bottom:8px;">
+              <thead><tr style="background:#7f1d1d;color:#fff;"><th style="padding:3.5px 5px;text-align:left;">Vấn đề / Rủi ro</th><th style="padding:3.5px 5px;text-align:center;">Mức độ</th><th style="padding:3.5px 5px;text-align:left;">Giải pháp / Biện pháp</th><th style="padding:3.5px 5px;text-align:center;">Trạng thái</th></tr></thead>
+              <tbody>${risks.length ? risks.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3px 5px;font-weight:600;">${esc(r.title || r.desc || '')}</td><td style="padding:3px 5px;text-align:center;">${esc(r.level || 'Trung bình')}</td><td style="padding:3px 5px;">${esc(r.mitigation || r.action || '—')}</td><td style="padding:3px 5px;text-align:center;">${esc(r.status || 'Đang mở')}</td></tr>`).join('') : `<tr><td colspan="4" style="padding:5px;text-align:center;color:#64748b;">Không có rủi ro mở.</td></tr>`}</tbody>
+            </table>` : '';
+
+          pagesHtml += `
+            <div class="rpt-page" style="padding:13mm;background:#fff;margin:0 auto 18px auto;font-family:Inter,Arial,sans-serif;color:#0f172a;font-size:10.5px;line-height:1.42;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:10px;">
+                <div>
+                  <div style="font-size:10px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.5px;">KIMTIN GROUP — ${esc(modeTitle)}</div>
+                  <h1 style="font-size:17px;font-weight:800;margin:3px 0;">${esc(proj.code)} — ${esc(proj.name)}</h1>
+                  <div style="font-size:10px;color:#475569;">Chủ đầu tư: <strong>${esc(proj.owner)}</strong> • Địa điểm: ${esc(proj.location)}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:9.5px;color:#64748b;">Thời điểm báo cáo</div>
+                  <div style="font-size:13.5px;font-weight:800;color:#b91c1c;">${fmtDateVN(atMs)}</div>
+                  <div style="font-size:9.5px;color:#64748b;">Trạng thái: ${esc(proj.status)}</div>
+                </div>
+              </div>
+              ${anySec ? (kpiHtml + budgetHtml + contractsHtml + roundsHtml + schedKHtml + schedTasksHtml + risksVoHtml) : '<div style="padding:20px;text-align:center;color:#64748b;border:1px dashed #cbd5e1;border-radius:8px;">Vui lòng tích chọn ít nhất 1 nhóm thông tin cần báo cáo ở thanh bên trên.</div>'}
+            </div>`;
+        });
+
+        document.getElementById('rpt-pages').innerHTML = pagesHtml;
+      }
+
+      function openQuickExecReport(modeOverride, keepProjectSelection) {
+        _previewPayContext = null; _previewVoContext = null;
+        if (typeof modeOverride === 'string' && QRPT_PRESETS[modeOverride]) {
+          _quickRptMode = modeOverride;
+          applyQuickRptPresetChecks(_quickRptMode);
+        } else if (!keepProjectSelection) {
+          applyQuickRptPresetChecks(_quickRptMode);
+        }
+        populateQuickRptProjectChecks(Boolean(keepProjectSelection));
         document.getElementById('rpt-filter-bar').classList.add('hidden');
         document.getElementById('btn-rpt-export-word').classList.add('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.remove('hidden');
-
-        const schedHtml = showSched ? `
-          <h2 style="font-size:12px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:8px 0 6px;">I. Báo cáo Nhanh Tiến độ tại thời điểm ${fmtDateVN(atMs)}</h2>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
-            <div style="padding:8px 10px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9.5px;color:#0369a1;">Theo Kế hoạch</div><div style="font-size:16px;font-weight:800;color:#0369a1;">${g.p.toFixed(1)}%</div></div>
-            <div style="padding:8px 10px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9.5px;color:#047857;">Theo Thực tế</div><div style="font-size:16px;font-weight:800;color:#047857;">${g.a.toFixed(1)}%</div></div>
-            <div style="padding:8px 10px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9.5px;color:#475569;">Chênh lệch / SPI</div><div style="font-size:15px;font-weight:800;color:${g.a - g.p >= -3 ? '#047857' : '#be123c'};">${g.a - g.p >= 0 ? '+' : ''}${(g.a - g.p).toFixed(1)}% (SPI ${g.spi.toFixed(2)})</div></div>
-            <div style="padding:8px 10px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9.5px;color:#be123c;">Đơn vị Nhanh vs Chậm</div><div style="font-size:14px;font-weight:800;color:#0f172a;">${kRows.filter(x => x.diff >= -3).length} đạt / <span style="color:#be123c;">${kRows.filter(x => x.diff < -3).length} chậm</span></div></div>
-          </div>
-          <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">1. Tổng hợp Nhanh / Chậm theo Nhà thầu &amp; CĐT</div>
-          <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px;">
-            <thead><tr style="background:#1e3a8a;color:#fff;"><th style="padding:5px;text-align:left;">Đơn vị / Nhà thầu</th><th style="padding:5px;text-align:center;">Số việc</th><th style="padding:5px;text-align:center;">Trọng số</th><th style="padding:5px;text-align:right;">% Kế hoạch</th><th style="padding:5px;text-align:right;">% Thực tế</th><th style="padding:5px;text-align:right;">Chênh lệch</th><th style="padding:5px;text-align:center;">Ai nhanh / Ai chậm</th></tr></thead>
-            <tbody>${kRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 5px;font-weight:700;">${esc(r.k)}</td><td style="padding:4px 5px;text-align:center;">${r.count}</td><td style="padding:4px 5px;text-align:center;">${r.weight.toFixed(1)}%</td><td style="padding:4px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:4px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:4px 5px;text-align:right;font-weight:700;color:${r.diff >= 0 ? '#047857' : '#be123c'};">${r.diff >= 0 ? '+' : ''}${r.diff.toFixed(1)}%</td><td style="padding:4px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.statusTxt)}</td></tr>`).join('')}</tbody>
-          </table>
-          <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">2. Bảng Chi tiết từng Công việc (Nắm tiến độ &amp; Găng)</div>
-          <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:14px;">
-            <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:4px 5px;text-align:left;">Mã &amp; Tên công việc</th><th style="padding:4px 5px;text-align:left;">Nhà thầu</th><th style="padding:4px 5px;text-align:center;">KH (BĐ→KT)</th><th style="padding:4px 5px;text-align:center;">TT (BĐ→KT)</th><th style="padding:4px 5px;text-align:right;">% KH</th><th style="padding:4px 5px;text-align:right;">% TT</th><th style="padding:4px 5px;text-align:center;">Đánh giá</th><th style="padding:4px 5px;text-align:left;">Ghi chú</th></tr></thead>
-            <tbody>${taskDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;${r.isParent ? 'background:#f1f5f9;font-weight:700;' : ''}"><td style="padding:3.5px 5px;padding-left:${5 + r.depth * 10}px;"><strong>${esc(r.c)}</strong> ${esc(r.name)} ${r.isParent ? '<span style="color:#1d4ed8;font-size:8px;font-weight:700;">[CẤP CHA]</span>' : ''} ${r.isCrit ? '<span style="color:#be123c;font-weight:700;">[GĂNG]</span>' : ''}</td><td style="padding:3.5px 5px;">${esc(r.contractor)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.ps)}→${fmtDateVN(r.pe)}</td><td style="padding:3.5px 5px;text-align:center;">${r.as ? fmtDateVN(r.as) : '—'}→${r.ae ? fmtDateVN(r.ae) : (r.as ? 'Đang TH' : '—')}</td><td style="padding:3.5px 5px;text-align:right;">${r.p.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;">${r.a.toFixed(1)}%</td><td style="padding:3.5px 5px;text-align:center;font-weight:700;color:${r.diff < -3 && r.a < 99.5 ? '#be123c' : '#047857'};">${esc(r.stTxt)}</td><td style="padding:3.5px 5px;color:#475569;">${esc(r.note || '—')}</td></tr>`).join('')}</tbody>
-          </table>` : '';
-
-        const payHtml = showPay ? `
-          <h2 style="font-size:12px;font-weight:800;color:#1e3a8a;text-transform:uppercase;margin:10px 0 6px;">${showSched ? 'II.' : 'I.'} Báo cáo Nhanh Thanh toán &amp; Ngân sách</h2>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-            <div style="padding:7px 10px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9.5px;color:#475569;">Ngân sách (TMĐT)</div><div style="font-size:13px;font-weight:800;color:#0f172a;">${fmtTy(totalBudget)}</div></div>
-            <div style="padding:7px 10px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:8px;"><div style="font-size:9.5px;color:#475569;">Tổng Hợp đồng đã ký</div><div style="font-size:13px;font-weight:800;color:#0f172a;">${fmtTy(totalContracted)}</div></div>
-            <div style="padding:7px 10px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:8px;"><div style="font-size:9.5px;color:#0369a1;">Giá trị Quyết toán</div><div style="font-size:13px;font-weight:800;color:#0369a1;">${totalSettled > 0 ? fmtTy(totalSettled) : 'Chưa quyết toán'}</div></div>
-            <div style="padding:7px 10px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:8px;"><div style="font-size:9.5px;color:#047857;">Đã thanh toán</div><div style="font-size:13px;font-weight:800;color:#047857;">${fmtTy(totalPaid)}</div></div>
-            <div style="padding:7px 10px;border:1px solid #fde68a;background:#fffbeb;border-radius:8px;"><div style="font-size:9.5px;color:#b45309;">Còn lại phải TT</div><div style="font-size:13px;font-weight:800;color:#b45309;">${fmtTy(totalRem)}</div></div>
-            <div style="padding:7px 10px;border:1px solid #fecdd3;background:#fff1f2;border-radius:8px;"><div style="font-size:9.5px;color:#be123c;">Công nợ đang trình (Chưa TT)</div><div style="font-size:13px;font-weight:800;color:#be123c;">${fmtTy(subDebt.total)} (${subDebt.count} đợt)</div></div>
-          </div>
-          <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">1. Chi tiết theo từng Hợp đồng &amp; Gói thầu</div>
-          <table style="width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:10px;">
-            <thead><tr style="background:#0f172a;color:#fff;"><th style="padding:5px;text-align:left;">Gói thầu / Hợp đồng</th><th style="padding:5px;text-align:left;">Nhà thầu</th><th style="padding:5px;text-align:right;">Giá trị HĐ</th><th style="padding:5px;text-align:right;">Quyết toán</th><th style="padding:5px;text-align:right;">Đã thanh toán</th><th style="padding:5px;text-align:right;">Còn lại</th><th style="padding:5px;text-align:right;">Đang trình chưa TT</th></tr></thead>
-            <tbody>${cMetrics.map(({ c, m }) => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:4px 5px;"><strong>${esc(c.code)}</strong> — ${esc(c.name)}</td><td style="padding:4px 5px;">${esc(c.contractor)}</td><td style="padding:4px 5px;text-align:right;">${fmtTy(c.value)}</td><td style="padding:4px 5px;text-align:right;">${c.settle ? fmtTy(c.settle) : '—'}</td><td style="padding:4px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(m.paid)} (${m.pct.toFixed(0)}%)</td><td style="padding:4px 5px;text-align:right;font-weight:600;">${fmtTy(m.rem)}</td><td style="padding:4px 5px;text-align:right;font-weight:700;color:${m.submitted > 0 ? '#be123c' : '#64748b'};">${m.submitted > 0 ? fmtTy(m.submitted) : '—'}</td></tr>`).join('')}</tbody>
-          </table>
-          <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">2. Chi tiết từng Đợt Thanh toán &amp; Công nợ Đang trình</div>
-          <table style="width:100%;border-collapse:collapse;font-size:9px;margin-bottom:10px;">
-            <thead><tr style="background:#334155;color:#fff;"><th style="padding:4px 5px;text-align:left;">HĐ &amp; Nhà thầu</th><th style="padding:4px 5px;text-align:left;">Đợt thanh toán</th><th style="padding:4px 5px;text-align:right;">Giá trị đợt</th><th style="padding:4px 5px;text-align:right;">Đã chi</th><th style="padding:4px 5px;text-align:center;">Ngày XHĐ</th><th style="padding:4px 5px;text-align:center;">Ngày TT</th><th style="padding:4px 5px;text-align:center;">Trạng thái</th></tr></thead>
-            <tbody>${roundDetailRows.length ? roundDetailRows.map(r => `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;"><strong>${esc(r.code)}</strong> — ${esc(r.contractor)}</td><td style="padding:3.5px 5px;">${esc(r.label)}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(r.amt)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:#047857;">${fmtTy(r.paid)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.invDate)}</td><td style="padding:3.5px 5px;text-align:center;">${fmtDateVN(r.payDate)}</td><td style="padding:3.5px 5px;text-align:center;font-weight:600;">${esc(r.st)}</td></tr>`).join('') : `<tr><td colspan="7" style="padding:6px;text-align:center;color:#64748b;">Chưa có đợt thanh toán nào.</td></tr>`}</tbody>
-          </table>
-          <div style="font-size:10.5px;font-weight:700;color:#334155;margin:6px 0 4px;">3. Bảng Ngân sách theo Hạng mục Chi phí</div>
-          <table style="width:100%;border-collapse:collapse;font-size:9px;">
-            <thead><tr style="background:#475569;color:#fff;"><th style="padding:4px 5px;text-align:left;">Hạng mục chi phí</th><th style="padding:4px 5px;text-align:left;">Nhóm</th><th style="padding:4px 5px;text-align:right;">Ngân sách</th><th style="padding:4px 5px;text-align:right;">Thực tế / HĐ</th><th style="padding:4px 5px;text-align:right;">Chênh lệch</th></tr></thead>
-            <tbody>${(proj.budgetItems || []).map(b => { const act = getBudgetActual(proj, b); const df = (Number(b.budget) || 0) - act; return `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:3.5px 5px;font-weight:600;">${esc(b.name)}</td><td style="padding:3.5px 5px;">${esc(b.category)}</td><td style="padding:3.5px 5px;text-align:right;">${fmtTy(b.budget)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:600;">${fmtTy(act)}</td><td style="padding:3.5px 5px;text-align:right;font-weight:700;color:${df < 0 ? '#be123c' : '#047857'};">${fmtTy(df)}</td></tr>`; }).join('')}</tbody>
-          </table>` : '';
-
-        document.getElementById('rpt-pages').innerHTML = `
-          <div class="a4-page" style="padding:14mm;background:#fff;margin:0 auto;font-family:Inter,Arial,sans-serif;color:#0f172a;font-size:11px;line-height:1.45;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:10px;margin-bottom:12px;">
-              <div>
-                <div style="font-size:10px;font-weight:700;color:#4338ca;text-transform:uppercase;letter-spacing:.5px;">KIMTIN GROUP — ${modeTitle}</div>
-                <h1 style="font-size:18px;font-weight:800;margin:3px 0;">${esc(proj.code)} — ${esc(proj.name)}</h1>
-                <div style="font-size:10.5px;color:#475569;">Chủ đầu tư: <strong>${esc(proj.owner)}</strong> • Địa điểm: ${esc(proj.location)}</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:10px;color:#64748b;">Thời điểm báo cáo</div>
-                <div style="font-size:14px;font-weight:800;color:#b91c1c;">${fmtDateVN(atMs)}</div>
-                <div style="font-size:10px;color:#64748b;">Trạng thái: ${esc(proj.status)}</div>
-              </div>
-            </div>
-            ${schedHtml}
-            ${payHtml}
-          </div>
-        `;
+        document.getElementById('quick-rpt-filter-bar')?.classList.remove('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.remove('hidden');
+        renderQuickExecReportBody();
         document.getElementById('rpt-preview').classList.remove('hidden');
       }
+
       document.querySelectorAll('[data-qrpt-mode]').forEach(btn => {
-        btn.addEventListener('click', () => openQuickExecReport(btn.dataset.qrptMode));
+        btn.addEventListener('click', () => openQuickExecReport(btn.dataset.qrptMode, true));
       });
-      document.getElementById('btn-quick-exec-report').addEventListener('click', () => openQuickExecReport('schedule'));
+      document.getElementById('qrpt-project-checks')?.addEventListener('change', () => renderQuickExecReportBody());
+      document.getElementById('qrpt-show-portfolio')?.addEventListener('change', () => renderQuickExecReportBody());
+      document.querySelectorAll('.qrpt-sec-chk').forEach(el => {
+        el.addEventListener('change', () => renderQuickExecReportBody());
+      });
+      document.getElementById('btn-qrpt-proj-active')?.addEventListener('click', () => {
+        const aid = getActiveProject().id;
+        _quickRptSelectedIds = [aid];
+        document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = (el.value === aid); });
+        renderQuickExecReportBody();
+      });
+      document.getElementById('btn-qrpt-proj-all')?.addEventListener('click', () => {
+        const allIds = getAllowedProjects().map(p => p.id);
+        _quickRptSelectedIds = allIds;
+        document.querySelectorAll('.qrpt-proj-chk').forEach(el => { el.checked = true; });
+        renderQuickExecReportBody();
+      });
+      document.getElementById('btn-qrpt-export-excel')?.addEventListener('click', () => {
+        const picked = getQuickRptSelectedProjects();
+        const secs = getQuickRptSections();
+        if (!picked.length) { showToast('Vui lòng chọn ít nhất 1 dự án', 'error'); return; }
+        if ((_quickRptMode === 'budget' || _quickRptMode === 'payment' || _quickRptMode === 'finance') && typeof exportFinanceSummaryExcel === 'function') {
+          exportFinanceSummaryExcel(picked, { includeRounds: Boolean(secs.rounds), includeBudgetItems: Boolean(secs.budget) });
+        } else if (picked.length === 1 && _quickRptMode === 'schedule' && picked[0].id === getActiveProject().id && typeof exportMasterScheduleExcel === 'function') {
+          exportMasterScheduleExcel();
+        } else if (typeof exportAllProjectsExcel === 'function') {
+          exportAllProjectsExcel(picked, {
+            includeFinanceSummary: Boolean(secs.kpi || secs.budget || secs.contracts || secs.rounds),
+            includeContracts: Boolean(secs.contracts || secs.rounds),
+            includeSchedule: Boolean(secs.schedK || secs.schedTasks)
+          });
+        }
+      });
+      document.getElementById('btn-quick-exec-report').addEventListener('click', () => openQuickExecReport('finance', false));
       document.getElementById('btn-open-pdf-report').addEventListener('click', openWeeklyPdfPreview);
       document.getElementById('btn-preview-pdf-2').addEventListener('click', openWeeklyPdfPreview);
-      document.getElementById('btn-close-rpt').addEventListener('click', () => { document.getElementById('rpt-preview').classList.add('hidden'); document.getElementById('rpt-filter-bar').classList.remove('hidden'); document.getElementById('btn-rpt-export-word').classList.add('hidden'); document.getElementById('quick-rpt-mode-bar').classList.add('hidden'); });
+      document.getElementById('btn-close-rpt').addEventListener('click', () => {
+        document.getElementById('rpt-preview').classList.add('hidden');
+        document.getElementById('rpt-filter-bar').classList.remove('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
+        document.getElementById('btn-rpt-export-word').classList.add('hidden');
+        document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
+      });
       document.getElementById('btn-rpt-export-word').addEventListener('click', () => { if (_previewPayContext) exportPaymentWord(_previewPayContext.proj, _previewPayContext.p); else if (_previewVoContext) exportVoProposalWord(_previewVoContext.proj, _previewVoContext.vo); else if (window._previewPrelimHtml) { const b = new Blob(['\ufeff', '<html><head><meta charset="utf-8"></head><body>' + window._previewPrelimHtml + '</body></html>'], { type: 'application/msword;charset=utf-8' }); const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = (window._previewPrelimName || 'Tien_do_so_bo') + '.doc'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } });
       document.getElementById('btn-print-rpt').addEventListener('click', () => window.print());
 
@@ -12375,6 +12669,8 @@
         const built = buildPaymentFormInnerHtml(proj, p);
         _previewPayContext = { proj, p };
         document.getElementById('rpt-filter-bar').classList.add('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
         document.getElementById('btn-rpt-export-word').classList.remove('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
         document.getElementById('rpt-pages').innerHTML = `<div class="rpt-page" style="padding:18mm 18mm;font-family:'Times New Roman',Georgia,serif;font-size:12pt;line-height:1.38;color:#000;"><style>.rpt-page table td{border:1px solid #000;padding:4px 6px;} .rpt-page table.no-border td{border:none;padding:2px 0;}</style>${built.innerHtml}</div>`;
@@ -12784,6 +13080,8 @@
         _previewPayContext = null;
         _previewVoContext = { proj, vo };
         document.getElementById('rpt-filter-bar').classList.add('hidden');
+        document.getElementById('quick-rpt-filter-bar')?.classList.add('hidden');
+        document.getElementById('btn-qrpt-export-excel')?.classList.add('hidden');
         document.getElementById('btn-rpt-export-word').classList.remove('hidden');
         document.getElementById('quick-rpt-mode-bar').classList.add('hidden');
         document.getElementById('rpt-pages').innerHTML = `<div class="rpt-page" style="padding:16mm 16mm;font-family:'Times New Roman',Georgia,serif;font-size:11.5pt;line-height:1.38;color:#000;"><style>.rpt-page table.no-border td{border:none!important;padding:2px 0;}</style>${built.innerHtml}</div>`;
@@ -15397,25 +15695,57 @@ function setupDailyBackupTrigger() {
             if (!banner) {
               banner = document.createElement('div');
               banner.className = 'perm-readonly-banner bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium px-4 py-2.5 rounded-xl flex items-center gap-2';
-              banner.innerHTML = '🔒 <span><strong>Chế độ Chỉ xem:</strong> Bạn chỉ được xem dữ liệu phân hệ này (không có quyền chỉnh sửa).</span>';
+              banner.innerHTML = '🔒 <span><strong>Chế độ Chỉ xem:</strong> Bạn vẫn có thể lọc xem dữ liệu, mở báo cáo nhanh/PDF và xuất các file xem trước (không có quyền thêm/sửa/xóa).</span>';
               sec.prepend(banner);
             }
             sec.querySelectorAll('input, select, textarea').forEach(el => {
               const id = el.id || '';
-              const isSafeFilter = ['task-search', 'task-filter-status', 'gantt-crit-only', 'filter-contract-rounds', 'mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user', 'mytask-show-hidden', 'mytask-monthly-month', 'doc-search', 'doc-filter-project', 'doc-filter-cat', 'contractor-rev-compare-sel', 'tracking-eval-filter'].includes(id);
+              const isSafeFilter = [
+                'proj-dir-search', 'proj-dir-status', 'proj-dir-type',
+                'task-search', 'task-filter-status', 'gantt-crit-only',
+                'filter-contract-rounds', 'budget-search', 'contract-search',
+                'mytask-filter-project', 'mytask-filter-status', 'mytask-filter-user', 'mytask-show-hidden', 'mytask-monthly-month',
+                'doc-search', 'doc-filter-project', 'doc-filter-cat',
+                'contractor-rev-compare-sel', 'tracking-eval-filter',
+                'sprop-search', 'sprop-mode-filter', 'spay-search', 'spay-type-filter', 'spay-mode-filter'
+              ].includes(id) || /search|filter|compare/i.test(id);
               if (!el.closest('#bim-controls') && !el.classList.contains('allow-readonly') && !isSafeFilter) {
                 el.disabled = true;
+              } else {
+                el.disabled = false;
               }
             });
             sec.querySelectorAll('button').forEach(btn => {
               const id = btn.id || '';
+              const act = String(btn.dataset.action || '').toLowerCase();
+              const spAct = String(btn.dataset.spAct || btn.dataset.spayAct || '').toLowerCase();
+              const isSafeAction = [
+                'select-project', 'toggle-budget-collapse',
+                'contractor-export-xls', 'contractor-export-msp',
+                'view-version', 'combine-view-contractor', 'view-doc',
+                'preview-pay', 'export-pay-word', 'preview-vo', 'export-vo-word'
+              ].includes(act) || ['preview', 'word', 'pdf', 'print', 'view', 'export'].includes(spAct);
               const isSafeRead = btn.hasAttribute('data-sched-subtab') || btn.hasAttribute('data-bim-cam') ||
-                ['btn-preview-pdf-2', 'btn-bim-play', 'btn-export-sched-xlsx', 'btn-export-msp-xml', 'btn-export-tracking-pdf', 'btn-export-tracking-xlsx', 'btn-mode-owner', 'btn-mode-plan', 'btn-mode-contractors', 'btn-mode-tracking', 'btn-mode-cpm', 'btn-mode-ai', 'btn-wbs-fullscreen', 'btn-wbs-fs-close', 'btn-gantt-zoom-out', 'btn-gantt-zoom-in', 'btn-gantt-zoom-fit', 'btn-gantt-fullscreen'].includes(id) ||
+                [
+                  'btn-preview-pdf-2', 'btn-open-pdf-report', 'btn-quick-exec-report', 'btn-open-letter',
+                  'btn-export-all-projects-xlsx', 'btn-export-finance-summary-xlsx', 'btn-export-budget-xlsx',
+                  'btn-export-master-xlsx', 'btn-export-msp', 'btn-export-sched-xlsx', 'btn-export-msp-xml',
+                  'btn-export-tracking-pdf', 'btn-export-tracking-xlsx', 'btn-export-prelim-doc',
+                  'btn-bim-play', 'btn-mode-owner', 'btn-mode-plan', 'btn-mode-contractors',
+                  'btn-mode-tracking', 'btn-mode-cpm', 'btn-mode-ai', 'btn-mode-prelim',
+                  'btn-wbs-fullscreen', 'btn-wbs-fs-close', 'btn-gantt-zoom-out', 'btn-gantt-zoom-in',
+                  'btn-gantt-zoom-fit', 'btn-gantt-fullscreen'
+                ].includes(id) ||
+                /^btn-export-|^btn-preview-|^btn-print-/.test(id) ||
+                isSafeAction ||
                 btn.classList.contains('allow-readonly') ||
                 btn.dataset.weeklyAct === 'pdf' || btn.dataset.weeklyAct === 'load';
               if (!isSafeRead) {
                 btn.disabled = true;
                 btn.classList.add('opacity-40', 'pointer-events-none');
+              } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-40', 'pointer-events-none');
               }
             });
           } else {
